@@ -10,8 +10,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Working with RNAseq data published in Krieger et al. 2020 and Fay et al. 2023
 
-```{r}
-sapply(c("dplyr", "readr", "tidyr", "purrr", "ggplot2", "openxlsx", "matrixStats"), require, character.only=TRUE)
+```{r, echo = FALSE}
+sapply(c("dplyr", "readr", "tidyr", "purrr", "ggplot2", "ggpubr", "openxlsx", "matrixStats"), require, character.only=TRUE)
 ```
 
 ## Reading in Krieger et al. 2020 and Lupo et al. 2021 tagseq data
@@ -61,4 +61,1189 @@ rm(real_hyb_39_counts_cerAllele, real_cer_39_counts_cerAllele,
 
 ## Calculating % mapping to each allele for parents vs hybrids
 
-Note: this can only be done on tagseq samples, as Fay et al. 2023 pooled Scer and Spar parental samples
+This is a quality control step to check for counts mapping to the wrong allele in parental samples (i.e. counts from an Spar sample that map to the Scer genome). As all counts were mapped to a concatenated Scer/Spar genome, we can quantify the number of "wrong allele" counts per gene.
+
+(Note: this can only be done on the tagseq samples, as Fay et al. 2023 pooled Scer and Spar parental samples)
+
+Before we check percent mapping, we should filter out genes with very few reads total, as they'll have highly variable percents based only on a few reads.
+
+```{r}
+# normalizing function for filtering out lowly expressed 
+# genes prior to assessing mapping bias
+# (used later to actually normalize count data)
+# normalizing counts to adjust for differences in library size
+# sums .cts_cer and .cts_par to get library size, only returns
+# counts for specified allele
+# @input: count matrix (genes are rows, columns are samples)
+# @output: a count matrix normalzied for library size---integer counts in counts-per-million
+countsPerMillionAllele <- function(.cts_cer, .cts_par, .allele) {
+  librarySizes <- colSums(.cts_cer, na.rm = TRUE) + colSums(.cts_par, na.rm = TRUE)
+  if (.allele == "cer") {
+    .cts <- .cts_cer
+  }
+  if (.allele == "par") {
+    .cts <- .cts_par
+  }
+  output <- apply(.cts, 1, function(x) {
+    normalized <- (x/librarySizes)*1e6
+    return(round(normalized))
+  })
+  return(t(output)) # For some unhinged reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
+}
+# tests for countsPerMillionAllele
+test_cts <- tagseq_cer[,-1]
+test_rowIdx <- sample(c(1:nrow(test_cts)), 1)
+test_colIdx <- sample(which(grepl("cer", colnames(test_cts))), 1)
+test_count <- test_cts[test_rowIdx, test_colIdx]
+test_cpm <- countsPerMillionAllele(.cts_cer = tagseq_cer[,-1], 
+                                   .cts_par = tagseq_par[,-1],
+                                   .allele = "cer")
+((test_count/(colSums(tagseq_cer[,-1], na.rm = TRUE) + 
+                colSums(tagseq_par[,-1], na.rm = TRUE))[test_colIdx])*1e6) %>% 
+  round() # what it should be
+test_cts[test_rowIdx, test_colIdx] # what it is before using our function
+test_cpm[test_rowIdx, test_colIdx] # what it is using our function
+```
+
+Now we can calculate percent reads mapping to each allele in parental samples
+
+```{r}
+# 1) normalize to counts per million based on total 
+# library size: cer reads + par reads regardless of sample organism
+cpm_cer <- countsPerMillionAllele(.cts_cer = tagseq_cer[,-1],
+                                      .cts_par = tagseq_par[,-1],
+                                      .allele = "cer")
+cpm_par <- countsPerMillionAllele(.cts_cer = tagseq_cer[,-1],
+                                      .cts_par = tagseq_par[,-1],
+                                      .allele = "par")
+# 2) filter lowly expressed: < 30 cpm
+sum(cpm_cer == 0 & cpm_par == 0)
+isHighExpr <- (rowMeans(cpm_cer + cpm_par) > 30) |> sapply(FUN = isTRUE)
+keep_genes <- common_genes[isHighExpr]
+cpm_cer <- cpm_cer[isHighExpr,]
+cpm_par <- cpm_par[isHighExpr,]
+sum(cpm_cer == 0 & cpm_par == 0) # note there are still individual samples with zero counts
+
+# 3) check % cer of all high-enough expressed genes is close to 1 for cer samples and 0 for par samples
+plotdf <- bind_rows(bind_cols(tibble(gene = keep_genes,
+                                     allele = "cer"), cpm_cer),
+                    bind_cols(tibble(gene = keep_genes,
+                                     allele = "par"), cpm_par)) |> 
+  pivot_longer(cols = colnames(tagseq_cer[,-c(1,2)]),
+               names_to = c("sample_name"),
+               values_to = "count") |> 
+  pivot_wider(id_cols = c("sample_name", "gene"),
+              values_from = "count", names_from = "allele",
+              names_prefix = "counts_")
+plotdf$organism <- if_else(grepl("_cer_", plotdf$sample_name),
+                           true = "cerSample", 
+                           false = if_else(grepl("_par_", plotdf$sample_name),
+                                           true = "parSample",
+                                           false = "hybSample"))
+# Calculating % of reads mapping to the Scer allele 
+# for each gene/sample
+# (So % Spar is 1 - % Scer)
+plotdf$pct_cer <- if_else(plotdf$counts_cer == 0 &
+                            plotdf$counts_par == 0,
+                          true = NA,
+                          false = plotdf$counts_cer/(plotdf$counts_cer + plotdf$counts_par))
+plotdf <- drop_na(plotdf)
+sample_genes <- sample(plotdf$gene, size = 100)
+ggplot(filter(plotdf, gene %in% sample_genes),
+       aes(x = gene, y = pct_cer)) + 
+  geom_point(aes(color = organism))
+```
+
+Do any Scer/Spar samples have many incorrect gene mappings?
+
+```{r}
+sampdf <- plotdf |> filter(organism %in% c("cerSample", "parSample")) |> 
+  group_by(sample_name, organism) |> 
+  summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
+
+sampdf |> filter(organism == "cerSample") |> arrange(avg_pct_cer)
+sampdf |> filter(organism == "parSample") |> arrange(desc(avg_pct_cer))
+
+ggplot(sampdf, aes(x = avg_pct_cer)) + 
+  geom_density(aes(fill = organism)) + 
+  geom_vline(xintercept = 0.75) +
+  geom_vline(xintercept = 0.25)
+  
+filter(sampdf, (organism == "cerSample" & round(avg_pct_cer, digits = 1) < 0.8) |
+           (organism == "parSample" & round(avg_pct_cer, digits = 1) > 0.2)) |> 
+  arrange(organism, desc(avg_pct_cer))
+biased_samples <- filter(sampdf, (organism == "cerSample" & round(avg_pct_cer, digits = 1) < 0.9) |
+                           (organism == "parSample" & round(avg_pct_cer, digits = 1) > 0.1)) |> 
+  select(sample_name) |> pull()
+biased_samples
+# do these samples have small library sizes?
+bad_libsizes <- colSums(tagseq_cer[,biased_samples] + tagseq_par[,biased_samples])
+bad_libsizes |> sort()
+hist(colSums(tagseq_cer[,-1] + tagseq_par[,-1]), breaks = 50)
+abline(v = bad_libsizes, col = "red")
+```
+
+Do any genes have consistently biased mappings? These might be genes with above-average seq conservation btwn Scer and Spar and therefore shouldn't be used for allele-specific comparisons in the hybrid
+
+```{r}
+cer_genedf <- plotdf |> filter(organism == "cerSample" & !(sample_name %in% biased_samples)) |> 
+  group_by(gene) |> 
+  summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
+hist(cer_genedf$avg_pct_cer, breaks = 50)
+abline(v = 0.9, col = "red")
+par_genedf <- plotdf |> filter(organism == "parSample" &
+                                 !(sample_name %in% biased_samples)) |> 
+  group_by(gene) |> 
+  summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
+hist(par_genedf$avg_pct_cer, breaks = 50)
+abline(v = 0.1, col = "red")
+cer_biased_genes <- par_genedf |> filter(avg_pct_cer > 0.1) |> select(gene) |> pull()
+par_biased_genes <- cer_genedf |> filter(avg_pct_cer < 0.9) |> select(gene) |> pull()
+both_biased_genes <- intersect(cer_biased_genes, par_biased_genes)
+cer_biased_genes <- setdiff(cer_biased_genes, par_biased_genes)
+par_biased_genes <- setdiff(par_biased_genes, cer_biased_genes)
+# any common genes of note?
+sgd_lookup <- read_tsv("data_files/downloaded_genomes_and_features/SGD_features.tab",
+                       col_names = FALSE) |> 
+  select(X4, X5) |> unique() |> drop_na()
+# cer biased
+sgd_lookup[sgd_lookup$X4 %in% cer_biased_genes,] |> 
+  print(n = length(cer_biased_genes))
+par_genedf |> filter(gene %in% cer_biased_genes) |> 
+  arrange(desc(avg_pct_cer)) |> 
+  print(n = length(cer_biased_genes))
+# par biased
+sgd_lookup[sgd_lookup$X4 %in% par_biased_genes,] |> 
+  print(n = length(par_biased_genes))
+cer_genedf |> filter(gene %in% par_biased_genes) |> 
+  arrange(avg_pct_cer) |> 
+  print(n = length(par_biased_genes))
+# both
+sgd_lookup[sgd_lookup$X4 %in% both_biased_genes,] |> 
+  print(n = length(both_biased_genes))
+cer_genedf |> filter(gene %in% both_biased_genes) |> 
+  arrange(avg_pct_cer)
+par_genedf |> filter(gene %in% both_biased_genes) |> 
+  arrange(desc(avg_pct_cer))
+# Are these genes on the low expr end?
+cer_genedf <- left_join(cer_genedf, tibble(gene = common_genes[isHighExpr],
+                                           mean_expr = rowMeans(cpm_cer[,grepl("cer", colnames(cpm_cer))] +
+                                                                  cpm_par[,grepl("cer", colnames(cpm_cer))])),
+                        by = "gene")
+p_parbias <- ggplot(cer_genedf, aes(x = log2(mean_expr), y = avg_pct_cer)) + 
+  geom_point(aes(color = avg_pct_cer < 0.9)) +
+  ylab("% reads mapping to Scer allele")
+par_genedf <- left_join(par_genedf, tibble(gene = common_genes[isHighExpr],
+                                           mean_expr = rowMeans(cpm_cer[,grepl("par", colnames(cpm_cer))] +
+                                                                  cpm_par[,grepl("par", colnames(cpm_cer))])),
+                        by = "gene")
+p_cerbias <- ggplot(par_genedf, aes(x = log2(mean_expr), y = avg_pct_cer)) + 
+  geom_point(aes(color = avg_pct_cer > 0.1)) +
+  ylab("% reads mapping to Scer allele")
+ggarrange(p_parbias, p_cerbias, nrow = 1, ncol = 2)
+```
+
+Lastly we'll check if cer/par ratio of parents matches hybrids for each gene across samples
+
+```{r}
+plotdf$bias <- if_else(plotdf$gene %in% cer_biased_genes,
+                       true = "cer",
+                       false = if_else(plotdf$gene %in% par_biased_genes,
+                                       true = "par", false = "none"))
+plotdf_vshyb <- plotdf |> group_by(gene, organism, bias) |> 
+  summarise(mean_counts_cer = mean(counts_cer, na.rm = TRUE),
+            mean_counts_par = mean(counts_par, na.rm = TRUE)) |> 
+  drop_na() |> 
+  pivot_wider(id_cols = c("gene", "bias"), 
+              values_from = c("mean_counts_cer", "mean_counts_par"),
+              names_from = organism)
+
+# two ways to calculate read counts for each gene in the parents:
+#    1) sum the hits for the cer allele and the par allele (after all we know that all these reads came from one allele or the other)
+#    2) only count the hits for the correct parent's allele
+# in the hybrid, we no longer know which allele is correct, because both alleles are present.
+# So we can only count them one way. If we see a difference in how 
+# correlated the parental vs hybrid %cer values between the 
+# two methods of parental read counting, mapping bias
+plotdf_vshyb$par_sum <- plotdf_vshyb$mean_counts_cer_parSample + plotdf_vshyb$mean_counts_par_parSample
+plotdf_vshyb$cer_sum <- plotdf_vshyb$mean_counts_cer_cerSample + plotdf_vshyb$mean_counts_par_cerSample
+plotdf_vshyb$pct_cer_parents_sum <- plotdf_vshyb$cer_sum/(plotdf_vshyb$par_sum + plotdf_vshyb$cer_sum)
+plotdf_vshyb$pct_cer_parents_singleAllele <- plotdf_vshyb$mean_counts_cer_cerSample/(plotdf_vshyb$mean_counts_cer_cerSample + plotdf_vshyb$mean_counts_par_parSample)
+plotdf_vshyb$pct_cer_hybrids_sum <- plotdf_vshyb$mean_counts_cer_hybSample/(plotdf_vshyb$mean_counts_cer_hybSample + plotdf_vshyb$mean_counts_par_hybSample)
+# summing parental allele reads
+ggplot(plotdf_vshyb, aes(x = pct_cer_parents_sum, y = pct_cer_hybrids_sum)) +
+  geom_point(aes(color = bias), alpha = 0.5)
+ggplot(filter(plotdf_vshyb, bias != "none"), aes(x = pct_cer_parents_sum, y = pct_cer_hybrids_sum)) +
+  geom_point(aes(color = bias), alpha = 0.5)
+# single parental allele reads
+ggplot(plotdf_vshyb, aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
+  geom_point(aes(color = bias), alpha = 0.5)
+ggplot(filter(plotdf_vshyb, bias != "none"), aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
+  geom_point(aes(color = bias), alpha = 0.5)
+```
+Conclusion: slight differences in the counts of biased genes, no visible difference in the counts of unbiased genes. We can count just reads mapping to correct parent allele and remove any biased genes after adding Fay et al. 2023 samples and filtering for low expression.
+
+Here are our lists of based genes/samples:
+```{r}
+cer_biased_genes
+par_biased_genes
+both_biased_genes
+biased_samples
+```
+## Reading in Fay et al. 2023 RNAseq data and R1/R2 QC
+
+```{r}
+fay_filenames <- gsub("_ReadsPerGene.out.tab", "", 
+                      list.files("data_files/fay_counts/", 
+                                 full.names = FALSE))
+fay <- list.files("data_files/fay_counts/", full.names = TRUE) |> 
+  map(read_table, col_names = FALSE, show_col_types = FALSE) |> 
+  map2(.y = fay_filenames,
+       .f = \(x, y) {
+         if (grepl("R1", y)) {
+           output <- select(x, X1, X2)
+           return(output)}
+         if (grepl("R2", y)) {
+           output <- select(x, X1, X3)
+           return(output)}
+       }) |> # X1 are gene names, X2 is sense strand read count for R1, X3 is the sense strand for R2
+  purrr::reduce(.f = \(x, y) full_join(x = x, y = y, by = "X1"))
+
+colnames(fay) <- c("gene", fay_filenames)
+QCdf_fay <- fay[grepl("N_", fay$gene), ]
+fay <- fay[!grepl("N_", fay$gene),]
+fay <- fay[!fay$gene %in% c("cer_NA", "par_NA"),]
+fay_cer <- fay[grepl("^cer_", fay$gene),]
+fay_par <- fay[grepl("^par_", fay$gene),]
+common_genes_fay <- intersect(gsub("^cer_", "", fay_cer$gene),
+                          gsub("^par_", "", fay_par$gene))
+setequal(common_genes, common_genes_fay) # should be the same set of genes as tagseq
+rm(common_genes_fay)
+fay_cer$gene <- gsub("^cer_", "", fay_cer$gene)
+fay_par$gene <- gsub("^par_", "", fay_par$gene)
+fay_cer <- fay_cer[sapply(common_genes, \(x) which(x == fay_cer$gene)),]
+fay_par <- fay_par[sapply(common_genes, \(x) which(x == fay_par$gene)),]
+sum(fay_cer$gene == fay_par$gene)
+```
+
+Read counts from this dataset are paired end, but R1 and R2 were quantified separately because STAR wasn't pairing the correct reads with each other and R1 and R2 had unique mappings when mapped as single-end, so it didn't seem worth it to troubleshoot. But we do have to make sure that R1 and R2 have approximately the same counts for each gene:
+
+```{r}
+# 1) Are library sizes for R1 and R2 of each sample in each allele
+#    about equal? And similar to the Fay et al. 2023 alignment counts?
+sampdf <- bind_rows(tibble(sample_name = colnames(fay_cer[,-1]),
+                           lib_size = colSums(fay_cer[,-1]),
+                           allele = "cerAllele"),
+                    tibble(sample_name = colnames(fay_par[,-1]),
+                           lib_size = colSums(fay_par[,-1]),
+                           allele = "parAllele"))
+sampdf$read <- gsub("S[0-9]{1,2}_", "", sampdf$sample_name)
+sampdf$sample_name <- gsub("_R[12]", "", sampdf$sample_name)
+
+ggplot(pivot_wider(sampdf, id_cols = c("sample_name", "allele"),
+                   names_from = "read", values_from = "lib_size"), 
+       aes(x = R1, y = R2)) +
+  geom_point(aes(color = allele))
+# good agreement in libsize between reads. 
+# Scer samples have a narrower libsize range though
+# was this also seen in Fay alignment?
+fay_sampdf <- read.xlsx("data_files/downloaded_from_Fay2023/Supporting_Tables.xlsx",
+                        sheet = 4, startRow = 2, colNames = TRUE)
+sampdf <- fay_sampdf |> 
+  select(Sample, Sc_gene_reads, Sp_gene_reads) |>
+  pivot_longer(cols = c("Sc_gene_reads", "Sp_gene_reads"),
+               names_to = "allele", values_to = "lib_size_fay") |> 
+  mutate(allele = if_else(allele == "Sc_gene_reads",
+                 true = "cerAllele",
+                 false = "parAllele")) |> 
+  dplyr::rename("sample_name" = "Sample") |> 
+  right_join(sampdf, by = c("sample_name", "allele"))
+ggplot(sampdf, aes(x = lib_size_fay, y = lib_size)) +
+  geom_point(aes(color = allele, shape = read)) +
+  geom_abline(slope = 1, intercept = 0)
+# highly correlated with fay alignment, R^2 > 0.99
+lm(lib_size ~ lib_size_fay, data = sampdf) |> summary()
+
+# 2) Are read counts for each gene in each allele about equal between
+#    R1 and R2?
+R1R2df <- expand_grid(sample_name = unique(sampdf$sample_name),
+                      allele = c("cerAllele", "parAllele"))
+R1R2df$cor <- map2(R1R2df$sample_name, R1R2df$allele,
+                   \(s, a) {
+                     if (a == "cerAllele") {
+                       R1_reads <- fay_cer[,paste0(s, "_R1")]
+                       R2_reads <- fay_cer[,paste0(s, "_R2")]
+                     }
+                     if (a == "parAllele") {
+                       R1_reads <- fay_par[,paste0(s, "_R1")]
+                       R2_reads <- fay_par[,paste0(s, "_R2")]
+                     }
+                     return(cor(R1_reads, R2_reads))
+                   }) |> unlist()
+mean(R1R2df$cor)^2
+min(R1R2df$cor)^2
+```
+Based on the strong R1-R2 correlation and the similarity between our alignment and the Fay et al. 2023 alignment, we can take the mean between R1 and R2 as the read count for each allele after checking that samples/genes are in the correct order
+
+```{r}
+sum(common_genes == fay_cer[,1])
+nrow(fay_cer)
+fay_cer_R1R2 <- fay_cer
+fay_cer <- map(unique(sampdf$sample_name), \(s) {
+  return((fay_cer[,paste0(s, "_R1")] + fay_cer[,paste0(s, "_R2")])/2)
+}) |> purrr::reduce(.f = cbind)
+colnames(fay_cer) <- unique(sampdf$sample_name)
+fay_par_R1R2 <- fay_par
+fay_par <- map(unique(sampdf$sample_name), \(s) {
+  return((fay_par[,paste0(s, "_R1")] + fay_par[,paste0(s, "_R2")])/2)
+}) |> purrr::reduce(.f = cbind)
+colnames(fay_par) <- unique(sampdf$sample_name)
+# testing taking the mean
+random_Sample <- sample(unique(sampdf$sample_name), 1)
+random_gene <- sample(c(1:nrow(fay_cer)), 1)
+# cer
+# what it was
+fay_cer_R1R2[random_gene, paste0(random_Sample, "_R1")]
+fay_cer_R1R2[random_gene, paste0(random_Sample, "_R2")]
+# what it should be
+(fay_cer_R1R2[random_gene, paste0(random_Sample, "_R1")] +
+  fay_cer_R1R2[random_gene, paste0(random_Sample, "_R2")])/2
+# what it is
+fay_cer[random_gene, random_Sample]
+# par
+# what it was
+fay_par_R1R2[random_gene, paste0(random_Sample, "_R1")]
+fay_par_R1R2[random_gene, paste0(random_Sample, "_R2")]
+# what it should be
+(fay_par_R1R2[random_gene, paste0(random_Sample, "_R1")] +
+    fay_par_R1R2[random_gene, paste0(random_Sample, "_R2")])/2
+# what it is
+fay_par[random_gene, random_Sample]
+
+rm(fay_cer_R1R2, fay_par_R1R2)
+
+# setting rownames to gene names for each count matrix
+rownames(fay_cer) <- common_genes
+rownames(fay_par) <- common_genes
+tagseq_cer <- tagseq_cer |> select(!gene) |> as.matrix()
+tagseq_par <- tagseq_par |> select(!gene) |> as.matrix()
+rownames(tagseq_cer) <- common_genes
+rownames(tagseq_par) <- common_genes
+```
+
+## Combining allele-specific counts into counts matrix
+
+In the parental samples, this means limiting to those reads that mapped to the correct parent's allele (i.e. in cer samples, cer allele counts) in the hybrid this means splitting allele reads into separate columns (we'll check that library sizes are about even for hybrid allele pairs later on)
+
+```{r}
+# tagseq
+# reading in sample info
+info_tagseq <- read.xlsx("data_files/downloaded_from_Krieger2020/bioSample1to999.xlsx", na.strings="not applicable", cols=c(1,4,9,13,14,15,17)) %>%
+  bind_rows(read.xlsx("data_files/downloaded_from_Krieger2020/bioSample1000toEnd.xlsx", na.strings="not applicable", cols=c(1,4,9,13,14,15,17)))
+colnames(info_tagseq) <- c("sample_name", "organism" , "collection_date", "genotype", "experiment","time_point", "well_flask_ID")
+# removing non-WT samples
+info_tagseq <- filter(info_tagseq, genotype == "WT")
+sum(info_tagseq$sample_name %in% colnames(tagseq_cer))
+sum(info_tagseq$sample_name %in% colnames(tagseq_par))
+# creating count matrix
+counts_tagseq <- apply(info_tagseq, 1, \(x) {
+  sample_name <- x["sample_name"]
+  org <- x["organism"]
+  if (!sample_name %in% colnames(tagseq_cer)) {
+    cat("missing sample", sample_name, "\n")
+    output <- matrix(NA, nrow = nrow(tagseq_cer), ncol = 1)
+    colnames(output) <- sample_name
+    return(output)
+  }
+  if (org == "Saccharomyces cerevisiae") {
+    return(tagseq_cer[,sample_name, drop = FALSE])
+  }
+  if (org == "Saccharomyces paradoxus") {
+    return(tagseq_par[,sample_name, drop = FALSE])
+  }
+  if (org == "Saccharomyces cerevisiae x Saccharomyces paradoxus") {
+    cer_countcol <- tagseq_cer[,sample_name]
+    par_countcol <- tagseq_par[,sample_name]
+    output <- cbind(cer_countcol, par_countcol)
+    colnames(output) <- c(gsub("_hyb_", "_hyc_", sample_name),
+                          gsub("_hyb_", "_hyp_", sample_name))
+    return(output)
+  }
+}) |> Reduce(f = cbind)
+sum(rownames(counts_tagseq) == rownames(tagseq_cer))
+sum(rownames(counts_tagseq) == rownames(tagseq_par))
+# adding second row for each hybrid allele in info df
+info_tagseq <- map(c(1:nrow(info_tagseq)), \(i) {
+  x <- info_tagseq[i,]
+  org <- info_tagseq[i,"organism"]
+  if (org == "Saccharomyces cerevisiae x Saccharomyces paradoxus") {
+    x_cer <- x
+    x_par <- x
+    x_cer["sample_name"] <- gsub("_hyb_", "_hyc_", x_cer["sample_name"])
+    x_par["sample_name"] <- gsub("_hyb_", "_hyp_", x_par["sample_name"])
+    output <- bind_rows(x_cer, x_par)
+    return(output)
+  }
+  if (org != "Saccharomyces cerevisiae x Saccharomyces paradoxus") {
+    return(x)
+  }
+}) |> purrr::reduce(.f = bind_rows)
+sum(colnames(counts_tagseq) == info_tagseq$sample_name)
+
+# fay/rnaseq
+# reading in sample info
+info_fay <- read.xlsx("data_files/downloaded_from_Fay2023/Supporting_Tables.xlsx",
+                      sheet = 4, startRow = 2) |> 
+  select(Sample, Condition, Time, Strains) |> 
+  dplyr::rename("sample_name"="Sample", "experiment"="Condition",
+         "time_point_num"="Time", "parents_or_hybrid"="Strains") |> 
+  mutate(experiment = gsub("cold", "Cold", experiment)) |> 
+  mutate(experiment = gsub("heat", "Heat", experiment)) |> 
+  mutate(parents_or_hybrid = if_else(grepl("ScxSp", parents_or_hybrid),
+                       true = "hybrid", false = "parents")) |> 
+  filter(sample_name %in% colnames(fay_cer))
+
+info_fay <- left_join(info_fay, 
+                      bind_rows(expand_grid(parents_or_hybrid = "parents",
+                                            organism = c("cer", "par")),
+                                expand_grid(parents_or_hybrid = "hybrid",
+                                            organism = c("hyc", "hyp"))),
+                      by = "parents_or_hybrid",
+                      relationship = "many-to-many")
+info_fay$allele <- sapply(info_fay$organism, \(org) {
+  if_else(grepl("hy[pc]", org),
+          false = org,
+          true = if_else(grepl("hyc", org), 
+                         true = "cer", false = "par"))
+})
+info_fay$sample_name <- paste(info_fay$sample_name, info_fay$organism, sep = "_")
+info_fay$organism <- gsub("hy[cp]", "hyb", info_fay$organism)
+table(info_fay$organism, info_fay$allele)
+# combining allele-specific count matrices same as tagseq
+colnames(fay_cer)
+counts_fay <- apply(info_fay, 1, \(x) {
+  sample_name <- x["sample_name"]
+  sample_name_counts <- strsplit(sample_name, "_")[[1]][1]
+  al <- x["allele"]
+  if (!sample_name_counts %in% colnames(fay_cer)) {
+    cat("missing sample", sample_name_counts, "\n")
+    output <- matrix(NA, nrow = nrow(fay_cer), ncol = 1)
+    colnames(output) <- sample_name
+    return(output)
+  }
+  if (al == "cer") {
+    return(fay_cer[,sample_name_counts, drop = FALSE])
+  }
+  if (al == "par") {
+    return(fay_par[,sample_name_counts, drop = FALSE])
+  }
+}) |> purrr::reduce(.f = cbind)
+colnames(counts_fay) <- info_fay$sample_name
+
+# note there are 20 paralog pairs/trios with ambiguous mapping in Yue et al. 2017 annotation:
+paralog_pairs <- common_genes[(common_genes %in% grep("/", common_genes, value = TRUE))]
+paralog_pairs
+
+# at the end of this section, we have:
+# 1) count matrices for each sample with its correct allele counts
+# 2) info dataframes with sample_name matching columns of counts
+sum(colnames(counts_fay) == info_fay$sample_name)/ncol(counts_fay)
+sum(colnames(counts_tagseq) == info_tagseq$sample_name)/ncol(counts_tagseq)
+```
+## Combining counts and sample info from Fay et al. and tagseq
+
+```{r}
+### cleaning up some sample info column values in tagseq info prior to combining
+# shorten organism names
+info_tagseq$organism <- map_chr(info_tagseq$sample_name, function(s) {
+  if (grepl("_cer_", s)) {
+    return("cer")
+  }
+  if (grepl("_par_", s)) {
+    return("par")
+  }
+  if (grepl("_hy[pc]_", s)) {
+    return("hyb")
+  }
+})
+
+# add allele column
+info_tagseq$allele <- map_chr(info_tagseq$sample_name, function(s) {
+  if (grepl("_cer_", s) | grepl("_hyc_", s)) {
+    return("cer")
+  }
+  if (grepl("_par_", s) | grepl("_hyp_", s)) {
+    return("par")
+  }
+})
+
+# removing space from genotype
+info_tagseq$genotype <- gsub(" ", "", info_tagseq$genotype)
+
+# converting timepoint to integer values of minutes
+timepoint_to_int <- function(t) {
+  if (grepl("[0-9] h", t)) {
+    return(parse_number(t)*60)
+  }
+  else {
+    return(parse_number(t))
+  }
+}
+info_tagseq$time_point_num <- map_dbl(info_tagseq$time_point, timepoint_to_int)
+colnames(info_tagseq) <- map_chr(colnames(info_tagseq), gsub, pattern = "^time_point$", replacement = "time_point_str") # time_point_str is the version that we'll use for DESeq2, so we can set a reference level (but we'll have to do that later)
+
+# shortening experiment value
+info_tagseq$experiment <- map_chr(info_tagseq$experiment, function(e) {
+  if (e == "YPD to Low N") {
+    return("LowN")
+  }
+  if (e == "CellCycle") {
+    return("CC")
+  }
+  if (e == "HAP4andWTonYPD") {
+    return("HAP4")
+  }
+  if (e == "SCtoLowPi") {
+    return("LowPi")
+  }
+})
+# preserving sample information that is non-unique for replicates
+info_tagseq$condition <- paste(info_tagseq$genotype,
+                               info_tagseq$experiment,
+                               info_tagseq$time_point_num, sep="_")
+
+# In case you're wondering, the collection date is when RNA was collected, 
+# NOT when the living yeast sample was collected
+# (only like 65 samples total have a collection date within 24 hours 
+# for all 3 samples, and that's mostly because a lot of samples were collected on those dates)
+info_tagseq <- select(info_tagseq, !collection_date)
+
+### cleaning up some sample info column values in fay info prior to combining
+setdiff(colnames(info_tagseq), colnames(info_fay))
+info_fay$genotype <- "WT"
+info_fay$time_point_str <- info_fay$time_point_num |> as.character()
+info_fay$condition <- paste(info_fay$genotype,
+                            info_fay$experiment,
+                            info_fay$time_point_num, sep="_")
+table(info_fay$condition, info_fay$organism)
+info_fay <- arrange(info_fay, organism, experiment, time_point_num)
+info_fay$well_flask_ID <- c("rep1", "rep2")
+counts_fay <- counts_fay[,info_fay$sample_name] # also rearranging counts, because we index their columns by sample name
+table(info_fay$condition, info_fay$well_flask_ID) # should have 4 entries for each rep: cer/par/hyc/hyp
+setdiff(colnames(info_fay), colnames(info_tagseq))
+info_fay <- select(info_fay, !parents_or_hybrid)
+
+# last checks
+setequal(colnames(info_tagseq), colnames(info_fay))
+sum(colnames(counts_fay) == info_fay$sample_name)/ncol(counts_fay)
+sum(colnames(counts_tagseq) == info_tagseq$sample_name)/ncol(counts_tagseq)
+# combining
+sample_info <- bind_rows(info_tagseq, info_fay)
+counts <- cbind(counts_tagseq, counts_fay)
+cat("percent sample info columns in same order as count data (before matching): ",
+    sum(colnames(counts)==sample_info$sample_name)/ncol(counts))
+```
+## Renaming replicates in LowN
+
+```{r}
+sample_info |> group_by(organism, time_point_str, well_flask_ID,
+                        experiment, genotype) |> 
+  summarise(nreps = n()) |> filter((organism != "hyb" & nreps == 1) |
+                                     organism == "hyb" & nreps == 2) |> nrow()
+nrow(sample_info) - sum(sample_info$organism == "hyb")/2 # should be the same
+
+# Every LowN should have at most 3 entries by the end:
+sample_info |> filter(experiment == "LowN") |> group_by(organism,
+                                                        well_flask_ID,
+                                                        genotype) |> 
+  summarise(nreps = n()) |> filter(nreps == 3)
+sample_info |> filter(experiment == "LowN") |> group_by(organism,
+                                                        well_flask_ID,
+                                                        genotype) |> 
+  summarise(nreps = n()) |> filter(nreps != 3)
+
+# First of all, the LowN GS2018 samples have a different well_flask_ID# for the 1 hr sample than for 0 or 16 hr...
+# For each row in the well plate (A-H), these are the numbers that are paired: 1-7, 2-8, 3-9, 4-10, 5-11, 6-12
+col1 <- sapply(c("A", "B", "C", "D", "E", "F", "G", "H"), function(x) return(paste0(x, c(1:6)))) %>% as.vector()
+col2 <- sapply(c("A", "B", "C", "D", "E", "F", "G", "H"), function(x) return(paste0(x, c(7:12))))  %>% as.vector()
+gs2018_lookup <- tibble(TP1_TP3 = col1, TP2 = col2)
+
+# arbitrarily assigning each ID its TP1/TP3 (column 1 in lookup table) value
+standardizeGS2018ID <- function(id) {
+  id_clipped <- gsub("_WT2_GS2018", "", id)
+  id_clipped <- gsub("_G12_GS2018", "", id_clipped)
+  id_clipped <- gsub("_G6_GS2018", "", id_clipped)
+  rownum <- c(which(gs2018_lookup$TP1_TP3 == id_clipped), which(gs2018_lookup$TP2 == id_clipped))
+  new_id <- gsub(gs2018_lookup$TP2[rownum], gs2018_lookup$TP1_TP3[rownum], id)
+  return(new_id)
+}
+# tests for standardizeGS2018ID
+standardizeGS2018ID("G8_G12_GS2018")
+
+# before applying
+sample_info |> filter(organism %in% c("cer", "par") & grepl("GS2018", well_flask_ID)) |> 
+  select(well_flask_ID) |> table() 
+sample_info |> filter(organism == "hyb" & grepl("GS2018", well_flask_ID)) |> 
+  select(well_flask_ID) |> table() 
+
+# applying to GS2018 samples
+GS2018_idxs <- grepl("GS2018", sample_info$well_flask_ID)
+sample_info$well_flask_ID[GS2018_idxs] <- sapply(sample_info$well_flask_ID[GS2018_idxs],
+                                                 standardizeGS2018ID)
+
+# after applying
+sample_info |> filter(organism %in% c("cer", "par") & grepl("GS2018", well_flask_ID)) |> 
+  select(well_flask_ID) |> table() 
+sample_info |> filter(organism == "hyb" & grepl("GS2018", well_flask_ID)) |> 
+  select(well_flask_ID) |> table() 
+# hybrids should have 6, 2 alleles x 3 timepoints, Parents have just 3 timepoints. Except for H1, which is missing a timepoint
+# giving the GS2018s their proper well IDs in sample_info
+
+# getting rid of the "GS" part of the rep name, which can be different for the same
+# sample at different timepoints and replacing it with the tag immediately before
+# the well_flask_ID in the sample name for non-unique well_flask_IDs
+sample_info$well_flask_ID <- gsub("_GS.*", "", sample_info$well_flask_ID)
+sample_info$new_id <- map2(sample_info$well_flask_ID, 
+             sample_info$sample_name, \(i, s) {
+               ex <- sample_info |> filter(sample_name == s) |> 
+                 select(experiment) |> pull()
+               if (ex == "LowN") {
+                 org <- sample_info |> filter(sample_name == s) |> 
+                   select(organism) |> pull()
+                 is_duplicate <- sample_info |> 
+                   filter(experiment == "LowN" & 
+                            organism == org &
+                            well_flask_ID == i) |> 
+                   group_by(time_point_str) |> 
+                   summarise(n_per_tp = n())
+                 if (any(is_duplicate$n_per_tp > 1)) {
+                   s <- gsub("_GS.*", "", s)
+                   new_tag <- gsub(i, "", s) |> strsplit(split = "_") |> 
+                     unlist() |> tail(n = 1)
+                   return(paste(new_tag, i, sep = "_"))
+                 }
+                 else {
+                   return(i)
+                 }
+               }
+               else {
+                 return(i)
+               }
+             }) |> unlist()
+# checking for non-unique IDs
+sample_info |> 
+  group_by(new_id, organism, experiment, time_point_str, genotype) |> 
+  summarise(n_per_condition = n()) |> 
+  filter((organism != "hyb" & n_per_condition > 1) |
+           (organism == "hyb" & n_per_condition > 2)) # should be empty
+
+# updating well_flask_ID 
+sample_info$well_flask_ID <- sample_info$new_id
+sample_info <- select(sample_info, -"new_id")
+
+# checking example (two C5_A10s for the 960 timepoint)
+sample_info |> filter(experiment == "LowN" & organism == "par" &
+                        genotype == "GCN4delete")
+# should have additional tag P1 or P2 on the C5_A10s
+```
+
+## Misc. filtering of additional samples and genes
+
+```{r}
+# Removeing Cell Cycle timepoints after HU shock b/c Scer and Spar don't
+# have the same periodicity of their cell cycles
+sample_info |> filter(experiment == "CC") |> 
+  select(time_point_str, time_point_num) |> unique() |> arrange(time_point_num)
+keep <- !(sample_info$experiment == "CC" & sample_info$time_point_num > 125)
+sample_info <- sample_info[keep,]
+counts <- counts[,(colnames(counts) %in% sample_info$sample_name)]
+
+# Whittling LowPi to just WT --- not enough of them to warrant the complication of including a second genotype (plus they're only present in -5 and 180 min samples)
+sample_info %>% filter(experiment == "LowPi") %>% select(genotype) %>% table()
+# species
+keep <- !(sample_info$experiment == "LowPi" & sample_info$genotype == "PHO4delete")
+sample_info <- sample_info[keep,]
+counts <- counts[,(colnames(counts) %in% sample_info$sample_name)]
+
+# our 46 TF deletions
+TFdel_lookup <- read_delim("data_files/downloaded_genomes_and_features/yeastract_46TFs.csv", col_names = FALSE, col_select = c(1,2), delim = ";") # gets some warnings, but so far has been fine
+colnames(TFdel_lookup) <- c("common", "systematic")
+
+# Check for missing (NA) values
+geneHasNAs <- apply(counts, 1, function(x) {
+  isNA <- sapply(x, is.na)
+  return(any(isNA))
+}) 
+sum(geneHasNAs) # should have 0
+
+#### Removing samples with small library sizes ####
+# Exploring library sizes (un-normalized)
+libsizes <- colSums(counts) # these counts include all samples, hybrid and parental
+ggplot(tibble(libsize = libsizes), aes(x = libsize)) + geom_histogram()
+min(libsizes)
+max(libsizes)
+median(libsizes)
+sum(libsizes < 100000)
+sort(libsizes)[c(1:20)] # a few of the CC have fairly tiny libraries, and will need to be removed before normalizing (or else you get ridiculously high outlier counts from small counts --- ex) (5/7000)*1e6 = 714 whereas (5/200000)*1e6 = 25)
+# are the hybrid reps library sizes correlated between hyc and hyp alleles?
+plotdf <- tibble(sample_name = names(libsizes[grepl("_hy[pc]", names(libsizes))]),
+                 libsize = libsizes[grepl("_hy[pc]", names(libsizes))]) |> 
+  left_join(y = select(filter(sample_info, organism == "hyb"), sample_name, experiment), by = "sample_name")
+plotdf$allele <- if_else(grepl(pattern = "_hyc_", plotdf$sample_name),
+                         true = "cer", false = "par")
+plotdf$sample_name <- gsub("_hy[pc]_", "_hyb_", plotdf$sample_name)
+plotdf <- plotdf |> pivot_wider(id_cols = c("sample_name", "experiment"), 
+                                names_from = allele,
+                                values_from = libsize)
+ggplot(plotdf, aes(x = cer, y = par)) + 
+  geom_point(aes(color = experiment), alpha = 0.5) +
+  geom_text(data = filter(plotdf, cer > par*1.5 | par > cer*1.5),
+            aes(label = sample_name), check_overlap = TRUE, color = "green") +
+  geom_abline(intercept = 0, slope = 1, color = "red") +
+  geom_rect(xmin = 0, xmax = 100000, ymin = 0, ymax = 100000, color = "blue", alpha = 0) +
+  geom_vline(xintercept = 100000, color = "blue", alpha = 0.5) +
+  geom_hline(yintercept = 100000, color = "blue", alpha = 0.5)
+# based on this plot, removing cell cycle 10 for having libraries too biased to one allele
+# (the samples within the blue box will be removed by our library size threshold below)
+# and no other samples should be below the blue lines but not within the blue box
+hyblib_biased_samples <- c("WT_10_hyc_CellCycle_rep1",
+                           "WT_10_hyp_CellCycle_rep1") # not an issue once we removed CC samples past TP8
+# colSums(counts[,hyblib_biased_samples])
+# # removing
+# sample_info <- filter(sample_info, !(sample_name %in% hyblib_biased_samples))
+# counts <- counts[,colnames(counts) %in% sample_info$sample_name]
+
+# generating log2-cpm counts
+avgLibSizeInMillions <- mean(libsizes)/1e6
+counts_lcpm <- log2((counts/libsizes)*1e6 + 2/avgLibSizeInMillions) # equivalent to edgeR::cpm with log=TRUE
+
+# checking if paradoxus genes are *all* expressed less than cerevisiae pre-normalization
+# (already checked this more elegantly in hybrid, where samples can be paired)
+cer_par_mean_expr_diffs_parents <- rowMeans(counts[,sample_info$allele == "cer"]) - rowMeans(counts[,sample_info$allele == "par"])
+hist(sign(cer_par_mean_expr_diffs_parents)*log(abs(cer_par_mean_expr_diffs_parents)), breaks = 50) 
+
+# Does one species tend to have larger libsizes?
+plotdf <- tibble(libsize_cer = colSums(counts[, grepl("_cer", colnames(counts))])[sample(c(1:400), 400)],
+                 libsize_par = colSums(counts[, grepl("_par", colnames(counts))])[sample(c(1:400), 400)],
+                 libsize_hyc = colSums(counts[, grepl("_hyc", colnames(counts))])[sample(c(1:400), 400)],
+                 libsize_hyp = colSums(counts[, grepl("_hyp", colnames(counts))])[sample(c(1:400), 400)]) %>%
+  pivot_longer(cols = c(libsize_cer, libsize_par, libsize_hyc, libsize_hyp))
+ggplot(filter(plotdf, name %in% c("libsize_cer", "libsize_par")), aes(x = name, y = value)) + geom_boxplot(aes(fill = name)) 
+t.test(value ~ name, filter(plotdf, name %in% c("libsize_cer", "libsize_par")))
+ggplot(filter(plotdf, name %in% c("libsize_hyc", "libsize_hyp")), aes(x = name, y = value)) + geom_boxplot(aes(fill = name))
+t.test(value ~ name, filter(plotdf, name %in% c("libsize_hyc", "libsize_hyp"))) 
+# par libraries are smaller than cer, difference isn't significant between hybrid alleles,
+# interestingly this is the opposite of what is seen in the Heat/Cold data alone:
+plotdf <- tibble(libsize_cer = colSums(counts[, grepl("_cer", colnames(counts)) & sample_info$experiment %in% c("Heat", "Cold")]),
+                 libsize_par = colSums(counts[, grepl("_par", colnames(counts)) & sample_info$experiment %in% c("Heat", "Cold")]),
+                 libsize_hyc = colSums(counts[, grepl("_hyc", colnames(counts)) & sample_info$experiment %in% c("Heat", "Cold")]),
+                 libsize_hyp = colSums(counts[, grepl("_hyp", colnames(counts)) & sample_info$experiment %in% c("Heat", "Cold")])) %>%
+  pivot_longer(cols = c(libsize_cer, libsize_par, libsize_hyc, libsize_hyp))
+ggplot(filter(plotdf, name %in% c("libsize_cer", "libsize_par")), aes(x = name, y = value)) + geom_boxplot(aes(fill = name)) 
+t.test(value ~ name, filter(plotdf, name %in% c("libsize_cer", "libsize_par")))
+ggplot(filter(plotdf, name %in% c("libsize_hyc", "libsize_hyp")), aes(x = name, y = value)) + geom_boxplot(aes(fill = name))
+t.test(value ~ name, filter(plotdf, name %in% c("libsize_hyc", "libsize_hyp"))) 
+```
+
+## Normalizing to counts per million
+
+```{r}
+# normalizing counts to adjust for differences in library size
+# @input: count matrix (genes are rows, columns are samples)
+# @output: a count matrix normalzied for library size---integer counts in counts-per-million
+countsPerMillion <- function(.cts) {
+  librarySizes <- colSums(.cts, na.rm = TRUE)
+  output <- apply(.cts, 1, function(x) {
+    normalized <- (x/librarySizes)*1e6
+    return(round(normalized))
+  })
+  return(t(output)) # For some unhinged reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
+}
+# tests for countsPerMillion
+test_cts <- counts[,grepl("_par", colnames(counts))]
+test_rowIdx <- sample(c(1:nrow(test_cts)), 1)
+test_colIdx <- sample(c(1:ncol(test_cts)), 1)
+test_count <- test_cts[test_rowIdx, test_colIdx]
+test_cpm <- countsPerMillion(test_cts)
+test_cpm_cpm <- countsPerMillion(test_cpm)
+((test_count/colSums(test_cts, na.rm = TRUE)[test_colIdx])*1e6) %>% round() # what it should be
+test_cts[test_rowIdx, test_colIdx] # what it is before using our function
+test_cpm[test_rowIdx, test_colIdx] # what it is using our function
+test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (should be the same as test_cpm)
+
+### eliminating samples with too-small libraries
+# Example of how small libraries skew data, YIL134W in CC before normalizing:
+test_counts <- counts[, (grepl("_cer", colnames(counts)) | 
+                           grepl("_par", colnames(counts))) &
+                        grepl("_CellCycle_", colnames(counts))]
+libSizes <- colSums(test_counts)
+# before normalizing:
+genedf <- tibble(expr = as.numeric(test_counts["YIL134W",]),
+                 libsize = libSizes,
+                 sample_name = colnames(test_counts))
+ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == "WT_34_par_CellCycle_rep2")) + theme(legend.position = "none")
+# after normalizing:
+test_counts_cpm <- countsPerMillion(test_counts)
+genedf <- tibble(expr = as.numeric(test_counts_cpm["YIL134W",]),
+                 libsize = libSizes,
+                 sample_name = colnames(test_counts))
+ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == "WT_34_par_CellCycle_rep2")) + theme(legend.position = "none")
+# At a certain lib size, there appears to begin to be a correlation between count and libsize, what size is that?
+libSizes <- colSums(counts)
+gene_idx <- sample(rownames(counts), 1) # rerun to make sure most genes have expr and libsize correlated past cutoff of 200k libsize
+plotdf <- tibble(libsize = libSizes, 
+                 expr = as.numeric(counts[gene_idx,]), 
+                 gene_name = gene_idx,
+                 sample_name = colnames(counts)) |> 
+  left_join(select(sample_info, sample_name, experiment),
+            by = "sample_name")
+ggplot(plotdf, aes(x = libsize, y = expr)) + 
+  geom_point(aes(color = experiment)) + geom_vline(xintercept = 100000, col = "red") + theme_classic() + ggtitle(gene_idx)
+
+# Eliminating samples with libsize < 100,000
+keep <- colSums(counts) > 100000
+sum(keep)/length(keep)
+sum(!keep)
+keep_samples <- colnames(counts)[keep]
+sample_info <- sample_info |> filter(sample_name %in% keep_samples)
+counts <- counts[, sample_info$sample_name]
+
+### Normalizing by length
+# Normalizing Fay et al. 2023 data to cpm taking account of gene length
+# following this paper: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7373998/
+# This is paried-end (one count = one pair), stranded, poly-A selected,
+# so we should be safe to compare these counts to our tag-seq cpm counts
+# (although if they weren't polyA selected or weren't stranded, direct comparison 
+# isn't advisable b/c of biases in which subsets of the transcriptome are counted)
+
+# normalizing with this strategy: 
+# for each gene i, first obtain gene_i = 10^6 * (raw counts for gene_i/length(gene_i))
+# then divide each gene by the new "library size" (the sum of these ^ across all genes in the sample)
+
+# aka CPM = 10^6 * [(raw counts for gene_i/length(gene_i))/sum_i=1^i=nGenes(raw counts for gene_i/length(gene_i))]
+
+# gene lengths from annotation file:
+# Scer
+gene_lens_scer <- read_tsv("data_files/downloaded_genomes_and_features/S288C.all_feature.gff",
+                      col_names = FALSE, col_select = c(3,4,5,9)) |> 
+  dplyr::rename("feature"="X3",
+         "start"="X4",
+         "end"="X5",
+         "gene_name"="X9") |> 
+  filter(feature == "gene") |> 
+  as_tibble()
+gene_lens_scer$gene_name <- sapply(gene_lens_scer$gene_name, \(g) {
+  out_g <- gsub("Name=", "", strsplit(g, split = ";")[[1]][2])
+  return(out_g)
+}) |> as.character()
+sum(gene_lens_scer$end > gene_lens_scer$start)
+sum(gene_lens_scer$end < gene_lens_scer$start)
+gene_lens_scer$length <- gene_lens_scer$end - gene_lens_scer$start
+# Spar
+gene_lens_spar <- read_tsv("data_files/downloaded_genomes_and_features/CBS432.all_feature.gff",
+                           col_names = FALSE, col_select = c(3,4,5,9)) |> 
+  dplyr::rename("feature"="X3",
+         "start"="X4",
+         "end"="X5",
+         "gene_name"="X9") |> 
+  filter(feature == "gene") |> 
+  as_tibble()
+gene_lens_spar$gene_name <- sapply(gene_lens_spar$gene_name, \(g) {
+  out_g <- gsub("Name=", "", strsplit(g, split = ";")[[1]][2])
+  return(out_g) |> as.character()
+})
+sum(gene_lens_spar$end > gene_lens_spar$start)
+sum(gene_lens_spar$end < gene_lens_spar$start)
+gene_lens_spar$length <- gene_lens_spar$end - gene_lens_spar$start
+gene_lens_scer <- gene_lens_scer |> select(gene_name, length) |> 
+  filter(gene_name %in% common_genes) |> unique()
+gene_lens_spar <- gene_lens_spar |> select(gene_name, length) |> 
+  filter(gene_name %in% common_genes) |> unique()
+# check that duplicated genes have about the same length before removing duplicates
+gene_lens_scer[gene_lens_scer$gene_name %in% gene_lens_scer$gene_name[duplicated(gene_lens_scer$gene_name)],] |> 
+  arrange(gene_name)
+gene_lens_scer <- gene_lens_scer[!duplicated(gene_lens_scer$gene_name),]
+gene_lens_spar[gene_lens_spar$gene_name %in% gene_lens_spar$gene_name[duplicated(gene_lens_spar$gene_name)],] |> 
+  arrange(gene_name)
+# the ones in Scer are fine, but a few in Spar are concerning:
+two_lengths_spar <- c("YAR028W", "YBR140C", 
+                      "YDR025W/YBR048W", "YPL091W")
+# what do they look like in Scer?
+gene_lens_scer |> filter(gene_name %in% two_lengths_spar)
+# looks like the larger length is most accurate
+gene_lens_spar <- gene_lens_spar |> arrange(gene_name, desc(length))
+gene_lens_spar <- gene_lens_spar[!duplicated(gene_lens_spar$gene_name),]
+gene_lens_spar |> filter(gene_name %in% two_lengths_spar)
+# how many genes have significantly different lengths in both species?
+plotdf <- left_join(x = dplyr::rename(select(gene_lens_scer, gene_name, length), "Scer"="length"),
+                    y = dplyr::rename(select(gene_lens_spar, gene_name, length), "Spar"="length"),
+                    by = "gene_name")
+ggplot(plotdf, aes(x = Scer, y = Spar)) + geom_point()
+# most are the same exact length, a few have slightly different lengths
+# arranging gene_lens into same gene order as count matrices
+sum(gene_lens_scer$gene_name == common_genes) # pre-arranging
+gene_lens_scer <- gene_lens_scer[sapply(common_genes, \(g) which(gene_lens_scer$gene_name == g)),]
+sum(gene_lens_scer$gene_name == common_genes) # after
+sum(gene_lens_spar$gene_name == common_genes) # pre-arranging
+gene_lens_spar <- gene_lens_spar[sapply(common_genes, \(g) which(gene_lens_spar$gene_name == g)),]
+sum(gene_lens_spar$gene_name == common_genes) # after
+
+# @input: counts matrix, vector of lengths in same order as rows in .cts
+countsPerMillionWithLength <- function(.cts, .lens) {
+  rnames <- rownames(.cts)
+  cnames <- colnames(.cts)
+  if (length(.lens) != nrow(.cts)) {
+    stop("gene lengths are not same length as nrow counts", length(.lens),
+         "vs", nrow(.cts), "\n")
+  }
+  genes_over_length <- map(rownames(.cts), \(g) {
+    gene_vec <- .cts[g,] |> as.numeric()
+    gene_len <- .lens[which(rownames(.cts) == g)]
+    return(gene_vec/gene_len)
+  }) |> purrr::reduce(.f = rbind)
+  lib_sums <- colSums(genes_over_length)
+  output <- apply(genes_over_length, 1, \(x) {return(x/lib_sums)}) |> t()
+  rownames(output) <- rnames
+  colnames(output) <- cnames
+  return(round(output*10^6))
+}
+# tests for countsPerMillionWithLength
+test_cts <- counts_fay
+test_rowIdx <- sample(c(1:nrow(test_cts)), 1)
+test_colIdx <- sample(c(1:ncol(test_cts)), 1)
+test_count <- test_cts[test_rowIdx, test_colIdx]
+test_lens <- gene_lens_scer$length |> as.numeric()
+sum(gene_lens_scer$gene_name == rownames(test_cts))/nrow(test_cts) # should be 100%
+test_cpm <- countsPerMillionWithLength(test_cts, test_lens)
+# test_cpm_cpm <- countsPerMillionWithLength(test_cpm, test_lens)
+round(((test_count/test_lens[test_rowIdx])/sum(test_cts[,test_colIdx]/test_lens))*10^6) # what it should be
+test_cts[test_rowIdx, test_colIdx] # what it is before using our function
+test_cpm[test_rowIdx, test_colIdx] # what it is using our function
+# test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (unlike the TagSeq normalization, this cannot be run over and over again)
+
+counts_unnorm <- counts
+
+# normalizing Fay et al. 2023 by length in each species
+fay_cer <- counts[,sample_info$experiment %in% c("Heat", "Cold") &
+                    sample_info$allele == "cer"]
+sum(gene_lens_scer$gene_name == rownames(fay_cer))/nrow(fay_cer)
+fay_cer_cpm <- countsPerMillionWithLength(.cts = fay_cer,
+                                      .lens = gene_lens_scer$length)
+fay_par <- counts[,sample_info$experiment %in% c("Heat", "Cold") &
+                    sample_info$allele == "par"]
+sum(gene_lens_spar$gene_name == rownames(fay_par))/nrow(fay_par)
+fay_par_cpm <- countsPerMillionWithLength(.cts = fay_par,
+                                      .lens = gene_lens_spar$length)
+# normalizing tagseq not by length
+tagseq_cpm <- countsPerMillion(counts[,!sample_info$experiment %in% c("Heat", "Cold")])
+# re-combining
+counts <- cbind(tagseq_cpm, fay_cer_cpm, fay_par_cpm)
+counts <- counts[,sample_info$sample_name]
+
+sum(rownames(counts_unnorm) == rownames(counts))/nrow(counts)
+sum(colnames(counts_unnorm) == colnames(counts))/ncol(counts)
+```
+
+## Splitting off hybrid counts
+
+```{r}
+counts_allele <- counts[, grepl("_hy[pc]", colnames(counts))]
+counts <- counts[, !grepl("_hy[pc]", colnames(counts))]
+sample_info_allele <- sample_info |> filter(organism == "hyb")
+sample_info <- sample_info |> filter(organism != "hyb")
+counts_unnorm_allele <- counts_unnorm[, grepl("_hy[pc]", colnames(counts_unnorm))]
+counts_unnorm <- counts_unnorm[, !grepl("_hy[pc]", colnames(counts_unnorm))]
+
+dim(counts)
+dim(counts_unnorm)
+dim(sample_info)
+dim(counts_allele)
+dim(counts_unnorm_allele)
+dim(sample_info_allele)
+sample_info |> select(sample_name, organism, allele) |> slice_sample(n = 10)
+sample_info_allele |> select(sample_name, organism, allele) |> slice_sample(n = 10)
+# checking that every hybrid sample name has exactly one cer and one par row
+sample_info_allele |> select(sample_name, organism, allele) |> 
+  group_by(sample_name) |> 
+  summarise(ncernpar = unique(table(allele))) |> 
+  select(ncernpar) |> table()
+sample_info_allele |> select(allele) |> table()
+```
+
+## Visualizing expression
+
+```{r}
+# one random gene
+random_gene <- sample(rownames(counts)[which(rowSums(counts, na.rm = TRUE) > 100000)], 1)
+oneGeneBoxplots <- function(.gene_idx) {
+  expr_cer <- counts[.gene_idx, which(sample_info$organism == "cer")]
+  expr_par <- counts[.gene_idx, which(sample_info$organism == "par")]
+  expr_hyc <- counts_allele[.gene_idx, which(sample_info_allele$allele == "cer")]
+  expr_hyp <- counts_allele[.gene_idx, which(sample_info_allele$allele == "par")]
+  plotdf <- tibble(expr = c(expr_cer, expr_par, expr_hyc, expr_hyp),
+                   allele = c(rep("cer", length(expr_cer)),
+                              rep("par", length(expr_par)),
+                              rep("hyc", length(expr_hyc)),
+                              rep("hyp", length(expr_hyp))))
+  p <- ggplot(plotdf, aes(x = allele, y = log2(expr + 1))) + geom_boxplot()
+  return(p)
+}
+oneGeneBoxplots(random_gene)
+
+# all genes
+mean_expr_cer <- rowMeans(counts[, which(sample_info$organism == "cer")], na.rm = TRUE)
+mean_expr_par <- rowMeans(counts[, which(sample_info$organism == "par")], na.rm = TRUE)
+mean_expr_hyc <- rowMeans(counts_allele[, which(sample_info_allele$allele == "cer")], na.rm = TRUE)
+mean_expr_hyp <- rowMeans(counts_allele[, which(sample_info_allele$allele == "par")], na.rm = TRUE)
+plotdf <- tibble(cer_expr = c(mean_expr_cer, mean_expr_hyc),
+                 par_expr = c(mean_expr_par, mean_expr_hyp),
+                 type = c(rep("parent", length(rownames(counts))), rep("hybrid", length(rownames(counts)))))
+ggplot(plotdf, aes(x = log(cer_expr), y = log(par_expr))) + geom_point(aes(color = type))
+# Mean expression of most genes is highly correlated between species and between hybrid alleles
+```
+
+## Visualizing lowly expressed genes
+
+```{r}
+plotdf <- tibble(meanExpr = apply(counts_lcpm, 1, mean),
+                 sdExpr = apply(counts_lcpm, 1, sd))
+
+# out of curiousity, here's the mean expression for TFs in the 
+# genotypes where they are deleted (in cpm)
+meansdel <- map(c(1:nrow(TFdel_lookup)), function(i) {
+  genedel <- TFdel_lookup$common[i]
+  gene_idx <- TFdel_lookup$systematic[i]
+  delcounts <- counts_lcpm[rownames(counts_lcpm) == gene_idx, 
+                           grepl(genedel, colnames(counts_lcpm))] |> as.numeric()
+  return(mean(delcounts))
+}) %>% unlist()
+mean(meansdel, na.rm = TRUE)
+
+# choosing cutoff expression (in not-log scale)
+ggplot(data = plotdf, aes(x = meanExpr, y = sdExpr)) + geom_hex(bins = 70) + 
+  geom_vline(xintercept = 5, color = "red")
+# a good cutoff is where the lower bound of the sd stops being related to mean (i.e. becomes horizontal)
+# lowly expressed genes will systematically have higher variance (or extremely low variance for that tiny tail of genes with high 0 counts)
+2^5
+cutoffExpr <- 30
+
+# Note: we only want to filter genes that are lowly expressed in cer, par, hyc and hyp
+# Example of why this matters: YPR199C
+oneGeneBoxplots("YPR199C") # strongly expressed in cer and hyc
+keep_overall <- apply(counts_lcpm, 1, mean) > 5
+"YPR199C" %in% rownames(counts)[keep_overall] # wouldn't be kept by overall cutoff threshold
+```
+
+## Removing hybrid par allele gene deletion blocks 
+
+While running this analysis, we discovered that these two blocks of contiguous genes are deleted in the F1 hybrid paradoxus allele in the CellCycle experiment. (They will be removed from the CellCycle experiment specifically in data_for_figure_scripts.R)
+```{r}
+omit_list <- c("YLR078C", "YLR077W", "YLR074C", "YLR072W", "YLR075W", "YLR073C", # large hybrid CC paradoxus haplotype deletion
+               "YNL247W", "YNL244C")
+# illustrating with one of these genes:
+gene_idx <- sample(omit_list, 1)
+# parents
+genedf <- tibble(expr = as.numeric(counts[gene_idx,])) |> 
+  bind_cols(sample_info) |> pivot_wider(id_cols = c("condition", "experiment"),
+                                        names_from = "allele", values_from = "expr",
+                                        values_fn = mean)
+ggplot(genedf, aes(x = cer, y = par)) + geom_point(aes(color = experiment))
+# hybrid
+genedf <- tibble(expr = as.numeric(counts_allele[gene_idx,])) |> 
+  bind_cols(sample_info_allele) |> pivot_wider(id_cols = c("condition", "experiment"),
+                                               names_from = "allele", values_from = "expr",
+                                               values_fn = mean)
+ggplot(genedf, aes(x = cer, y = par)) + geom_point(aes(color = experiment))
+```
+
+## Heat/Cold QC
+
+Comparing our in-house alignment to the Fay et al. 2023 alignment with a PCA
+
+```{r}
+fay_inHouse <- cbind(counts[,sample_info$experiment %in% c("Heat", "Cold")],
+                     counts_allele[,sample_info_allele$experiment %in% c("Heat", "Cold")])
+load("data_files/Cleaned_Fay_Counts.RData")
+load("data_files/Cleaned_Fay_Counts_Allele.RData")
+fay_2023 <- cbind(fay, fay_allele)
+colnames(fay_inHouse) <- colnames(fay_inHouse) |> 
+  map(.f = \(nm) {
+    nmnum <- parse_number(nm)
+    if_else(grepl(pattern = "_cer", nm) | grepl(pattern = "_hyc", nm),
+            true = paste0("Sc", nmnum),
+            false = paste0("Sp", nmnum))
+  }) |> unlist()
+common_cols_fay_pca <- intersect(colnames(fay_2023), colnames(fay_inHouse))
+fay_2023 <- fay_2023[, common_cols_fay_pca]
+fay_inHouse <- fay_inHouse[, common_cols_fay_pca]
+colnames(fay_2023) <- paste0(colnames(fay_2023), "_2023")
+colnames(fay_inHouse) <- paste0(colnames(fay_inHouse), "_inHouse")
+common_genes_fay_pca <- intersect(rownames(fay_2023),
+                                  rownames(fay_inHouse))
+# sample pca
+pcamat <- cbind(fay_2023[common_genes_fay_pca,], 
+                fay_inHouse[common_genes_fay_pca,])
+# pcamat <- pcamat[rowMeans(pcamat) > 30 & rownames(pcamat) != "YFL014W",]
+pcamat <- pcamat[rowMeans(pcamat) > 30,]
+covmat <- cov(pcamat)
+colnames(covmat) <- colnames(pcamat)
+pca_res <- prcomp(covmat)
+sample_info_pca <- sample_info |> filter(experiment %in% c("Heat", "Cold")) |> 
+  mutate(sample_name = map(sample_name, .f = \(nm) {
+    nmnum <- parse_number(nm)
+    if_else((grepl(pattern = "_cer", nm) | grepl(pattern = "_hyc", nm)),
+            true = paste0("Sc", nmnum),
+            false = paste0("Sp", nmnum))
+  }) |> unlist())
+sample_info_pca <- sample_info_allele |> filter(experiment %in% c("Heat", "Cold")) |> 
+  mutate(sample_name = map(sample_name, .f = \(nm) {
+    nmnum <- parse_number(nm)
+    if_else((grepl(pattern = "_cer", nm) | grepl(pattern = "_hyc", nm)),
+            true = paste0("Sc", nmnum),
+            false = paste0("Sp", nmnum))
+  }) |> unlist()) |> bind_rows(sample_info_pca)
+pcadf <- tibble(pc1 = pca_res$x[,1], 
+                pc2 = pca_res$x[,2],
+                sample_name = colnames(covmat)) |> 
+  mutate(sample_name_nonunique = gsub(pattern = "_2023", 
+                                      replacement = "", 
+                                      gsub(pattern = "_inHouse", 
+                                           replacement = "",
+                                           sample_name))) |> 
+  left_join(y = sample_info_pca, by = c("sample_name_nonunique"="sample_name"))
+var_pct <- summary(pca_res)$importance[2, 1:2] # % variance explained
+pcadf$sample_num <- parse_number(pcadf$sample_name_nonunique)
+pcadf$alignment <- if_else(grepl(pattern = "_2023", pcadf$sample_name),
+                           true = "2023", false = "inHouse")
+pcadf$tag <- paste0(substring(pcadf$experiment, 1, 1),
+                    pcadf$time_point_num)
+# all 3
+ggplot(pcadf,
+       aes(x = pc1, y = pc2)) + 
+  geom_line(aes(group = sample_name_nonunique,
+                color = organism)) +
+  geom_text(aes(label = tag,
+                color = alignment)) +
+  xlab(paste0("PC1, ", round(var_pct[1]*100, digits = 0), 
+              "% of variance")) + 
+  ylab(paste0("PC2, ", round(var_pct[2]*100, digits = 0), 
+              "% of variance")) +
+  theme(legend.title = element_blank())
+```
+Those two Scer Heat 30min sample outliers are due to one gene, YFL014W (HSP12), (run the PCA without this gene and the outlier samples will no longer be outliers), which had ~100000 reads in our in-house alignment but an order of magnitude fewer reads in Fay et al. 2023. It is a highly expressed gene in heat shock. Good to keep in mind this outlier.
+
+## Saving
+
+```{r}
+# final number of genes and samples (should all be the same number of rows)
+dim(counts)
+dim(counts_allele)
+
+save(counts, sample_info,
+     cer_biased_genes,
+     par_biased_genes,
+     both_biased_genes,
+     biased_samples, file = "data_files/Cleaned_Count_Data.RData")
+save(counts_allele, sample_info_allele, file = "data_files/Cleaned_Count_Data_AlleleSpecific.RData")
+```
+

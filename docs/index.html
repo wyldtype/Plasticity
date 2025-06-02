@@ -11,7 +11,7 @@
 
 
 
-<title>My Website</title>
+<title>Evolution of regulatory networks controlling plasticity in gene expression between Saccharomyces yeast</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -245,8 +245,17 @@ $(document).ready(function () {
         <li>
   <a href="index.html">Home</a>
 </li>
-<li>
-  <a href="clean_data.html">Clean Data</a>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Data Cleaning
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clean_data.html">Clean Data</a>
+    </li>
+  </ul>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -260,22 +269,47 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">My Website</h1>
+<h1 class="title toc-ignore">Evolution of regulatory networks
+controlling plasticity in gene expression between Saccharomyces
+yeast</h1>
 
 </div>
 
 
-<p>Hello, Website!</p>
-<p>For more information about simple R Markdown websites, please read
-the documentation at <a
-href="https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html"
-class="uri">https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html</a>.</p>
-<p>Please also note that simple R Markdown sites are <em>not</em> based
-on <strong>blogdown</strong>. They are probably good for websites with
-only a few Rmd documents. For larger-scale and more sophisticated
-websites (such as blogs), you may want to use <strong>blogdown</strong>
-instead: <a href="https://github.com/rstudio/blogdown"
-class="uri">https://github.com/rstudio/blogdown</a>.</p>
+<p>Code used in Redhuis et al. “Evolution of regulatory networks
+controlling plasticity in gene expression between Saccharomyces yeast”.
+Scripts are organized into 3 categories: 1) Data cleaning, 2) Data
+analysis, 3) Figures for paper</p>
+<p>Following this tutorial: <a
+href="https://rstudio4edu.github.io/rstudio4edu-book/make-rmd.html"
+class="uri">https://rstudio4edu.github.io/rstudio4edu-book/make-rmd.html</a></p>
+<div id="abstract" class="section level2">
+<h2>Abstract</h2>
+<p>Organisms often cope with changes in their environments by modifying
+gene expression levels, which can affect their cellular function. This
+plasticity in gene expression arises when cells sense a change in their
+environment and alter the activity or availability of trans-regulatory
+factors, which interact with each gene’s cis-regulatory sequences to
+determine its expression. To understand how regulatory networks
+controlling plasticity in gene expression evolve, we used RNAseq data
+from the baker’s yeast Saccharomyces cerevisiae, its close relative
+Saccharomyces paradoxus, and their F1 hybrids collected at multiple time
+points following the transfer of cells from standard laboratory
+conditions to five different environments (low phosphorus, low nitrogen,
+hydroxyurea shock, heat stress, and cold stress. We also looked at how
+gene expression changes during the transition from log phase to
+stationary phase. In all six datasets, we compared gene expression
+levels between S. cerevisiae and S. paradoxus and asked how expression
+plasticity has diverged. We then tested for divergence in expression
+plasticity between the two species-specific alleles in F1 hybrids,
+allowing us to disentangle the effects of divergence in cis- and
+trans-regulation. In all 6 environments, we found at least 100 genes
+showing divergence in expression plasticity between species. Most cases
+were unique to a single environment and attributable primarily to
+trans-regulatory divergence. Our work demonstrates how comparing species
+in diverse environments and multiple timepoints can reveal hidden
+dimensions of gene expression divergence.</p>
+</div>
 
 
 
