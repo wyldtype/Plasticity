@@ -775,8 +775,10 @@ geneHasNAs <- apply(counts, 1, function(x) {
   return(any(isNA))
 }) 
 sum(geneHasNAs) # should have 0
+```
+## Removing samples with small library sizes
 
-#### Removing samples with small library sizes ####
+```{r}
 # Exploring library sizes (un-normalized)
 libsizes <- colSums(counts) # these counts include all samples, hybrid and parental
 ggplot(tibble(libsize = libsizes), aes(x = libsize)) + geom_histogram()
@@ -784,6 +786,8 @@ min(libsizes)
 max(libsizes)
 median(libsizes)
 sum(libsizes < 100000)
+# which libraries are that tiny?
+colnames(counts)[libsizes < 100000]
 sort(libsizes)[c(1:20)] # a few of the CC have fairly tiny libraries, and will need to be removed before normalizing (or else you get ridiculously high outlier counts from small counts --- ex) (5/7000)*1e6 = 714 whereas (5/200000)*1e6 = 25)
 # are the hybrid reps library sizes correlated between hyc and hyp alleles?
 plotdf <- tibble(sample_name = names(libsizes[grepl("_hy[pc]", names(libsizes))]),
@@ -803,15 +807,8 @@ ggplot(plotdf, aes(x = cer, y = par)) +
   geom_rect(xmin = 0, xmax = 100000, ymin = 0, ymax = 100000, color = "blue", alpha = 0) +
   geom_vline(xintercept = 100000, color = "blue", alpha = 0.5) +
   geom_hline(yintercept = 100000, color = "blue", alpha = 0.5)
-# based on this plot, removing cell cycle 10 for having libraries too biased to one allele
 # (the samples within the blue box will be removed by our library size threshold below)
 # and no other samples should be below the blue lines but not within the blue box
-hyblib_biased_samples <- c("WT_10_hyc_CellCycle_rep1",
-                           "WT_10_hyp_CellCycle_rep1") # not an issue once we removed CC samples past TP8
-# colSums(counts[,hyblib_biased_samples])
-# # removing
-# sample_info <- filter(sample_info, !(sample_name %in% hyblib_biased_samples))
-# counts <- counts[,colnames(counts) %in% sample_info$sample_name]
 
 # generating log2-cpm counts
 avgLibSizeInMillions <- mean(libsizes)/1e6
@@ -842,10 +839,10 @@ plotdf <- tibble(libsize_cer = colSums(counts[, grepl("_cer", colnames(counts)) 
 ggplot(filter(plotdf, name %in% c("libsize_cer", "libsize_par")), aes(x = name, y = value)) + geom_boxplot(aes(fill = name)) 
 t.test(value ~ name, filter(plotdf, name %in% c("libsize_cer", "libsize_par")))
 ggplot(filter(plotdf, name %in% c("libsize_hyc", "libsize_hyp")), aes(x = name, y = value)) + geom_boxplot(aes(fill = name))
-t.test(value ~ name, filter(plotdf, name %in% c("libsize_hyc", "libsize_hyp"))) 
+t.test(value ~ name, filter(plotdf, name %in% c("libsize_hyc", "libsize_hyp")))
 ```
 
-## Normalizing to counts per million
+What happens if we don't filter out small library size samples? Here's an example of a gene's expression before and after normalization, with a single sample with small library size indicated in blue:
 
 ```{r}
 # normalizing counts to adjust for differences in library size
@@ -871,23 +868,22 @@ test_cts[test_rowIdx, test_colIdx] # what it is before using our function
 test_cpm[test_rowIdx, test_colIdx] # what it is using our function
 test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (should be the same as test_cpm)
 
-### eliminating samples with too-small libraries
 # Example of how small libraries skew data, YIL134W in CC before normalizing:
-test_counts <- counts[, (grepl("_cer", colnames(counts)) | 
-                           grepl("_par", colnames(counts))) &
+test_counts <- counts[, (grepl("_hyc", colnames(counts)) | 
+                           grepl("_hyp", colnames(counts))) &
                         grepl("_CellCycle_", colnames(counts))]
 libSizes <- colSums(test_counts)
 # before normalizing:
 genedf <- tibble(expr = as.numeric(test_counts["YIL134W",]),
                  libsize = libSizes,
                  sample_name = colnames(test_counts))
-ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == "WT_34_par_CellCycle_rep2")) + theme(legend.position = "none")
+ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == "WT_02_hyp_CellCycle_rep2")) + theme(legend.position = "none")
 # after normalizing:
 test_counts_cpm <- countsPerMillion(test_counts)
 genedf <- tibble(expr = as.numeric(test_counts_cpm["YIL134W",]),
                  libsize = libSizes,
                  sample_name = colnames(test_counts))
-ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == "WT_34_par_CellCycle_rep2")) + theme(legend.position = "none")
+ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == "WT_02_hyp_CellCycle_rep2")) + theme(legend.position = "none")
 # At a certain lib size, there appears to begin to be a correlation between count and libsize, what size is that?
 libSizes <- colSums(counts)
 gene_idx <- sample(rownames(counts), 1) # rerun to make sure most genes have expr and libsize correlated past cutoff of 200k libsize
@@ -900,14 +896,25 @@ plotdf <- tibble(libsize = libSizes,
 ggplot(plotdf, aes(x = libsize, y = expr)) + 
   geom_point(aes(color = experiment)) + geom_vline(xintercept = 100000, col = "red") + theme_classic() + ggtitle(gene_idx)
 
-# Eliminating samples with libsize < 100,000
+```
+
+If we didn't filter out the samples with small library size, genes like this would have highly unpredictable counts in those samples.
+
+Eliminating samples with libsize < 100,000:
+```{r}
 keep <- colSums(counts) > 100000
 sum(keep)/length(keep)
 sum(!keep)
 keep_samples <- colnames(counts)[keep]
 sample_info <- sample_info |> filter(sample_name %in% keep_samples)
 counts <- counts[, sample_info$sample_name]
+```
 
+## Normalizing to counts per million
+
+We defined the counts per million function for tagseq data above (1 read of tagseq = one mRNA molecule). For RNAseq data, multiple reads can come from a single mRNA molecule, and this is more likely the longer the mRNA is.
+
+```{r}
 ### Normalizing by length
 # Normalizing Fay et al. 2023 data to cpm taking account of gene length
 # following this paper: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7373998/
