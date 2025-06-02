@@ -1,8 +1,9 @@
-name: "my-website"
+name: "plasticity"
 navbar:
-  title: "My Website"
+  title: "Plasticity"
   left:
     - text: "Home"
       href: index.html
     - text: "About"
       href: about.html
+output_dir: docs
