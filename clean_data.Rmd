@@ -1,0 +1,64 @@
+---
+title: "Clean Data"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Reading in RNAseq counts and creating count matrix and sample info metadata
+
+Working with RNAseq data published in Krieger et al. 2020 and Fay et al. 2023
+
+```{r}
+sapply(c("dplyr", "readr", "tidyr", "purrr", "ggplot2", "openxlsx", "matrixStats"), require, character.only=TRUE)
+```
+
+## Reading in Krieger et al. 2020 and Lupo et al. 2021 tagseq data
+
+Reading in quantified RNAseq counts as individual *.ReadsPerGene.out.tab files, one file per sample
+
+```{r}
+tagseq <- list.files("data_files/tagseq_counts/", full.names = TRUE) |> 
+  map(read_table, col_names = FALSE, show_col_types = FALSE) |> 
+  map(.f = select, X1, X3) |> # X1 are gene names, X3 is the sense strand read count
+  purrr::reduce(.f = \(x, y) full_join(x = x, y = y, by = "X1"))
+
+colnames(tagseq) <- c("gene", gsub("_ReadsPerGene.out.tab", "", list.files("data_files/tagseq_counts/", full.names = FALSE)))
+QCdf <- tagseq[grepl("N_", tagseq$gene), ]
+tagseq <- tagseq[!grepl("N_", tagseq$gene),]
+tagseq <- tagseq[!tagseq$gene %in% c("cer_NA", "par_NA"),]
+tagseq_cer <- tagseq[grepl("^cer_", tagseq$gene),]
+tagseq_par <- tagseq[grepl("^par_", tagseq$gene),]
+common_genes <- intersect(gsub("^cer_", "", tagseq_cer$gene),
+                          gsub("^par_", "", tagseq_par$gene))
+tagseq_cer$gene <- gsub("^cer_", "", tagseq_cer$gene)
+tagseq_par$gene <- gsub("^par_", "", tagseq_par$gene)
+tagseq_cer <- tagseq_cer[sapply(common_genes, \(x) which(x == tagseq_cer$gene)),]
+tagseq_par <- tagseq_par[sapply(common_genes, \(x) which(x == tagseq_par$gene)),]
+sum(tagseq_cer$gene == tagseq_par$gene)
+length(common_genes)
+```
+
+## Switching WT_39_CellCycle_rep2 cer and hyb samples
+
+Based on our exploration in QC_comparingAlignmentsAndQuantification, the Scer and hybrid counts for WT 39 rep2 have been mislabeled and need to be switched
+
+```{r}
+real_cer_39_counts_cerAllele <- tagseq_cer[,"WT_39_hyb_CellCycle_rep2"]
+real_hyb_39_counts_cerAllele <- tagseq_cer[,"WT_39_cer_CellCycle_rep2"]
+real_cer_39_counts_parAllele <- tagseq_par[,"WT_39_hyb_CellCycle_rep2"]
+real_hyb_39_counts_parAllele <- tagseq_par[,"WT_39_cer_CellCycle_rep2"]
+
+tagseq_cer[,"WT_39_hyb_CellCycle_rep2"] <- real_hyb_39_counts_cerAllele
+tagseq_cer[,"WT_39_cer_CellCycle_rep2"] <- real_cer_39_counts_cerAllele
+tagseq_par[,"WT_39_hyb_CellCycle_rep2"] <- real_hyb_39_counts_parAllele
+tagseq_par[,"WT_39_cer_CellCycle_rep2"] <- real_cer_39_counts_parAllele
+
+rm(real_hyb_39_counts_cerAllele, real_cer_39_counts_cerAllele,
+   real_hyb_39_counts_parAllele, real_cer_39_counts_parAllele)
+```
+
+## Calculating % mapping to each allele for parents vs hybrids
+
+Note: this can only be done on tagseq samples, as Fay et al. 2023 pooled Scer and Spar parental samples

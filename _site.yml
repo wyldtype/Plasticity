@@ -4,6 +4,6 @@ navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "About"
-      href: about.html
+    - text: "Clean Data"
+      href: clean_data.html
 output_dir: docs

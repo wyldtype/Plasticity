@@ -11,7 +11,7 @@
 
 
 
-<title>My Website</title>
+<title>Clean Data</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -260,22 +260,95 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">My Website</h1>
+<h1 class="title toc-ignore">Clean Data</h1>
 
 </div>
 
 
-<p>Hello, Website!</p>
-<p>For more information about simple R Markdown websites, please read
-the documentation at <a
-href="https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html"
-class="uri">https://bookdown.org/yihui/rmarkdown/rmarkdown-site.html</a>.</p>
-<p>Please also note that simple R Markdown sites are <em>not</em> based
-on <strong>blogdown</strong>. They are probably good for websites with
-only a few Rmd documents. For larger-scale and more sophisticated
-websites (such as blogs), you may want to use <strong>blogdown</strong>
-instead: <a href="https://github.com/rstudio/blogdown"
-class="uri">https://github.com/rstudio/blogdown</a>.</p>
+<div
+id="reading-in-rnaseq-counts-and-creating-count-matrix-and-sample-info-metadata"
+class="section level1">
+<h1>Reading in RNAseq counts and creating count matrix and sample info
+metadata</h1>
+<p>Working with RNAseq data published in Krieger et al. 2020 and Fay et
+al. 2023</p>
+<pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;readr&quot;, &quot;tidyr&quot;, &quot;purrr&quot;, &quot;ggplot2&quot;, &quot;openxlsx&quot;, &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>## Loading required package: dplyr</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<pre><code>## Loading required package: readr</code></pre>
+<pre><code>## Loading required package: tidyr</code></pre>
+<pre><code>## Loading required package: purrr</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<pre><code>## Loading required package: openxlsx</code></pre>
+<pre><code>## Loading required package: matrixStats</code></pre>
+<pre><code>## 
+## Attaching package: &#39;matrixStats&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     count</code></pre>
+<pre><code>##       dplyr       readr       tidyr       purrr     ggplot2    openxlsx matrixStats 
+##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE</code></pre>
+<div
+id="reading-in-krieger-et-al.-2020-and-lupo-et-al.-2021-tagseq-data"
+class="section level2">
+<h2>Reading in Krieger et al. 2020 and Lupo et al. 2021 tagseq data</h2>
+<p>Reading in quantified RNAseq counts as individual
+*.ReadsPerGene.out.tab files, one file per sample</p>
+<pre class="r"><code>tagseq &lt;- list.files(&quot;data_files/tagseq_counts/&quot;, full.names = TRUE) |&gt; 
+  map(read_table, col_names = FALSE, show_col_types = FALSE) |&gt; 
+  map(.f = select, X1, X3) |&gt; # X1 are gene names, X3 is the sense strand read count
+  purrr::reduce(.f = \(x, y) full_join(x = x, y = y, by = &quot;X1&quot;))
+
+colnames(tagseq) &lt;- c(&quot;gene&quot;, gsub(&quot;_ReadsPerGene.out.tab&quot;, &quot;&quot;, list.files(&quot;data_files/tagseq_counts/&quot;, full.names = FALSE)))
+QCdf &lt;- tagseq[grepl(&quot;N_&quot;, tagseq$gene), ]
+tagseq &lt;- tagseq[!grepl(&quot;N_&quot;, tagseq$gene),]
+tagseq &lt;- tagseq[!tagseq$gene %in% c(&quot;cer_NA&quot;, &quot;par_NA&quot;),]
+tagseq_cer &lt;- tagseq[grepl(&quot;^cer_&quot;, tagseq$gene),]
+tagseq_par &lt;- tagseq[grepl(&quot;^par_&quot;, tagseq$gene),]
+common_genes &lt;- intersect(gsub(&quot;^cer_&quot;, &quot;&quot;, tagseq_cer$gene),
+                          gsub(&quot;^par_&quot;, &quot;&quot;, tagseq_par$gene))
+tagseq_cer$gene &lt;- gsub(&quot;^cer_&quot;, &quot;&quot;, tagseq_cer$gene)
+tagseq_par$gene &lt;- gsub(&quot;^par_&quot;, &quot;&quot;, tagseq_par$gene)
+tagseq_cer &lt;- tagseq_cer[sapply(common_genes, \(x) which(x == tagseq_cer$gene)),]
+tagseq_par &lt;- tagseq_par[sapply(common_genes, \(x) which(x == tagseq_par$gene)),]
+sum(tagseq_cer$gene == tagseq_par$gene)</code></pre>
+<pre><code>## [1] 5359</code></pre>
+<pre class="r"><code>length(common_genes)</code></pre>
+<pre><code>## [1] 5359</code></pre>
+</div>
+<div id="switching-wt_39_cellcycle_rep2-cer-and-hyb-samples"
+class="section level2">
+<h2>Switching WT_39_CellCycle_rep2 cer and hyb samples</h2>
+<p>Based on our exploration in QC_comparingAlignmentsAndQuantification,
+the Scer and hybrid counts for WT 39 rep2 have been mislabeled and need
+to be switched</p>
+<pre class="r"><code>real_cer_39_counts_cerAllele &lt;- tagseq_cer[,&quot;WT_39_hyb_CellCycle_rep2&quot;]
+real_hyb_39_counts_cerAllele &lt;- tagseq_cer[,&quot;WT_39_cer_CellCycle_rep2&quot;]
+real_cer_39_counts_parAllele &lt;- tagseq_par[,&quot;WT_39_hyb_CellCycle_rep2&quot;]
+real_hyb_39_counts_parAllele &lt;- tagseq_par[,&quot;WT_39_cer_CellCycle_rep2&quot;]
+
+tagseq_cer[,&quot;WT_39_hyb_CellCycle_rep2&quot;] &lt;- real_hyb_39_counts_cerAllele
+tagseq_cer[,&quot;WT_39_cer_CellCycle_rep2&quot;] &lt;- real_cer_39_counts_cerAllele
+tagseq_par[,&quot;WT_39_hyb_CellCycle_rep2&quot;] &lt;- real_hyb_39_counts_parAllele
+tagseq_par[,&quot;WT_39_cer_CellCycle_rep2&quot;] &lt;- real_cer_39_counts_parAllele
+
+rm(real_hyb_39_counts_cerAllele, real_cer_39_counts_cerAllele,
+   real_hyb_39_counts_parAllele, real_cer_39_counts_parAllele)</code></pre>
+</div>
+<div id="calculating-mapping-to-each-allele-for-parents-vs-hybrids"
+class="section level2">
+<h2>Calculating % mapping to each allele for parents vs hybrids</h2>
+<p>Note: this can only be done on tagseq samples, as Fay et al. 2023
+pooled Scer and Spar parental samples</p>
+</div>
+</div>
 
 
 
