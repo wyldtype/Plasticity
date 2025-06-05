@@ -1,30 +1,8 @@
----
-title: "functions_for_figure_scripts"
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-
-# Version of function script that includes unit tests
-
-The actual version of these functions that is sourced in the other .Rmd scripts is functions_for_figure_scripts.R. This is the webpage-ready version displying code for each function with acompanying unit tests
-
-```{r}
 sapply(c("dplyr", "purrr", "tidyr", "ggpubr", "readr",
          "data.table", "ggplot2", "data.table",
          "matrixStats", "ggpattern"), require, character.only=TRUE)
 
-# for testing functions:
-load("data_files/Cleaned_Counts.RData")
-load("data_files/Cleaned_Counts_Allele.RData")
-```
-
-## Taking means across replicates
-Functions for taking the mean expression per timepoint/experiment/organism across replicates. For use in heiarchical clustering, where we want correlations to reflect how similar expression shapes are between genes.
-
-```{r}
+#### Taking means across replicates ####
 # helper function that turns a counts and info pair into
 # a tidy dataframe
 makeDf <- function(.cts, .info, .join_by = "sample_name") {
@@ -39,10 +17,8 @@ makeDf <- function(.cts, .info, .join_by = "sample_name") {
 
 # takes mean expr in each condition (timepoint/experiment/allele)
 collapseReplicates <- function(.info, .cts) {
-  conditions_cer <- .info |> filter(allele == "cer") |> 
-    select(condition) |> pull() |> unique()
-  conditions_par <- .info |> filter(allele == "par") |> 
-    select(condition) |> pull() |> unique()
+  conditions_cer <- .info |> filter(allele == "cer") |> select(condition) |> pull() |> unique()
+  conditions_par <- .info |> filter(allele == "par") |> select(condition) |> pull() |> unique()
   common_conditions <- intersect(conditions_cer, conditions_par)
   # cer
   collapsed_cts_cer <- map(common_conditions, \(cond) {
@@ -64,102 +40,102 @@ collapseReplicates <- function(.info, .cts) {
   collapsed <- list(cer = collapsed_cts_cer, par = collapsed_cts_par)
   return(collapsed)
 }
-# tests for collapseReplicates
-# parents
-dim(counts)
-test_collapse <- collapseReplicates(sample_info, counts)
-dim(cbind(test_collapse$cer, test_collapse$par))
-# LowPi, shouldn't have changed much
-# (only a couple samples have replicates, and only in par)
-sample_info |> filter(experiment == "LowPi" & organism == "par") |>
-  select(condition) |> table() |> sort(decresing = TRUE)
-# cer first, should not have changed
-test1 <- counts[,sample_info$experiment == "LowPi" &
-                  sample_info$allele == "cer"]
-dim(test1)
-test2 <- test_collapse$cer[,grepl("LowPi", colnames(test_collapse$cer))]
-dim(test2)
-filter(sample_info, sample_name %in% colnames(test1)) |>
-  select(condition) |> pull() |> setdiff(y = colnames(test2))
-# now par, also should not have changed
-test1 <- counts[,sample_info$experiment == "LowPi" &
-                  sample_info$allele == "par"]
-dim(test1)
-test2 <- test_collapse$par[,grepl("LowPi", colnames(test_collapse$par))]
-dim(test2)
-filter(sample_info, sample_name %in% colnames(test1)) |>
-  select(condition) |> pull() |> setdiff(y = colnames(test2))
-# hybrid
-dim(counts_allele)
-test_collapse <- collapseReplicates(sample_info_allele, counts_allele)
-dim(cbind(test_collapse$cer, test_collapse$par))
-# HAP4 in hyc, should not have changed
-test1 <- counts_allele[,sample_info_allele$experiment == "HAP4" &
-                  sample_info_allele$allele == "cer"]
-dim(test1)
-test2 <- test_collapse$cer[,grepl("HAP4", colnames(test_collapse$cer))]
-dim(test2)
-filter(sample_info_allele, sample_name %in% colnames(test1)) |>
-  select(condition) |> pull() |> setdiff(y = colnames(test2))
+# # tests for collapseReplicates
+# # parents
+# dim(counts)
+# test_collapse <- collapseReplicates(sample_info, counts)
+# dim(cbind(test_collapse$cer, test_collapse$par))
+# # LowPi, shouldn't have changed much
+# # (only a couple samples have replicates, and only in par)
+# sample_info |> filter(experiment == "LowPi" & organism == "par") |>
+#   select(condition) |> table() |> sort(decresing = TRUE)
+# # cer first, should not have changed
+# test1 <- counts[,sample_info$experiment == "LowPi" &
+#                   sample_info$allele == "cer"]
+# dim(test1)
+# test2 <- test_collapse$cer[,grepl("LowPi", colnames(test_collapse$cer))]
+# dim(test2)
+# filter(sample_info, sample_name %in% colnames(test1)) |>
+#   select(condition) |> pull() |> setdiff(y = colnames(test2))
+# # now par, also should not have changed
+# test1 <- counts[,sample_info$experiment == "LowPi" &
+#                   sample_info$allele == "par"]
+# dim(test1)
+# test2 <- test_collapse$par[,grepl("LowPi", colnames(test_collapse$par))]
+# dim(test2)
+# filter(sample_info, sample_name %in% colnames(test1)) |>
+#   select(condition) |> pull() |> setdiff(y = colnames(test2))
+# # hybrid
+# dim(counts_allele)
+# test_collapse <- collapseReplicates(sample_info_allele, counts_allele)
+# dim(cbind(test_collapse$cer, test_collapse$par))
+# # HAP4 in hyc, should not have changed
+# test1 <- counts_allele[,sample_info_allele$experiment == "HAP4" &
+#                   sample_info_allele$allele == "cer"]
+# dim(test1)
+# test2 <- test_collapse$cer[,grepl("HAP4", colnames(test_collapse$cer))]
+# dim(test2)
+# filter(sample_info_allele, sample_name %in% colnames(test1)) |>
+#   select(condition) |> pull() |> setdiff(y = colnames(test2))
+#
+# # checking for genes with significant reduction in variance post-collapse
+# # additional tests for collapseReplicates
+# # toy count matrix using random sample of genes (to test ability to separate low var genes out)
+# toy_mat <- counts[, sample_info$organism == "par" & sample_info$experiment == "LowN"]
+# toydf <- makeDf(toy_mat, sample_info)
+# # assessing distribution of variance, before collapsing replicates
+# plotdf0 <- toydf |> group_by(gene_name) |>
+#   summarise(var_expr = var(expr),
+#             mean_expr = mean(expr))
+# p0 <- ggplot(plotdf0, aes(x = log2(var_expr/mean_expr))) + geom_density() +
+#   geom_vline(xintercept = 0, color = "red") +
+#   ggtitle("before collapsing replicates")
+# # after collapsing replicates
+# toy_mat_collapsed <- collapsed$par[, info$experiment == "LowN"]
+# plotdf1 <- tibble(var_expr = apply(toy_mat_collapsed, 1, var),
+#                   mean_expr = apply(toy_mat_collapsed, 1, mean),
+#                   gene_name = rownames(toy_mat_collapsed))
+# p1 <- ggplot(plotdf1, aes(x = log2(var_expr/mean_expr))) + geom_density() +
+#   geom_vline(xintercept = 0, color = "red") +
+#   ggtitle("after collapsing replicates")
+# ggarrange(p0, p1, nrow = 1, ncol = 2)
+# # mean expression pre and post (shouldn't have changed)
+# plotdf <- left_join(plotdf0, plotdf1, by = "gene_name", suffix = c("_pre", "_post"))
+# ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
+#   geom_point() +
+#   geom_abline(slope = 1, intercept = 0, color = "gold")
+# plotdf <- select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |>
+#   rename("mean_expr"="mean_expr_pre")
+# # difference in var/mean pre and post versus mean expr
+# ggplot(plotdf, aes(x = log2(mean_expr + 1),
+#                    y = log2(var_expr_pre) - log2(var_expr_post))) +
+#   geom_hex() +
+#   geom_hline(yintercept = 0, color = "gold")
+# # as expected, there is lower variance post collapse (very few genes below y = 0)
+# # most genes have fairly little difference in var when collapsing replicates,
+# # but the difference can be extreme for a few genes, of middling expression level
+# # For genes with a difference, do we trust the collapsed variance to be more accurate to expression shape?
+# # first random gene that tend to have very little difference in variance
+# gene_idx <- plotdf |> select(gene_name) |> pull() |> sample(1)
+# ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
+#   geom_jitter() +
+#   geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
+#             aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
+#             color = "red")
+# # second a gene with variance substantially reduced in collapsed form
+# gene_idx <- plotdf |> filter(log2(var_expr_pre) - log2(var_expr_post) > 7) |> select(gene_name) |> pull() |> sample(1)
+# ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
+#   geom_jitter() +
+#   geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
+#             aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
+#             color = "red") # these are genes with very little expression change attributable to timepoint,
+# # the exact kind we want to have significantly reduced variance in collapsed counts
 
-# checking for genes with significant reduction in variance post-collapse
-# additional tests for collapseReplicates
-# toy count matrix using random sample of genes (to test ability to separate low var genes out)
-toy_mat <- counts[, sample_info$organism == "par" & sample_info$experiment == "LowN"]
-toydf <- makeDf(toy_mat, sample_info)
-# assessing distribution of variance, before collapsing replicates
-plotdf0 <- toydf |> group_by(gene_name) |>
-  summarise(var_expr = var(expr),
-            mean_expr = mean(expr))
-p0 <- ggplot(plotdf0, aes(x = log2(var_expr/mean_expr))) + geom_density() +
-  geom_vline(xintercept = 0, color = "red") +
-  ggtitle("before collapsing replicates")
-# after collapsing replicates
-toy_mat_collapsed <- collapsed$par[, info$experiment == "LowN"]
-plotdf1 <- tibble(var_expr = apply(toy_mat_collapsed, 1, var),
-                  mean_expr = apply(toy_mat_collapsed, 1, mean),
-                  gene_name = rownames(toy_mat_collapsed))
-p1 <- ggplot(plotdf1, aes(x = log2(var_expr/mean_expr))) + geom_density() +
-  geom_vline(xintercept = 0, color = "red") +
-  ggtitle("after collapsing replicates")
-ggarrange(p0, p1, nrow = 1, ncol = 2)
-# mean expression pre and post (shouldn't have changed)
-plotdf <- left_join(plotdf0, plotdf1, by = "gene_name", suffix = c("_pre", "_post"))
-ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
-  geom_point() +
-  geom_abline(slope = 1, intercept = 0, color = "gold")
-plotdf <- select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |>
-  rename("mean_expr"="mean_expr_pre")
-# difference in var/mean pre and post versus mean expr
-ggplot(plotdf, aes(x = log2(mean_expr + 1),
-                   y = log2(var_expr_pre) - log2(var_expr_post))) +
-  geom_hex() +
-  geom_hline(yintercept = 0, color = "gold")
-# as expected, there is lower variance post collapse (very few genes below y = 0)
-# most genes have fairly little difference in var when collapsing replicates,
-# but the difference can be extreme for a few genes, of middling expression level
-# For genes with a difference, do we trust the collapsed variance to be more accurate to expression shape?
-# first random gene that tend to have very little difference in variance
-gene_idx <- plotdf |> select(gene_name) |> pull() |> sample(1)
-ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
-  geom_jitter() +
-  geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
-            aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
-            color = "red")
-# second a gene with variance substantially reduced in collapsed form
-gene_idx <- plotdf |> filter(log2(var_expr_pre) - log2(var_expr_post) > 7) |> select(gene_name) |> pull() |> sample(1)
-ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
-  geom_jitter() +
-  geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
-            aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
-            color = "red") # these are genes with very little expression change attributable to timepoint,
-# the exact kind we want to have significantly reduced variance in collapsed counts
-```
+#### Taking moving averages of Low Phosphorus and Diauxic Shift ####
 
-## Taking moving averages of LowPi and Diauxic Shift
-LowPi and Diauxic Shift experiments have many timepoints but only one replicate per timepoint. Similar to taking the mean between replicates, smoothing Low Pi and Diauxic Shift experiments as a moving average allows the correlations between genes to reflect expression shape
+# rationale: Low Pi and Diauxic Shift experiments needs to have expression
+# smoothed as moving average b/c there are not replicates
 
-```{r}
 # taking moving average
 # window size of 5 --- 2 on each side, fewer for edge cases
 # note: this function expects counts to have columns in order
@@ -192,36 +168,32 @@ getMovingAverage <- function(.cts) {
   return(cts_movavg)
 }
 
-# tests for getMovingAverage
-# random gene prior to moving average
-gene_idx <- sample(rownames(counts), 1)
-# change to try different experiments (you have to keep the same experiment/allele/species):
-test_collapsed <- collapsed$par
-test_info <- info
-test_experiment <- "LowPi"
-test_movavg <- getMovingAverage(test_collapsed[,test_info$experiment == test_experiment])
-
-plotdf <- tibble(expr = test_collapsed[gene_idx, test_info$experiment == test_experiment],
-                 condition = colnames(test_collapsed[, test_info$experiment == test_experiment])) |>
-  left_join(test_info, by = "condition")
+# # tests for getMovingAverage
+# # random gene prior to moving average
+# gene_idx <- sample(rownames(counts), 1)
+# # change to try different experiments (you have to keep the same experiment/allele/species):
+# test_collapsed <- collapsed$par
+# test_info <- info
+# test_experiment <- "LowPi"
+# test_movavg <- getMovingAverage(test_collapsed[,test_info$experiment == test_experiment])
+# 
+# plotdf <- tibble(expr = test_collapsed[gene_idx, test_info$experiment == test_experiment],
+#                  condition = colnames(test_collapsed[, test_info$experiment == test_experiment])) |>
+#   left_join(test_info, by = "condition")
 # ggplot(plotdf, aes(x = time_point_num, y = expr)) + geom_line()
+# 
+# # same random gene after moving average
+# plotdf2 <- tibble(expr = test_movavg[gene_idx,],
+#                   status = "after",
+#                   condition = colnames(test_movavg)) |>
+#   left_join(test_info, by = "condition")
+# plotdf$status <- "before"
+# plotdf <- bind_rows(plotdf, plotdf2)
+# ggplot(plotdf, aes(x = time_point_num, y = expr)) +
+#   geom_line(aes(group = status, color = status))
 
-# same random gene after moving average
-plotdf2 <- tibble(expr = test_movavg[gene_idx,],
-                  status = "after",
-                  condition = colnames(test_movavg)) |>
-  left_join(test_info, by = "condition")
-plotdf$status <- "before"
-plotdf <- bind_rows(plotdf, plotdf2)
-ggplot(plotdf, aes(x = time_point_num, y = expr)) +
-  geom_line(aes(group = status, color = status))
-```
+#### Plotting ####
 
-## Plotting
-
-All the functions to generate different plots used in figure scripts. Each plotting function and their associated unit tests are their own named chunks
-
-```{r plotExpressionProfilePair}
 # plotting function to visualize expression profiles of any 2 groups
 # @input: counts, info, and names of two groups to compare
 # @output: ggplot of both expression profiles with loess or line curves tracing the average expression
@@ -314,8 +286,8 @@ plotExpressionProfilePair <- function(.cts1, .cts2,
   }
   # background color rectangles for differentiating the experiments
   rects <- data.frame(color = c("orchid", "lightgreen", "gold", "orange", "salmon", "lightblue"),
-                  labels = c("Cell Cycle", "Diauxic Shift", "Low Nitrogen", "Low Phosphorus", "Heat Stress", "Cold Stress"),
-                  experiment_names = c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold"))
+                      labels = c("Cell Cycle", "Diauxic Shift", "Low Nitrogen", "Low Phosphorus", "Heat Stress", "Cold Stress"),
+                      experiment_names = c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold"))
   experiment_order <- c("HAP4", "CC", "LowN", "LowPi", "Heat", "Cold")
   # plotting
   plotlist <- vector(mode = "list", length = length(unique(plotdf$experiment)))
@@ -332,9 +304,9 @@ plotExpressionProfilePair <- function(.cts1, .cts2,
       ylab("") +
       xlab("") +
       ylim(.plotlims)
-      # scale_y_continuous(breaks = seq(from = 0, to = ceiling(max_expr), by = 1),
-      #                    limits = seq(from = 0, to = ceiling(max_expr), by = 1),
-      #                    labels = seq(from = 0, to = ceiling(max_expr), by = 1))
+    # scale_y_continuous(breaks = seq(from = 0, to = ceiling(max_expr), by = 1),
+    #                    limits = seq(from = 0, to = ceiling(max_expr), by = 1),
+    #                    labels = seq(from = 0, to = ceiling(max_expr), by = 1))
     if (.plot_titles != "none" & .plot_titles == "experiment") {
       p <- p + ggtitle(rects$labels[rects$experiment_names == e])
     }
@@ -487,9 +459,7 @@ plotExpressionProfilePair <- function(.cts1, .cts2,
 #                           .name2 = "SHU2 par",
 #                           .color1 = "purple",
 #                           .color2 = "red")
-```
 
-```{r plotExpressionRibbonsPair}
 # plotting function to visualize expression profiles of any 2 groups
 # @input: counts, info, and names of two groups to compare
 # @output: ggplot of both expression profiles with loess or line curves tracing the average expression
@@ -664,11 +634,11 @@ plotExpressionRibbonsPair <- function(.cts1, .cts2,
                                          ymin = pmax(quant40, .plotlims[1]), 
                                          ymax = pmin(quant60, .plotlims[2])),
                   fill = .color2, alpha = .alpha) +
-    # 55% and 45%, bounds of 10% of all genes
-    geom_ribbon(data = quant_vec1, aes(x = time_point_num, 
-                                       ymin = pmax(quant45, .plotlims[1]), 
-                                       ymax = pmin(quant55, .plotlims[2])),
-                fill = .color1, alpha = .alpha) +
+      # 55% and 45%, bounds of 10% of all genes
+      geom_ribbon(data = quant_vec1, aes(x = time_point_num, 
+                                         ymin = pmax(quant45, .plotlims[1]), 
+                                         ymax = pmin(quant55, .plotlims[2])),
+                  fill = .color1, alpha = .alpha) +
       geom_ribbon(data = quant_vec2, aes(x = time_point_num, 
                                          ymin = pmax(quant45, .plotlims[1]), 
                                          ymax = pmin(quant55, .plotlims[2])),
@@ -694,9 +664,7 @@ plotExpressionRibbonsPair <- function(.cts1, .cts2,
 #                           .color2 = "blue2",
 #                           .normalization = "scale",
 #                           .plotlims = c(-2.5, 2.5))
-```
 
-```{r plotExpressionProfileQuartet}
 # Oh yes
 # plots 4 groups of genes BUT you can't do this willy nilly
 # for it to be interpretable, groups 1 and 2 are the main contrast
@@ -932,9 +900,7 @@ plotExpressionProfileQuartet <- function(.cts1, .cts2, .cts3, .cts4,
 #                              .info1 = info, .info2 = info, .info3 = info, .info4 = info,
 #                              .method = "line", .show_points = TRUE,
 #                              .normalization = "log2")
-```
 
-```{r plotGenes}
 # wrapper function for plotExpressionProfilePair/Quartet
 # plot specific genes' expression in one single environment
 plotGenes <- function(.gene_idxs,
@@ -1037,9 +1003,7 @@ plotGenes <- function(.gene_idxs,
 #                  arr.ind = TRUE)
 # plotGenes(gene_idxs[-na_idxs[,1]], .experiment_name = "Heat")
 # plotGenes(gene_idxs[-na_idxs[,1]], .experiment_name = "Cold")
-```
 
-```{r plotEnvironments}
 # wrapper for plotExpressionProfile designed for all environments
 plotEnvironments <- function(.gene_idxs,
                              .normalization = "log2",
@@ -1114,9 +1078,7 @@ plotEnvironments <- function(.gene_idxs,
 #                                  cer == 1 & par == 2) |>
 #   select(gene_name) |> pull()
 # plotEnvironments(gene_idxs)
-```
 
-```{r plotPropArea}
 ### proportional area plots, set of 4
 plotPropArea <- function(x1, x2, x3, x4, 
                          .colors = levdyn_colordf$type,
@@ -1178,9 +1140,7 @@ plotPropArea <- function(x1, x2, x3, x4,
 # plotPropArea(x1 = c(1870, 683, 23, 0), x2 = c(17, 32, 24, 1),
 #              x3 = c(177, 436, 148, 89), x4 = c(17, 30, 16, 10),
 #              .colors = c("red", "green", "blue", "yellow"))
-```
 
-```{r plotPropAreaSingle}
 ### proportional area plots, just one set of 4
 plotPropAreaSingle <- function(.counts,
                                .colors,
@@ -1207,8 +1167,8 @@ plotPropAreaSingle <- function(.counts,
   ggplot(data=df, aes(x = box_x, y = box_y, width=size, height=size,
                       group=factor(size))) +
     ggpattern::geom_tile_pattern(fill = df$color,
-                                pattern = df$pattern,
-                                pattern_fill = "black") +
+                                 pattern = df$pattern,
+                                 pattern_fill = "black") +
     geom_text(data = filter(df, size > .size_bounds),
               aes(label = label, x = text_x, y = text_y),
               col = "white", size = .text_size) +
@@ -1227,9 +1187,7 @@ plotPropAreaSingle <- function(.counts,
 # plotPropAreaSingle(.counts = c(1870, 17, 177, 10),
 #                    .colors = c("red", "green", "blue", "yellow"),
 #                    .size_bounds = 12, .text_size = 5)
-```
 
-```{r makeUpsetPlot}
 # Upset plot
 # given a group name, which must be a column in .df,
 # members of that group (possible values in that column, such as TFs in the deletion column),
@@ -1277,9 +1235,7 @@ makeUpsetPlot <- function(.df, .group_name, .group_members, .item_names,
 #               .group_name = "organism",
 #               .group_members = c("cer", "par", "hyc", "hyp"),
 #               .item_names = c("gene_name", "deletion", "effect"))
-```
 
-```{r makeGeneGroupHeatmap}
 # makes heatmap where rows are TF deletions, columns are groups,
 # and counts are the number of significant effects
 # @input: .df: dataframe with columns lfc, padj, deletion, gene_name, and grouping columns
@@ -1344,9 +1300,7 @@ makeGeneGroupHeatmap <- function(.df, .tf_order,
 #          cer == "0" & par == "0" & lfc_sign == -1 &
 #          deletion == "GLN3") |> 
 #   group_by(organism) |> summarise(nGenes = sum(padj < p_thresh))
-```
 
-```{r makeVolcanoPlot}
 # basic volcano plot to compare power
 makeVolcanoPlot <- function(.tfdeldf, .tf, .org, .timepoint) {
   plotdf <- .tfdeldf |> filter(organism == .org &
@@ -1357,9 +1311,7 @@ makeVolcanoPlot <- function(.tfdeldf, .tf, .org, .timepoint) {
     ylim(c(0, 15)) +
     xlim(c(-5, 5))
 }
-```
 
-```{r orderGenesByGroup}
 # Helper function for making a discrete heatmap
 # Given matrix of nEnvironments x nGenes where each cell is that
 # gene's label, this function returns the matrix where the
@@ -1400,11 +1352,8 @@ orderGenesByGroup <- function(.mat, .row_idx = 1,
 # orderGenesByGroup(.mat = rbind(c("hai", "der", "der", "hai"),
 #                                c("der", "der", "der", "hai")),
 #                   .labels = c("hai", "der"))
-```
 
-## Gene ontology enrichment
-
-```{r}
+#### Gene Ontology Enrichment ####
 getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/results/",
                         .min_hits = 5) {
   test_table <- goslim |> filter(ORF %in% .idxs) |> select(GOslim_term) |> table()
@@ -1439,5 +1388,3 @@ getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/result
 # tests for getGOSlimDf
 # test <- getGOSlimDf(.idxs = c("YGR192C", "YJR009C", "YJL052W"),
 #                     .group_name = "tdhs", .min_hits = 1)
-```
-

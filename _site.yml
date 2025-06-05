@@ -6,6 +6,12 @@ navbar:
       href: index.html
     - text: "Data Cleaning"
       menu:
-      - text: "Clean Data"
+      - text: "Import count data"
         href: clean_data.html
+      - text: "Analysis-specific data cleaning"
+        href: data_for_analysis_scripts.html
+    - text: "Functions"
+      menu:
+      - text: "Functions used throught scripts"
+        href: functions_for_figure_scripts.html
 output_dir: docs

@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>functions_for_figure_scripts</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Plasticity</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Data Cleaning
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clean_data.html">Import count data</a>
+    </li>
+    <li>
+      <a href="data_for_analysis_scripts.html">Analysis-specific data cleaning</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Functions
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="functions_for_figure_scripts.html">Functions used throught scripts</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">functions_for_figure_scripts</h1>
+
+</div>
+
+
+<div id="version-of-function-script-that-includes-unit-tests"
+class="section level1">
+<h1>Version of function script that includes unit tests</h1>
+<p>The actual version of these functions that is sourced in the other
+.Rmd scripts is functions_for_figure_scripts.R. This is the
+webpage-ready version displying code for each function with acompanying
+unit tests</p>
+<pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
+         &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;,
+         &quot;matrixStats&quot;, &quot;ggpattern&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2 
+##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
+##  data.table matrixStats   ggpattern 
+##        TRUE        TRUE        TRUE</code></pre>
+<pre class="r"><code># for testing functions:
+load(&quot;data_files/Cleaned_Counts.RData&quot;)
+load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)</code></pre>
+<div id="taking-means-across-replicates" class="section level2">
+<h2>Taking means across replicates</h2>
+<p>Functions for taking the mean expression per
+timepoint/experiment/organism across replicates. For use in heiarchical
+clustering, where we want correlations to reflect how similar expression
+shapes are between genes.</p>
+<pre class="r"><code># helper function that turns a counts and info pair into
+# a tidy dataframe
+makeDf &lt;- function(.cts, .info, .join_by = &quot;sample_name&quot;) {
+  outdf &lt;- as_tibble(.cts) |&gt;
+    bind_cols(tibble(gene_name = rownames(.cts))) |&gt;
+    pivot_longer(cols = colnames(.cts),
+                 names_to = .join_by, values_to = &quot;expr&quot;) |&gt;
+    left_join(.info,
+              by = .join_by)
+  return(outdf)
+}
+
+# takes mean expr in each condition (timepoint/experiment/allele)
+collapseReplicates &lt;- function(.info, .cts) {
+  conditions_cer &lt;- .info |&gt; filter(allele == &quot;cer&quot;) |&gt; 
+    select(condition) |&gt; pull() |&gt; unique()
+  conditions_par &lt;- .info |&gt; filter(allele == &quot;par&quot;) |&gt; 
+    select(condition) |&gt; pull() |&gt; unique()
+  common_conditions &lt;- intersect(conditions_cer, conditions_par)
+  # cer
+  collapsed_cts_cer &lt;- map(common_conditions, \(cond) {
+    samps &lt;- .info |&gt; filter(condition == cond &amp; allele == &quot;cer&quot;) |&gt; 
+      select(sample_name) |&gt; pull()
+    cts &lt;- .cts[,samps, drop = FALSE] # in HAP4 and LowPi, which don&#39;t have replicates, this will take the mean of one sample
+    return(rowMeans(cts))
+  }) |&gt; reduce(cbind)
+  collapsed_cts_par &lt;- map(common_conditions, \(cond) {
+    samps &lt;- .info |&gt; filter(condition == cond &amp; allele == &quot;par&quot;) |&gt; 
+      select(sample_name) |&gt; pull()
+    cts &lt;- .cts[,samps, drop = FALSE] 
+    return(rowMeans(cts))
+  }) |&gt; reduce(cbind)
+  colnames(collapsed_cts_cer) &lt;- common_conditions
+  colnames(collapsed_cts_par) &lt;- common_conditions
+  rownames(collapsed_cts_cer) &lt;- rownames(.cts)
+  rownames(collapsed_cts_par) &lt;- rownames(.cts)
+  collapsed &lt;- list(cer = collapsed_cts_cer, par = collapsed_cts_par)
+  return(collapsed)
+}
+# tests for collapseReplicates
+# parents
+dim(counts)</code></pre>
+<pre><code>## [1] 5045  341</code></pre>
+<pre class="r"><code>test_collapse &lt;- collapseReplicates(sample_info, counts)
+dim(cbind(test_collapse$cer, test_collapse$par))</code></pre>
+<pre><code>## [1] 5045  124</code></pre>
+<pre class="r"><code># LowPi, shouldn&#39;t have changed much
+# (only a couple samples have replicates, and only in par)
+sample_info |&gt; filter(experiment == &quot;LowPi&quot; &amp; organism == &quot;par&quot;) |&gt;
+  select(condition) |&gt; table() |&gt; sort(decresing = TRUE)</code></pre>
+<pre><code>## condition
+##   WT_LowPi_0  WT_LowPi_10 WT_LowPi_105 WT_LowPi_120 WT_LowPi_135 WT_LowPi_150 WT_LowPi_165 
+##            1            1            1            1            1            1            1 
+## WT_LowPi_195  WT_LowPi_20 WT_LowPi_210 WT_LowPi_225 WT_LowPi_240 WT_LowPi_255 WT_LowPi_270 
+##            1            1            1            1            1            1            1 
+## WT_LowPi_285  WT_LowPi_30 WT_LowPi_300 WT_LowPi_315 WT_LowPi_330 WT_LowPi_360  WT_LowPi_40 
+##            1            1            1            1            1            1            1 
+##   WT_LowPi_5  WT_LowPi_50  WT_LowPi_60  WT_LowPi_75  WT_LowPi_90  WT_LowPi_-5 WT_LowPi_180 
+##            1            1            1            1            1            2            2</code></pre>
+<pre class="r"><code># cer first, should not have changed
+test1 &lt;- counts[,sample_info$experiment == &quot;LowPi&quot; &amp;
+                  sample_info$allele == &quot;cer&quot;]
+dim(test1)</code></pre>
+<pre><code>## [1] 5045   28</code></pre>
+<pre class="r"><code>test2 &lt;- test_collapse$cer[,grepl(&quot;LowPi&quot;, colnames(test_collapse$cer))]
+dim(test2)</code></pre>
+<pre><code>## [1] 5045   28</code></pre>
+<pre class="r"><code>filter(sample_info, sample_name %in% colnames(test1)) |&gt;
+  select(condition) |&gt; pull() |&gt; setdiff(y = colnames(test2))</code></pre>
+<pre><code>## character(0)</code></pre>
+<pre class="r"><code># now par, also should not have changed
+test1 &lt;- counts[,sample_info$experiment == &quot;LowPi&quot; &amp;
+                  sample_info$allele == &quot;par&quot;]
+dim(test1)</code></pre>
+<pre><code>## [1] 5045   30</code></pre>
+<pre class="r"><code>test2 &lt;- test_collapse$par[,grepl(&quot;LowPi&quot;, colnames(test_collapse$par))]
+dim(test2)</code></pre>
+<pre><code>## [1] 5045   28</code></pre>
+<pre class="r"><code>filter(sample_info, sample_name %in% colnames(test1)) |&gt;
+  select(condition) |&gt; pull() |&gt; setdiff(y = colnames(test2))</code></pre>
+<pre><code>## character(0)</code></pre>
+<pre class="r"><code># hybrid
+dim(counts_allele)</code></pre>
+<pre><code>## [1] 5045  360</code></pre>
+<pre class="r"><code>test_collapse &lt;- collapseReplicates(sample_info_allele, counts_allele)
+dim(cbind(test_collapse$cer, test_collapse$par))</code></pre>
+<pre><code>## [1] 5045  122</code></pre>
+<pre class="r"><code># HAP4 in hyc, should not have changed
+test1 &lt;- counts_allele[,sample_info_allele$experiment == &quot;HAP4&quot; &amp;
+                  sample_info_allele$allele == &quot;cer&quot;]
+dim(test1)</code></pre>
+<pre><code>## [1] 5045   15</code></pre>
+<pre class="r"><code>test2 &lt;- test_collapse$cer[,grepl(&quot;HAP4&quot;, colnames(test_collapse$cer))]
+dim(test2)</code></pre>
+<pre><code>## [1] 5045   15</code></pre>
+<pre class="r"><code>filter(sample_info_allele, sample_name %in% colnames(test1)) |&gt;
+  select(condition) |&gt; pull() |&gt; setdiff(y = colnames(test2))</code></pre>
+<pre><code>## character(0)</code></pre>
+<pre class="r"><code># checking for genes with significant reduction in variance post-collapse
+# additional tests for collapseReplicates
+# toy count matrix using random sample of genes (to test ability to separate low var genes out)
+toy_mat &lt;- counts[, sample_info$organism == &quot;par&quot; &amp; sample_info$experiment == &quot;LowN&quot;]
+toydf &lt;- makeDf(toy_mat, sample_info)
+# assessing distribution of variance, before collapsing replicates
+plotdf0 &lt;- toydf |&gt; group_by(gene_name) |&gt;
+  summarise(var_expr = var(expr),
+            mean_expr = mean(expr))
+p0 &lt;- ggplot(plotdf0, aes(x = log2(var_expr/mean_expr))) + geom_density() +
+  geom_vline(xintercept = 0, color = &quot;red&quot;) +
+  ggtitle(&quot;before collapsing replicates&quot;)
+# after collapsing replicates
+toy_mat_collapsed &lt;- collapsed$par[, info$experiment == &quot;LowN&quot;]
+plotdf1 &lt;- tibble(var_expr = apply(toy_mat_collapsed, 1, var),
+                  mean_expr = apply(toy_mat_collapsed, 1, mean),
+                  gene_name = rownames(toy_mat_collapsed))
+p1 &lt;- ggplot(plotdf1, aes(x = log2(var_expr/mean_expr))) + geom_density() +
+  geom_vline(xintercept = 0, color = &quot;red&quot;) +
+  ggtitle(&quot;after collapsing replicates&quot;)
+ggarrange(p0, p1, nrow = 1, ncol = 2)</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range (`stat_density()`).
+## Removed 3 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code># mean expression pre and post (shouldn&#39;t have changed)
+plotdf &lt;- left_join(plotdf0, plotdf1, by = &quot;gene_name&quot;, suffix = c(&quot;_pre&quot;, &quot;_post&quot;))
+ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, color = &quot;gold&quot;)</code></pre>
+<p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<pre class="r"><code>plotdf &lt;- select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |&gt;
+  rename(&quot;mean_expr&quot;=&quot;mean_expr_pre&quot;)
+# difference in var/mean pre and post versus mean expr
+ggplot(plotdf, aes(x = log2(mean_expr + 1),
+                   y = log2(var_expr_pre) - log2(var_expr_post))) +
+  geom_hex() +
+  geom_hline(yintercept = 0, color = &quot;gold&quot;)</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range (`stat_binhex()`).</code></pre>
+<p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
+<pre class="r"><code># as expected, there is lower variance post collapse (very few genes below y = 0)
+# most genes have fairly little difference in var when collapsing replicates,
+# but the difference can be extreme for a few genes, of middling expression level
+# For genes with a difference, do we trust the collapsed variance to be more accurate to expression shape?
+# first random gene that tend to have very little difference in variance
+gene_idx &lt;- plotdf |&gt; select(gene_name) |&gt; pull() |&gt; sample(1)
+ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
+  geom_jitter() +
+  geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
+            aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
+            color = &quot;red&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-4.png" width="672" /></p>
+<pre class="r"><code># second a gene with variance substantially reduced in collapsed form
+gene_idx &lt;- plotdf |&gt; filter(log2(var_expr_pre) - log2(var_expr_post) &gt; 7) |&gt; select(gene_name) |&gt; pull() |&gt; sample(1)
+ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
+  geom_jitter() +
+  geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
+            aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
+            color = &quot;red&quot;) # these are genes with very little expression change attributable to timepoint,</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-5.png" width="672" /></p>
+<pre class="r"><code># the exact kind we want to have significantly reduced variance in collapsed counts</code></pre>
+</div>
+<div id="taking-moving-averages-of-lowpi-and-diauxic-shift"
+class="section level2">
+<h2>Taking moving averages of LowPi and Diauxic Shift</h2>
+<p>LowPi and Diauxic Shift experiments have many timepoints but only one
+replicate per timepoint. Similar to taking the mean between replicates,
+smoothing Low Pi and Diauxic Shift experiments as a moving average
+allows the correlations between genes to reflect expression shape</p>
+<pre class="r"><code># taking moving average
+# window size of 5 --- 2 on each side, fewer for edge cases
+# note: this function expects counts to have columns in order
+# from smallest timepoint (on the left) to largest timepoint (on the right)
+getMovingAverage &lt;- function(.cts) {
+  cts_movavg &lt;- map(.x = colnames(.cts), \(cond) {
+    idx &lt;- which(colnames(.cts) == cond)
+    idxs &lt;- c(idx - 2,
+              idx - 1,
+              idx,
+              idx + 1,
+              idx + 2)[c(idx - 2,
+                         idx - 1,
+                         idx,
+                         idx + 1,
+                         idx + 2) &gt; 0 &amp;
+                         c(idx - 2,
+                           idx - 1,
+                           idx,
+                           idx + 1,
+                           idx + 2) &lt; ncol(.cts)]
+    if (ncol(.cts[, idxs, drop = FALSE]) &lt; 2) {
+      warning(&quot;only one timepoint for&quot;, cond, idx, &quot;\n&quot;)
+      return(.cts[, idxs])
+    }
+    return(rowMeans(.cts[, idxs, drop = FALSE]))
+  }) |&gt; reduce(.f = cbind)
+  colnames(cts_movavg) &lt;- colnames(.cts)
+  rownames(cts_movavg) &lt;- rownames(.cts)
+  return(cts_movavg)
+}
+
+# tests for getMovingAverage
+# random gene prior to moving average
+gene_idx &lt;- sample(rownames(counts), 1)
+# change to try different experiments (you have to keep the same experiment/allele/species):
+test_collapsed &lt;- collapsed$par
+test_info &lt;- info
+test_experiment &lt;- &quot;LowPi&quot;
+test_movavg &lt;- getMovingAverage(test_collapsed[,test_info$experiment == test_experiment])
+
+plotdf &lt;- tibble(expr = test_collapsed[gene_idx, test_info$experiment == test_experiment],
+                 condition = colnames(test_collapsed[, test_info$experiment == test_experiment])) |&gt;
+  left_join(test_info, by = &quot;condition&quot;)
+# ggplot(plotdf, aes(x = time_point_num, y = expr)) + geom_line()
+
+# same random gene after moving average
+plotdf2 &lt;- tibble(expr = test_movavg[gene_idx,],
+                  status = &quot;after&quot;,
+                  condition = colnames(test_movavg)) |&gt;
+  left_join(test_info, by = &quot;condition&quot;)
+plotdf$status &lt;- &quot;before&quot;
+plotdf &lt;- bind_rows(plotdf, plotdf2)
+ggplot(plotdf, aes(x = time_point_num, y = expr)) +
+  geom_line(aes(group = status, color = status))</code></pre>
+<p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="plotting" class="section level2">
+<h2>Plotting</h2>
+<p>All the functions to generate different plots used in figure scripts.
+Each plotting function and their associated unit tests are their own
+named chunks</p>
+<pre class="r"><code># plotting function to visualize expression profiles of any 2 groups
+# @input: counts, info, and names of two groups to compare
+# @output: ggplot of both expression profiles with loess or line curves tracing the average expression
+plotExpressionProfilePair &lt;- function(.cts1, .cts2, 
+                                      .info1, .info2, 
+                                      .name1 = &quot;S. cerevisiae&quot;, .name2 = &quot;S. paradoxus&quot;,
+                                      .color1 = &quot;orange1&quot;, .color2 = &quot;blue2&quot;,
+                                      .method = &quot;line&quot;, 
+                                      .show_points = FALSE,
+                                      .point_size = 0.1,
+                                      .show_confidence_intervals = TRUE,
+                                      .confidence_type = &quot;mean&quot;,
+                                      .legend = &quot;right&quot;,
+                                      .normalization = c(&quot;none&quot;, &quot;log2&quot;, &quot;scale&quot;, &quot;center&quot;),
+                                      .plotlims = NULL,
+                                      .plot_titles = &quot;experiment&quot;) {
+  if (.normalization == &quot;none&quot;) {
+    norm_func &lt;- identity
+    ylabel &lt;- &quot;Expression\n(counts per million)&quot;
+  }
+  if (.normalization == &quot;log2&quot;) {
+    norm_func &lt;- \(x) {log2(x + 1)}
+    ylabel &lt;- &quot;Expression (log2)&quot;
+  }
+  if (.normalization == &quot;scale&quot;) {
+    norm_func &lt;- \(x) {t(scale(t(x)))}
+    ylabel &lt;- &quot;Expression\n(centered and scaled)&quot;
+  }
+  if (.normalization == &quot;scaled_not_centered&quot;) {
+    norm_func &lt;- \(x) {
+      return(x/rowSds(x, na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression\n(scaled)&quot;
+  }
+  if (.normalization == &quot;center&quot;) {
+    norm_func &lt;- \(x) {(x - rowMeans(x, na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression\n(centered counts per million)&quot;
+  }
+  if (.normalization == &quot;centered log2&quot;) {
+    norm_func &lt;- \(x) {(log2(x + 1) - rowMeans(log2(x + 1), na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression\n(centered log2)&quot;
+  }
+  if (!setequal(unique(.info1$experiment), unique(.info2$experiment))) {
+    stop(&quot;sample info dataframes do not contain same set of experiments\n&quot;)
+  }
+  ExperimentNames &lt;- unique(.info1$experiment) # arbitrary to do info1 or info2
+  nExperiments &lt;- length(ExperimentNames)
+  nGenes &lt;- nrow(.cts1)
+  info1 &lt;- tibble(experiment = .info1$experiment,
+                  time_point_num = .info1$time_point_num)
+  info2 &lt;- tibble(experiment = .info2$experiment,
+                  time_point_num = .info2$time_point_num)
+  expr1 &lt;- norm_func(.cts1) |&gt; t()
+  colnames(expr1) &lt;- rownames(.cts1)
+  expr2 &lt;- norm_func(.cts2) |&gt; t()
+  colnames(expr2) &lt;- rownames(.cts2)
+  gdf1 &lt;- bind_cols(expr1, info1) |&gt; 
+    pivot_longer(cols = colnames(expr1), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
+  gdf1$group_id &lt;- &quot;1&quot;
+  gdf2 &lt;- bind_cols(expr2, info2) |&gt; 
+    pivot_longer(cols = colnames(expr2), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
+  gdf2$group_id &lt;- &quot;2&quot;
+  # converting each gene&#39;s expression to its mean expression between replicates
+  gdf &lt;- bind_rows(gdf1, gdf2) |&gt; 
+    drop_na() |&gt; # drops genes missing from an experiment (usually Heat/Cold)
+    group_by(group_id, gene_name, experiment, time_point_num) |&gt; 
+    summarise(expr = mean(expr)) |&gt; ungroup()
+  plotdf &lt;- gdf
+  # creating consistent plotlims across all experiments
+  max_expr &lt;- max(gdf$expr, na.rm = TRUE)
+  min_expr &lt;- min(gdf$expr, na.rm = TRUE)
+  plotlimdf &lt;- gdf |&gt; group_by(time_point_num, experiment, group_id) |&gt;
+    summarise(mean_expr = mean(expr),
+              sd_expr = sd(expr)) 
+  max_avg &lt;- plotlimdf |&gt; select(mean_expr) |&gt;
+    pull() |&gt; max(na.rm = TRUE)
+  min_avg &lt;- plotlimdf |&gt; select(mean_expr) |&gt;
+    pull() |&gt; min(na.rm = TRUE)
+  buffer &lt;- plotlimdf |&gt; select(sd_expr) |&gt;
+    pull() |&gt; max(na.rm = TRUE)
+  buffer &lt;- 0.25
+  max_avg &lt;- max_avg + buffer
+  min_avg &lt;- min_avg - buffer
+  if (is.null(.plotlims)) {
+    if (!.show_points) {
+      .plotlims &lt;- c(min_avg, max_avg)
+    }
+    if (.show_points) {
+      .plotlims &lt;- c(min_expr, max_expr)
+    }
+  }
+  # background color rectangles for differentiating the experiments
+  rects &lt;- data.frame(color = c(&quot;orchid&quot;, &quot;lightgreen&quot;, &quot;gold&quot;, &quot;orange&quot;, &quot;salmon&quot;, &quot;lightblue&quot;),
+                  labels = c(&quot;Cell Cycle&quot;, &quot;Diauxic Shift&quot;, &quot;Low Nitrogen&quot;, &quot;Low Phosphorus&quot;, &quot;Heat Stress&quot;, &quot;Cold Stress&quot;),
+                  experiment_names = c(&quot;CC&quot;, &quot;HAP4&quot;, &quot;LowN&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;))
+  experiment_order &lt;- c(&quot;HAP4&quot;, &quot;CC&quot;, &quot;LowN&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;)
+  # plotting
+  plotlist &lt;- vector(mode = &quot;list&quot;, length = length(unique(plotdf$experiment)))
+  names(plotlist) &lt;- experiment_order[experiment_order %in% unique(plotdf$experiment)]
+  for (e in unique(plotdf$experiment)) {
+    plotdf_e &lt;- filter(plotdf, experiment == e)
+    p &lt;- ggplot() + 
+      theme_classic() +
+      scale_color_discrete(type = c(.color1, .color2), labels = c(.name1, .name2)) +
+      theme(legend.title = element_blank()) +
+      # theme(panel.background = element_rect(fill = alpha(rects$color[rects$experiment_names == e], 0.3),
+      #                                       color = alpha(rects$color[rects$experiment_names == e], 0.3),
+      #                                       size = 0.5, linetype = &quot;solid&quot;)) +
+      ylab(&quot;&quot;) +
+      xlab(&quot;&quot;) +
+      ylim(.plotlims)
+      # scale_y_continuous(breaks = seq(from = 0, to = ceiling(max_expr), by = 1),
+      #                    limits = seq(from = 0, to = ceiling(max_expr), by = 1),
+      #                    labels = seq(from = 0, to = ceiling(max_expr), by = 1))
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles == &quot;experiment&quot;) {
+      p &lt;- p + ggtitle(rects$labels[rects$experiment_names == e])
+    }
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles == &quot;ngenes&quot;) {
+      p &lt;- p + ggtitle(paste(nGenes, &quot;genes&quot;))
+    }
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles != &quot;experiment&quot; &amp;
+        .plot_titles != &quot;ngenes&quot;) {
+      p &lt;- p + ggtitle(.plot_titles)
+    }
+    if (.show_points) {
+      p &lt;- p + geom_jitter(data = plotdf_e, aes(x = time_point_num, 
+                                                y = expr, color = group_id), 
+                           size = .point_size, alpha = 0.5)
+    }
+    if (.method == &quot;loess&quot;) {
+      loess1 &lt;- loess.sd(x = plotdf_e %&gt;% filter(group_id == 1) %&gt;% select(time_point_num) %&gt;% pull(),
+                         y = plotdf_e %&gt;% filter(group_id == 1) %&gt;% select(expr) %&gt;% pull(), nsigma = 1.96)
+      loess2 &lt;- loess.sd(x = plotdf_e %&gt;% filter(group_id == 2) %&gt;% select(time_point_num) %&gt;% pull(),
+                         y = plotdf_e %&gt;% filter(group_id == 2) %&gt;% select(expr) %&gt;% pull(), nsigma = 1.96)
+      # adding loess segments (the =!! is from rlang and forces the mapping to not be lazily evaluated at the time of plotting):
+      p &lt;- p + 
+        geom_smooth(aes(x =!!loess1$x, y =!!loess1$y), color = .color1, linewidth = 1) +
+        geom_smooth(aes(x =!!loess2$x, y =!!loess2$y), color = .color2, linewidth = 1)
+      if (.show_confidence_intervals) {
+        p &lt;- p + 
+          geom_ribbon(aes(x =!!loess1$x, ymin =!!loess1$lower, ymax =!!loess1$upper), fill = .color1, alpha = 0.3) +
+          geom_ribbon(aes(x =!!loess2$x, ymin =!!loess2$lower, ymax =!!loess2$upper), fill = .color2, alpha = 0.3)
+      }
+    }
+    if (.method == &quot;line&quot;) {
+      # lines trace average expr at each timepoint/experiment for each group
+      avgexpr1 &lt;- plotdf_e %&gt;% filter(group_id == 1) |&gt; group_by(time_point_num) |&gt; summarise(mean_expr = mean(expr, na.rm = TRUE),
+                                                                                              sd_expr = sd(expr, na.rm = TRUE),
+                                                                                              quant975 = quantile(expr, 0.975, na.rm = TRUE),
+                                                                                              quant025 = quantile(expr, 0.025, na.rm = TRUE))
+      avgexpr2 &lt;- plotdf_e %&gt;% filter(group_id == 2) |&gt; group_by(time_point_num) |&gt; summarise(mean_expr = mean(expr, na.rm = TRUE),
+                                                                                              sd_expr = sd(expr, na.rm = TRUE),
+                                                                                              quant975 = quantile(expr, 0.975, na.rm = TRUE),
+                                                                                              quant025 = quantile(expr, 0.025, na.rm = TRUE))
+      # adding line segments (the =!! is from rlang and forces the mapping to not be lazily evaluated at the time of plotting):
+      p &lt;- p +
+        geom_line(data = avgexpr1, aes(x = time_point_num, y = mean_expr), color = .color1, linewidth = 1) +
+        geom_line(data = avgexpr2, aes(x = time_point_num, y = mean_expr), color = .color2, linewidth = 1) 
+      if (.show_confidence_intervals) {
+        if (.confidence_type == &quot;mean&quot;) {
+          # calculating 95% confidence in the mean interval
+          avgexpr1$CI_upper &lt;- 1.96*(avgexpr1$sd_expr/sqrt(nGenes))
+          avgexpr2$CI_upper &lt;- 1.96*(avgexpr2$sd_expr/sqrt(nGenes))
+          avgexpr1$CI_lower &lt;- 1.96*(avgexpr1$sd_expr/sqrt(nGenes))
+          avgexpr2$CI_lower &lt;- 1.96*(avgexpr2$sd_expr/sqrt(nGenes))
+        }
+        if (.confidence_type == &quot;all&quot;) {
+          # calculating bounds for 95% of genes
+          avgexpr1$CI_upper &lt;- abs(avgexpr1$quant975) - avgexpr1$mean_expr
+          avgexpr2$CI_upper &lt;- abs(avgexpr2$quant975) - avgexpr1$mean_expr
+          avgexpr1$CI_lower &lt;- abs(avgexpr1$quant025) + avgexpr1$mean_expr
+          avgexpr2$CI_lower &lt;- abs(avgexpr2$quant025) + avgexpr1$mean_expr
+        }
+        p &lt;- p + 
+          geom_ribbon(data = avgexpr1, aes(x = time_point_num, ymin = pmax(mean_expr - CI_lower, .plotlims[1]), ymax = pmin(mean_expr + CI_upper, .plotlims[2])),
+                      fill = .color1, alpha = 0.3) +
+          geom_ribbon(data = avgexpr2, aes(x = time_point_num, ymin = pmax(mean_expr - CI_lower, .plotlims[1]), ymax = pmin(mean_expr + CI_upper, .plotlims[2])),
+                      fill = .color2, alpha = 0.3)
+      }
+    }
+    plotlist[[e]] &lt;- p
+  }
+  if (length(plotlist) == 1) {
+    return(plotlist[[1]] + xlab(&quot;Timepoint (min)&quot;) + ylab(ylabel))
+  }
+  fullplot &lt;- ggarrange(plotlist = plotlist, nrow = 1, ncol = length(unique(plotdf$experiment)),
+                        common.legend = TRUE, legend = .legend)
+  return(annotate_figure(fullplot, bottom = &quot;Timepoint (min)&quot;, left = ylabel))
+}
+# # tests for plotExpressionProfilePair
+# gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; dynamics == &quot;diverged&quot; &amp;
+#                                  cer == 1 &amp; par == 2) |&gt;
+#   select(gene_name) |&gt; pull()
+# plotExpressionProfilePair(collapsed$cer[gene_idxs,],
+#                           collapsed$par[gene_idxs,],
+#                           info,
+#                           info,
+#                           .method = &quot;line&quot;, .show_points = FALSE,
+#                           .normalization = &quot;scale&quot;,
+#                           .confidence_type = &quot;mean&quot;)
+# # 2-1 cluster dynamics-divergers in HAP4 and LowPi
+# gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; par == 1) |&gt;
+#   select(gene_name) |&gt; pull()
+# plotExpressionProfilePair(collapsed$cer[gene_idxs, info$experiment == &quot;HAP4&quot;, drop = FALSE],
+#                           collapsed$par[gene_idxs, info$experiment == &quot;HAP4&quot;, drop = FALSE],
+#                           info[info$experiment == &quot;HAP4&quot;,],
+#                           info[info$experiment == &quot;HAP4&quot;,],
+#                           .method = &quot;line&quot;, .show_points = FALSE,
+#                           .normalization = &quot;centered log2&quot;)
+# plotExpressionProfilePair(collapsed$cer[gene_idxs, info$experiment == &quot;LowPi&quot;],
+#                           collapsed$par[gene_idxs, info$experiment == &quot;LowPi&quot;],
+#                           info[info$experiment == &quot;LowPi&quot;,],
+#                           info[info$experiment == &quot;LowPi&quot;,],
+#                           .method = &quot;line&quot;, .show_points = FALSE,
+#                           .normalization = &quot;centered log2&quot;)
+# # unclear why this would ever come up, but this makes sure that the
+# # order in which the experiments appear in the dataset doesn&#39;t
+# # affect what they&#39;re called in the plot
+# plotExpressionProfilePair(collapsed$cer[gene_idxs, info$experiment %in% c(&quot;CC&quot;, &quot;HAP4&quot;)],
+#                           collapsed$par[gene_idxs, info$experiment  %in% c(&quot;CC&quot;, &quot;HAP4&quot;)],
+#                           info[info$experiment %in% c(&quot;CC&quot;, &quot;HAP4&quot;),],
+#                           info[info$experiment %in% c(&quot;CC&quot;, &quot;HAP4&quot;),],
+#                           .name1 = &quot;S. cereviaise&quot;,
+#                           .name2 = &quot;S. paradoxus&quot;,
+#                           .method = &quot;line&quot;, .show_points = TRUE,
+#                           .normalization = &quot;log2&quot;)
+# # what happens when we force HAP4 to come first in the dataset?
+# plotExpressionProfilePair(cbind(collapsed$cer[gene_idxs, info$experiment == &quot;HAP4&quot;],
+#                                 collapsed$cer[gene_idxs, info$experiment == &quot;CC&quot;]),
+#                           cbind(collapsed$par[gene_idxs, info$experiment == &quot;HAP4&quot;],
+#                                 collapsed$par[gene_idxs, info$experiment == &quot;CC&quot;]),
+#                           bind_rows(info[info$experiment == &quot;HAP4&quot;,],
+#                                     info[info$experiment == &quot;CC&quot;,]),
+#                           bind_rows(info[info$experiment == &quot;HAP4&quot;,],
+#                                     info[info$experiment == &quot;CC&quot;,]),
+#                           .method = &quot;line&quot;, .show_points = TRUE,
+#                           .normalization = &quot;log2&quot;)
+# # it doesn&#39;t do anything. Set experiment order inside function. Sat Growth 
+# # should still have the X for dynamics divergers
+#
+# # SHU1 and SHU2, just for curiosity
+# # They&#39;re in a complex together
+# plotExpressionProfilePair(collapsed$cer[&quot;YHL006C&quot;,, drop = FALSE],
+#                           collapsed$cer[&quot;YDR078C&quot;,, drop = FALSE],
+#                           info,
+#                           info,
+#                           .method = &quot;line&quot;,
+#                           .show_points = TRUE,
+#                           .show_confidence_intervals = TRUE,
+#                           .normalization = &quot;log2&quot;,
+#                           .name1 = &quot;SHU1 cer&quot;,
+#                           .name2 = &quot;SHU2 cer&quot;,
+#                           .color1 = &quot;purple&quot;,
+#                           .color2 = &quot;red&quot;)
+# plotExpressionProfilePair(collapsed$par[&quot;YHL006C&quot;,, drop = FALSE],
+#                           collapsed$par[&quot;YDR078C&quot;,, drop = FALSE],
+#                           info,
+#                           info,
+#                           .method = &quot;line&quot;,
+#                           .show_points = TRUE,
+#                           .show_confidence_intervals = TRUE,
+#                           .normalization = &quot;log2&quot;,
+#                           .name1 = &quot;SHU1 par&quot;,
+#                           .name2 = &quot;SHU2 par&quot;,
+#                           .color1 = &quot;purple&quot;,
+#                           .color2 = &quot;red&quot;)</code></pre>
+<pre class="r"><code># plotting function to visualize expression profiles of any 2 groups
+# @input: counts, info, and names of two groups to compare
+# @output: ggplot of both expression profiles with loess or line curves tracing the average expression
+plotExpressionRibbonsPair &lt;- function(.cts1, .cts2, 
+                                      .info1, .info2, 
+                                      .name1 = &quot;S. cerevisiae&quot;, .name2 = &quot;S. paradoxus&quot;,
+                                      .color1 = &quot;orange1&quot;, .color2 = &quot;blue2&quot;,
+                                      .alpha = 0.2,
+                                      .legend = &quot;right&quot;,
+                                      .normalization = c(&quot;none&quot;, &quot;log2&quot;, &quot;scale&quot;, &quot;center&quot;),
+                                      .plotlims = NULL,
+                                      .plot_titles = &quot;experiment&quot;) {
+  if (.normalization == &quot;none&quot;) {
+    norm_func &lt;- identity
+    ylabel &lt;- &quot;Expression (counts per million)&quot;
+  }
+  if (.normalization == &quot;log2&quot;) {
+    norm_func &lt;- \(x) {log2(x + 1)}
+    ylabel &lt;- &quot;Expression (log2)&quot;
+  }
+  if (.normalization == &quot;scale&quot;) {
+    norm_func &lt;- \(x) {t(scale(t(x)))}
+    ylabel &lt;- &quot;Expression\n(centered and scaled)&quot;
+  }
+  if (.normalization == &quot;scaled_not_centered&quot;) {
+    norm_func &lt;- \(x) {
+      return(x/rowSds(x, na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression\n(scaled)&quot;
+  }
+  if (.normalization == &quot;center&quot;) {
+    norm_func &lt;- \(x) {(x - rowMeans(x, na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression (centered counts per million)&quot;
+  }
+  if (.normalization == &quot;centered log2&quot;) {
+    norm_func &lt;- \(x) {(log2(x + 1) - rowMeans(log2(x + 1), na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression\n(centered log2)&quot;
+  }
+  if (!setequal(unique(.info1$experiment), unique(.info2$experiment))) {
+    stop(&quot;sample info dataframes do not contain same set of experiments\n&quot;)
+  }
+  ExperimentNames &lt;- unique(.info1$experiment) # arbitrary to do info1 or info2
+  nExperiments &lt;- length(ExperimentNames)
+  nGenes &lt;- nrow(.cts1)
+  info1 &lt;- tibble(experiment = .info1$experiment,
+                  time_point_num = .info1$time_point_num)
+  info2 &lt;- tibble(experiment = .info2$experiment,
+                  time_point_num = .info2$time_point_num)
+  expr1 &lt;- norm_func(.cts1) |&gt; t()
+  colnames(expr1) &lt;- rownames(.cts1)
+  expr2 &lt;- norm_func(.cts2) |&gt; t()
+  colnames(expr2) &lt;- rownames(.cts2)
+  gdf1 &lt;- bind_cols(expr1, info1) |&gt; 
+    pivot_longer(cols = colnames(expr1), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
+  gdf1$group_id &lt;- &quot;1&quot;
+  gdf2 &lt;- bind_cols(expr2, info2) |&gt; 
+    pivot_longer(cols = colnames(expr2), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
+  gdf2$group_id &lt;- &quot;2&quot;
+  # converting each gene&#39;s expression to its mean expression between replicates
+  gdf &lt;- bind_rows(gdf1, gdf2) |&gt; 
+    drop_na() |&gt; # drops genes missing from an experiment (usually Heat/Cold)
+    group_by(group_id, gene_name, experiment, time_point_num) |&gt; 
+    summarise(expr = mean(expr)) |&gt; ungroup()
+  plotdf &lt;- gdf
+  # creating consistent plotlims across all experiments
+  max_expr &lt;- max(gdf$expr, na.rm = TRUE)
+  min_expr &lt;- min(gdf$expr, na.rm = TRUE)
+  plotlimdf &lt;- gdf |&gt; group_by(time_point_num, experiment, group_id) |&gt;
+    summarise(mean_expr = mean(expr),
+              sd_expr = sd(expr)) 
+  max_avg &lt;- plotlimdf |&gt; select(mean_expr) |&gt;
+    pull() |&gt; max(na.rm = TRUE)
+  min_avg &lt;- plotlimdf |&gt; select(mean_expr) |&gt;
+    pull() |&gt; min(na.rm = TRUE)
+  buffer &lt;- plotlimdf |&gt; select(sd_expr) |&gt;
+    pull() |&gt; max(na.rm = TRUE)
+  buffer &lt;- 0.25
+  max_avg &lt;- max_avg + buffer
+  min_avg &lt;- min_avg - buffer
+  if (is.null(.plotlims)) {
+    .plotlims &lt;- c(min_avg, max_avg)
+  }
+  experiment_order &lt;- c(&quot;HAP4&quot;, &quot;CC&quot;, &quot;LowN&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;)
+  # background color rectangles for differentiating the experiments
+  rects &lt;- data.frame(color = c(&quot;orchid&quot;, &quot;lightgreen&quot;, &quot;gold&quot;, &quot;orange&quot;, &quot;salmon&quot;, &quot;lightblue&quot;),
+                      labels = c(&quot;Cell Cycle&quot;, &quot;Diauxic Shift&quot;, &quot;Low Nitrogen&quot;, &quot;Low Phosphorus&quot;, &quot;Heat Stress&quot;, &quot;Cold Stress&quot;),
+                      experiment_names = c(&quot;CC&quot;, &quot;HAP4&quot;, &quot;LowN&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;))
+  # plotting
+  plotlist &lt;- vector(mode = &quot;list&quot;, length = length(unique(plotdf$experiment)))
+  names(plotlist) &lt;- experiment_order[experiment_order %in% unique(plotdf$experiment)]
+  for (e in unique(plotdf$experiment)) {
+    plotdf_e &lt;- filter(plotdf, experiment == e)
+    p &lt;- ggplot() + 
+      theme_classic() +
+      scale_color_discrete(type = c(.color1, .color2), labels = c(.name1, .name2)) +
+      theme(legend.title = element_blank()) +
+      # theme(panel.background = element_rect(fill = alpha(rects$color[rects$experiment_names == e], 0.3),
+      #                                       color = alpha(rects$color[rects$experiment_names == e], 0.3),
+      #                                       size = 0.5, linetype = &quot;solid&quot;)) +
+      ylab(&quot;&quot;) +
+      xlab(&quot;&quot;) +
+      ylim(.plotlims)
+    # scale_y_continuous(breaks = seq(from = 0, to = ceiling(max_expr), by = 1),
+    #                    limits = seq(from = 0, to = ceiling(max_expr), by = 1),
+    #                    labels = seq(from = 0, to = ceiling(max_expr), by = 1))
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles == &quot;experiment&quot;) {
+      p &lt;- p + ggtitle(rects$labels[rects$experiment_names == e])
+    }
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles == &quot;ngenes&quot;) {
+      p &lt;- p + ggtitle(paste(nGenes, &quot;genes&quot;))
+    }
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles != &quot;experiment&quot; &amp;
+        .plot_titles != &quot;ngenes&quot;) {
+      p &lt;- p + ggtitle(.plot_titles[rects$experiment_names == e])
+    }
+    # collecting ribbons
+    # lines trace average expr at each timepoint/experiment for each group
+    quant_vec1 &lt;- plotdf_e |&gt; filter(group_id == 1) |&gt; group_by(time_point_num) |&gt; summarise(max_expr = max(expr, na.rm = TRUE),
+                                                                                             quant90 = quantile(expr, 0.9, na.rm = TRUE),
+                                                                                             quant80 = quantile(expr, 0.8, na.rm = TRUE),
+                                                                                             quant60 = quantile(expr, 0.6, na.rm = TRUE),
+                                                                                             quant55 = quantile(expr, 0.55, na.rm = TRUE),
+                                                                                             quant45 = quantile(expr, 0.45, na.rm = TRUE),
+                                                                                             quant40 = quantile(expr, 0.4, na.rm = TRUE),
+                                                                                             quant20 = quantile(expr, 0.2, na.rm = TRUE),
+                                                                                             quant10 = quantile(expr, 0.1, na.rm = TRUE),
+                                                                                             min_expr = min(expr, na.rm = TRUE))
+    quant_vec2 &lt;- plotdf_e |&gt; filter(group_id == 2) |&gt; group_by(time_point_num) |&gt; summarise(max_expr = max(expr, na.rm = TRUE),
+                                                                                             quant90 = quantile(expr, 0.9, na.rm = TRUE),
+                                                                                             quant80 = quantile(expr, 0.8, na.rm = TRUE),
+                                                                                             quant60 = quantile(expr, 0.6, na.rm = TRUE),
+                                                                                             quant55 = quantile(expr, 0.55, na.rm = TRUE),
+                                                                                             quant45 = quantile(expr, 0.45, na.rm = TRUE),
+                                                                                             quant40 = quantile(expr, 0.4, na.rm = TRUE),
+                                                                                             quant20 = quantile(expr, 0.2, na.rm = TRUE),
+                                                                                             quant10 = quantile(expr, 0.1, na.rm = TRUE),
+                                                                                             min_expr = min(expr, na.rm = TRUE))
+    # adding ribbons (the order we add them is the order they&#39;re arranged in the plot)
+    p &lt;- p +
+      # # min and max, bounds of all genes
+      #   geom_ribbon(data = quant_vec1, aes(x = time_point_num, 
+      #                                      ymin = pmax(min_expr, .plotlims[1]), 
+      #                                      ymax = pmin(max_expr, .plotlims[2])),
+      #               fill = .color1, alpha = .alpha) +
+      #   geom_ribbon(data = quant_vec2, aes(x = time_point_num, 
+      #                                      ymin = pmax(min_expr, .plotlims[1]), 
+      #                                      ymax = pmin(max_expr, .plotlims[2])),
+      #               fill = .color2, alpha = .alpha) +
+      # 90% and 10%, bounds of 80% of all genes
+      geom_ribbon(data = quant_vec1, aes(x = time_point_num, 
+                                         ymin = pmax(quant10, .plotlims[1]), 
+                                         ymax = pmin(quant90, .plotlims[2])),
+                  fill = .color1, alpha = .alpha) +
+      geom_ribbon(data = quant_vec2, aes(x = time_point_num, 
+                                         ymin = pmax(quant10, .plotlims[1]), 
+                                         ymax = pmin(quant90, .plotlims[2])),
+                  fill = .color2, alpha = .alpha) +
+      # 80% and 20%, bounds of 60% of all genes
+      geom_ribbon(data = quant_vec1, aes(x = time_point_num, 
+                                         ymin = pmax(quant20, .plotlims[1]), 
+                                         ymax = pmin(quant80, .plotlims[2])),
+                  fill = .color1, alpha = .alpha) +
+      geom_ribbon(data = quant_vec2, aes(x = time_point_num, 
+                                         ymin = pmax(quant20, .plotlims[1]), 
+                                         ymax = pmin(quant80, .plotlims[2])),
+                  fill = .color2, alpha = .alpha) +
+      # 60% and 40%, bounds of 20% of all genes
+      geom_ribbon(data = quant_vec1, aes(x = time_point_num, 
+                                         ymin = pmax(quant40, .plotlims[1]), 
+                                         ymax = pmin(quant60, .plotlims[2])),
+                  fill = .color1, alpha = .alpha) +
+      geom_ribbon(data = quant_vec2, aes(x = time_point_num, 
+                                         ymin = pmax(quant40, .plotlims[1]), 
+                                         ymax = pmin(quant60, .plotlims[2])),
+                  fill = .color2, alpha = .alpha) +
+    # 55% and 45%, bounds of 10% of all genes
+    geom_ribbon(data = quant_vec1, aes(x = time_point_num, 
+                                       ymin = pmax(quant45, .plotlims[1]), 
+                                       ymax = pmin(quant55, .plotlims[2])),
+                fill = .color1, alpha = .alpha) +
+      geom_ribbon(data = quant_vec2, aes(x = time_point_num, 
+                                         ymin = pmax(quant45, .plotlims[1]), 
+                                         ymax = pmin(quant55, .plotlims[2])),
+                  fill = .color2, alpha = .alpha)
+    plotlist[[e]] &lt;- p
+  }
+  if (length(plotlist) == 1) {
+    return(plotlist[[1]] + xlab(&quot;Timepoint (min)&quot;) + ylab(ylabel))
+  }
+  fullplot &lt;- ggarrange(plotlist = plotlist, nrow = 1, ncol = length(unique(plotdf$experiment)),
+                        common.legend = TRUE, legend = .legend)
+  return(annotate_figure(fullplot, bottom = &quot;Timepoint (min)&quot;, left = ylabel))
+}
+# # tests for plotExpressionProfilePair
+# gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; dynamics == &quot;diverged&quot; &amp;
+#                                  cer == 1 &amp; par == 2) |&gt;
+#   select(gene_name) |&gt; pull()
+# plotExpressionRibbonsPair(collapsed$cer[gene_idxs,],
+#                           collapsed$par[gene_idxs,],
+#                           info,
+#                           info,
+#                           .color1 = &quot;orange1&quot;,
+#                           .color2 = &quot;blue2&quot;,
+#                           .normalization = &quot;scale&quot;,
+#                           .plotlims = c(-2.5, 2.5))</code></pre>
+<pre class="r"><code># Oh yes
+# plots 4 groups of genes BUT you can&#39;t do this willy nilly
+# for it to be interpretable, groups 1 and 2 are the main contrast
+# and groups 3 and 4 are related to groups 1 and 2 respectively
+# Typically 1 and 2 are the parental species, 3 is the hybrid allele of 1, 
+# and 4 is the hybrid allele of 2
+plotExpressionProfileQuartet &lt;- function(.cts1, .cts2, .cts3, .cts4,
+                                         .info1, .info2, .info3, .info4,
+                                         .name1 = &quot;S. cerevisiae&quot;,
+                                         .name2 = &quot;S. paradoxus&quot;,
+                                         .name3 = &quot;F1 hybrid, cerevisiae allele&quot;,
+                                         .name4 = &quot;F1 hybrid, paradoxus allele&quot;,
+                                         .color1 = &quot;orange1&quot;,
+                                         .color2 = &quot;blue2&quot;,
+                                         .color3 = &quot;orange4&quot;,
+                                         .color4 = &quot;blue4&quot;,
+                                         .method = c(&quot;line&quot;, &quot;loess&quot;),
+                                         .show_points = FALSE,
+                                         .show_confidence_intervals = TRUE,
+                                         .normalization = c(&quot;none&quot;, &quot;log2&quot;, &quot;scale&quot;, &quot;center&quot;,
+                                                            &quot;centered log2&quot;),
+                                         .plotlims = NULL,
+                                         .plot_titles = &quot;experiment&quot;) {
+  if (.normalization == &quot;none&quot;) {
+    norm_func &lt;- identity
+    ylabel &lt;- &quot;Expression (counts per million)&quot;
+  }
+  if (.normalization == &quot;log2&quot;) {
+    norm_func &lt;- \(x) {log2(x + 1)}
+    ylabel &lt;- &quot;Expression (log2)&quot;
+  }
+  if (.normalization == &quot;scale&quot;) {
+    norm_func &lt;- \(x) {t(scale(t(x)))}
+    ylabel &lt;- &quot;Expression\n(centered and scaled)&quot;
+  }
+  if (.normalization == &quot;scaled_not_centered&quot;) {
+    norm_func &lt;- \(x) {
+      return(x/rowSds(x, na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression\n(scaled)&quot;
+  }
+  if (.normalization == &quot;center&quot;) {
+    norm_func &lt;- \(x) {
+      return(x - rowMeans(x, na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression (centered counts per million)&quot;
+  }
+  if (.normalization == &quot;centered log2&quot;) {
+    norm_func &lt;- \(x) {(log2(x + 1) - rowMeans(log2(x + 1), na.rm = TRUE))}
+    ylabel &lt;- &quot;Expression\n(centered log2)&quot;
+  }
+  if (!setequal(unique(.info1$experiment), unique(.info2$experiment))) {
+    stop(&quot;sample info dataframes do not contain same set of experiments\n&quot;)
+  }
+  ExperimentNames &lt;- unique(.info1$experiment) # arbitrary which info to use
+  nExperiments &lt;- length(ExperimentNames)
+  info1 &lt;- tibble(experiment = .info1$experiment,
+                  time_point_num = .info1$time_point_num)
+  info2 &lt;- tibble(experiment = .info2$experiment,
+                  time_point_num = .info2$time_point_num)
+  info3 &lt;- tibble(experiment = .info3$experiment,
+                  time_point_num = .info3$time_point_num)
+  info4 &lt;- tibble(experiment = .info4$experiment,
+                  time_point_num = .info4$time_point_num)
+  expr1 &lt;- norm_func(.cts1) |&gt; t()
+  expr2 &lt;- norm_func(.cts2) |&gt; t()
+  expr3 &lt;- norm_func(.cts3) |&gt; t()
+  expr4 &lt;- norm_func(.cts4) |&gt; t()
+  colnames(expr1) &lt;- rownames(.cts1)
+  colnames(expr2) &lt;- rownames(.cts2)
+  colnames(expr3) &lt;- rownames(.cts3)
+  colnames(expr4) &lt;- rownames(.cts4)
+  gdf1 &lt;- bind_cols(expr1, info1) |&gt; 
+    pivot_longer(cols = colnames(expr1), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
+  gdf1$group_id &lt;- &quot;1&quot;
+  gdf2 &lt;- bind_cols(expr2, info2) |&gt; 
+    pivot_longer(cols = colnames(expr2), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
+  gdf2$group_id &lt;- &quot;2&quot;
+  gdf3 &lt;- bind_cols(expr3, info3) |&gt; 
+    pivot_longer(cols = colnames(expr3), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
+  gdf3$group_id &lt;- &quot;3&quot;
+  gdf4 &lt;- bind_cols(expr4, info4) |&gt; 
+    pivot_longer(cols = colnames(expr4), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
+  gdf4$group_id &lt;- &quot;4&quot;
+  # converting each gene&#39;s expression to its mean expression between replicates
+  gdf &lt;- bind_rows(gdf1, gdf2, gdf3, gdf4) |&gt; 
+    drop_na() |&gt; # drops genes missing from an experiment (usually Heat/Cold)
+    group_by(group_id, gene_name, experiment, time_point_num) |&gt;
+    summarise(expr = mean(expr, na.rm = TRUE)) |&gt; ungroup()
+  plotlimdf &lt;- gdf |&gt; group_by(time_point_num, experiment, group_id) |&gt;
+    summarise(mean_expr = mean(expr, na.rm = TRUE),
+              sd_expr = sd(expr, na.rm = TRUE)) 
+  max_avg &lt;- plotlimdf |&gt; select(mean_expr) |&gt;
+    pull() |&gt; max(na.rm = TRUE)
+  min_avg &lt;- plotlimdf |&gt; select(mean_expr) |&gt;
+    pull() |&gt; min(na.rm = TRUE)
+  buffer &lt;- 0.25
+  max_avg &lt;- max_avg + buffer
+  min_avg &lt;- min_avg - buffer
+  # min/maxs when plotting points as well as averages:
+  max_expr &lt;- max(gdf$expr, na.rm = TRUE)
+  min_expr &lt;- min(gdf$expr, na.rm = TRUE)
+  # setting plotlims if they haven&#39;t been manually set
+  if (is.null(.plotlims)) {
+    if (!.show_points) {
+      .plotlims &lt;- c(min_avg, max_avg)
+    }
+    if (.show_points) {
+      .plotlims &lt;- c(min_expr, max_expr)
+    }
+  }
+  plotdf &lt;- gdf
+  # background color rectangles for differentiating the 4 experiments
+  rects &lt;- data.frame(color = c(&quot;lightgreen&quot;, &quot;orchid&quot;, &quot;gold&quot;, &quot;orange&quot;, &quot;salmon&quot;, &quot;lightblue&quot;),
+                      labels = c(&quot;Diauxic Shift&quot;, &quot;Cell Cycle&quot;, &quot;Low Nitrogen&quot;, &quot;Low Phosphorus&quot;, &quot;Heat Stress&quot;, &quot;Cold Stress&quot;),
+                      experiment_names = c(&quot;HAP4&quot;, &quot;CC&quot;, &quot;LowN&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;))
+  # plotting
+  plotlist &lt;- vector(mode = &quot;list&quot;, length = length(unique(plotdf$experiment)))
+  names(plotlist) &lt;- unique(plotdf$experiment)
+  experiment_order &lt;- intersect(rects$experiment_names, unique(plotdf$experiment))
+  for (e in experiment_order) {
+    plotdf_e &lt;- filter(plotdf, experiment == e)
+    p &lt;- ggplot() + 
+      theme_classic() +
+      scale_color_discrete(type = c(.color1, .color2, .color3, .color4), 
+                           labels = c(.name1, .name2, .name3, .name4)) +
+      theme(legend.title = element_blank()) +
+      # theme(panel.background = element_rect(fill = alpha(rects$color[rects$experiment_names == e], 0.3),
+      #                                       color = alpha(rects$color[rects$experiment_names == e], 0.3),
+      #                                       size = 0.5, linetype = &quot;solid&quot;)) +
+      ylab(&quot;&quot;) +
+      xlab(&quot;&quot;) +
+      ylim(.plotlims)
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles == &quot;experiment&quot;) {
+      p &lt;- p + ggtitle(rects$labels[rects$experiment_names == e])
+    }
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles == &quot;ngenes&quot;) {
+      p &lt;- p + ggtitle(paste(nGenes, &quot;genes&quot;))
+    }
+    if (.plot_titles != &quot;none&quot; &amp; .plot_titles != &quot;experiment&quot; &amp;
+        .plot_titles != &quot;ngenes&quot;) {
+      p &lt;- p + ggtitle(.plot_titles)
+    }
+    if (.show_points) {
+      p &lt;- p + geom_jitter(data = plotdf_e, aes(x = time_point_num, y = expr, color = group_id), size = 0.1, alpha = 0.5)
+    }
+    if (.method == &quot;loess&quot;) {
+      loess1 &lt;- loess.sd(x = plotdf_e %&gt;% filter(group_id == 1) %&gt;% select(time_point_num) %&gt;% pull(),
+                         y = plotdf_e %&gt;% filter(group_id == 1) %&gt;% select(expr) %&gt;% pull(), nsigma = 1.96)
+      loess2 &lt;- loess.sd(x = plotdf_e %&gt;% filter(group_id == 2) %&gt;% select(time_point_num) %&gt;% pull(),
+                         y = plotdf_e %&gt;% filter(group_id == 2) %&gt;% select(expr) %&gt;% pull(), nsigma = 1.96)
+      loess3 &lt;- loess.sd(x = plotdf_e %&gt;% filter(group_id == 3) %&gt;% select(time_point_num) %&gt;% pull(),
+                         y = plotdf_e %&gt;% filter(group_id == 3) %&gt;% select(expr) %&gt;% pull(), nsigma = 1.96)
+      loess4 &lt;- loess.sd(x = plotdf_e %&gt;% filter(group_id == 4) %&gt;% select(time_point_num) %&gt;% pull(),
+                         y = plotdf_e %&gt;% filter(group_id == 4) %&gt;% select(expr) %&gt;% pull(), nsigma = 1.96)
+      # adding loess segments (the =!! is from rlang and forces the mapping to not be lazily evaluated at the time of plotting):
+      p &lt;- p + 
+        geom_smooth(aes(x =!!loess1$x, y =!!loess1$y), color = .color1, linewidth = 1) +
+        geom_smooth(aes(x =!!loess2$x, y =!!loess2$y), color = .color2, linewidth = 1) +
+        geom_smooth(aes(x =!!loess3$x, y =!!loess3$y), color = .color3, linewidth = 1) +
+        geom_smooth(aes(x =!!loess4$x, y =!!loess4$y), color = .color4, linewidth = 1)
+      if (.show_confidence_intervals) {
+        p &lt;- p + 
+          geom_ribbon(aes(x =!!loess1$x, ymin =!!loess1$lower, ymax =!!loess1$upper), fill = .color1, alpha = 0.3) +
+          geom_ribbon(aes(x =!!loess2$x, ymin =!!loess2$lower, ymax =!!loess2$upper), fill = .color2, alpha = 0.3)
+      }
+    }
+    if (.method == &quot;line&quot;) {
+      # lines trace average expr at each timepoint/experiment for each group
+      avgexpr1 &lt;- plotdf_e %&gt;% filter(group_id == 1) |&gt; group_by(time_point_num) |&gt; summarise(mean_expr = mean(expr, na.rm = TRUE),
+                                                                                              sd_expr = sd(expr, na.rm = TRUE))
+      avgexpr2 &lt;- plotdf_e %&gt;% filter(group_id == 2) |&gt; group_by(time_point_num) |&gt; summarise(mean_expr = mean(expr, na.rm = TRUE),
+                                                                                              sd_expr = sd(expr, na.rm = TRUE))
+      avgexpr3 &lt;- plotdf_e %&gt;% filter(group_id == 3) |&gt; group_by(time_point_num) |&gt; summarise(mean_expr = mean(expr, na.rm = TRUE),
+                                                                                              sd_expr = sd(expr, na.rm = TRUE))
+      avgexpr4 &lt;- plotdf_e %&gt;% filter(group_id == 4) |&gt; group_by(time_point_num) |&gt; summarise(mean_expr = mean(expr, na.rm = TRUE),
+                                                                                              sd_expr = sd(expr, na.rm = TRUE))
+      # adding line segments (the =!! is from rlang and forces the mapping to not be lazily evaluated at the time of plotting):
+      p &lt;- p +
+        geom_line(data = avgexpr1, aes(x = time_point_num, y = mean_expr), color = .color1, linewidth = 1, linetype = &quot;solid&quot;) +
+        geom_line(data = avgexpr2, aes(x = time_point_num, y = mean_expr), color = .color2, linewidth = 1, linetype = &quot;solid&quot;) +
+        geom_line(data = avgexpr3, aes(x = time_point_num, y = mean_expr), color = .color3, linewidth = 1, linetype = &quot;dashed&quot;) +
+        geom_line(data = avgexpr4, aes(x = time_point_num, y = mean_expr), color = .color4, linewidth = 1, linetype = &quot;dashed&quot;)
+      if (.show_confidence_intervals) {
+        # calculating 95% confidence in the mean
+        nGenes &lt;- length(unique(plotdf$gene_name))
+        avgexpr1$CI &lt;- 1.96*(avgexpr1$sd_expr/sqrt(nGenes))
+        avgexpr2$CI &lt;- 1.96*(avgexpr2$sd_expr/sqrt(nGenes))
+        avgexpr3$CI &lt;- 1.96*(avgexpr3$sd_expr/sqrt(nGenes))
+        avgexpr4$CI &lt;- 1.96*(avgexpr4$sd_expr/sqrt(nGenes))
+        
+        p &lt;- p + 
+          geom_ribbon(data = avgexpr1, aes(x = time_point_num, ymin = pmax(mean_expr - CI, .plotlims[1]), ymax = pmin(mean_expr + CI, .plotlims[2])),
+                      fill = .color1, alpha = 0.3) +
+          geom_ribbon(data = avgexpr2, aes(x = time_point_num, ymin = pmax(mean_expr - CI, .plotlims[1]), ymax = pmin(mean_expr + CI, .plotlims[2])),
+                      fill = .color2, alpha = 0.3) +
+          geom_ribbon(data = avgexpr3, aes(x = time_point_num, ymin = pmax(mean_expr - CI, .plotlims[1]), ymax = pmin(mean_expr + CI, .plotlims[2])),
+                      fill = .color1, alpha = 0.3) +
+          geom_ribbon(data = avgexpr4, aes(x = time_point_num, ymin = pmax(mean_expr - CI, .plotlims[1]), ymax = pmin(mean_expr + CI, .plotlims[2])),
+                      fill = .color2, alpha = 0.3)
+      }
+    }
+    plotlist[[e]] &lt;- p
+  }
+  if (length(plotlist) == 1) {
+    return(plotlist[[1]] + xlab(&quot;Timepoint (min)&quot;) + ylab(ylabel))
+  }
+  fullplot &lt;- ggarrange(plotlist = plotlist[experiment_order], nrow = 1, ncol = length(experiment_order),
+                        common.legend = TRUE, legend = &quot;right&quot;)
+  return(annotate_figure(fullplot, bottom = &quot;Timepoint (min)&quot;, left = ylabel))
+}
+# # tests for plotExpressionProfileQuartet
+# # hardcoded for simplicity (subset of the unsigned module b (yellow) with positive and negatively correlated genes)
+# conserved_idxs &lt;- c(&quot;YKL013C&quot;, &quot;YER009W&quot;, &quot;YMR097C&quot;, &quot;YJL189W&quot;, &quot;YKL009W&quot;,
+#                     &quot;YEL054C&quot;, &quot;YLR333C&quot;, &quot;YBL050W&quot;, &quot;YNL223W&quot;, &quot;YNL162W&quot;)
+# up_par_idxs &lt;- c(&quot;YER102W&quot;, &quot;YLR264W&quot;, &quot;YMR304W&quot;, &quot;YHR193C&quot;, &quot;YEL034W&quot;,
+#                  &quot;YOR167C&quot;, &quot;YBL072C&quot;, &quot;YGL135W&quot;, &quot;YDL191W&quot;, &quot;YHR021C&quot;)
+# up_cer_idxs &lt;- c(&quot;YMR194C-B&quot;, &quot;YHR161C&quot;, &quot;YJL127C-B&quot;, &quot;YDL027C&quot;, &quot;YNL175C&quot;,
+#                  &quot;YHR104W&quot;, &quot;YMR027W&quot;, &quot;YDR479C&quot;, &quot;YFR047C&quot;, &quot;YJL055W&quot;)
+# # first yellow cer vs par, with up_cer genes indicated
+# test &lt;- plotExpressionProfileQuartet(.cts1 = collapsed$cer[conserved_idxs,],
+#                              .cts2 = collapsed$par[conserved_idxs,],
+#                              .cts3 = collapsed$cer[up_cer_idxs,],
+#                              .cts4 = collapsed$par[up_cer_idxs,],
+#                              .info1 = info, .info2 = info, .info3 = info, .info4 = info,
+#                              .method = &quot;line&quot;,
+#                              .show_points = TRUE,
+#                              .show_confidence_intervals = FALSE,
+#                              .normalization = &quot;log2&quot;)
+# # second yellow cer vs par, with up_par genes indicated
+# plotExpressionProfileQuartet(.cts1 = collapsed$cer[conserved_idxs,],
+#                              .cts2 = collapsed$par[conserved_idxs,],
+#                              .cts3 = collapsed$cer[up_par_idxs,],
+#                              .cts4 = collapsed$par[up_par_idxs,],
+#                              .info1 = info, .info2 = info, .info3 = info, .info4 = info,
+#                              .method = &quot;line&quot;, .show_points = TRUE,
+#                              .normalization = &quot;log2&quot;)</code></pre>
+<pre class="r"><code># wrapper function for plotExpressionProfilePair/Quartet
+# plot specific genes&#39; expression in one single environment
+plotGenes &lt;- function(.gene_idxs,
+                      .normalization = &quot;log2&quot;,
+                      .quartet = FALSE,
+                      .plotlims = NULL,
+                      .plot_titles = &quot;none&quot;,
+                      .collapsed = TRUE,
+                      .experiment_name) {
+  if (length(.experiment_name) != 1) {
+    stop(&quot;plotGenes only accepts single environmental conditions\n&quot;)
+  }
+  if (.collapsed) {
+    counts_cer &lt;- collapsed$cer[.gene_idxs, info$experiment == .experiment_name, drop = FALSE]
+    counts_par &lt;- collapsed$par[.gene_idxs, info$experiment == .experiment_name, drop = FALSE]
+    counts_hyc &lt;- collapsed_allele$cer[.gene_idxs, info_allele$experiment == .experiment_name, drop = FALSE]
+    counts_hyp &lt;- collapsed_allele$par[.gene_idxs, info_allele$experiment == .experiment_name, drop = FALSE]
+    info_cer &lt;- info |&gt; filter(experiment == .experiment_name)
+    info_par &lt;- info |&gt; filter(experiment == .experiment_name)
+    info_hyc &lt;- info_allele |&gt; filter(experiment == .experiment_name)
+    info_hyp &lt;- info_allele |&gt; filter(experiment == .experiment_name)
+  }
+  if (!.collapsed) {
+    counts_cer &lt;- counts[.gene_idxs, sample_info$experiment == .experiment_name &amp;
+                           sample_info$allele == &quot;cer&quot;, drop = FALSE]
+    counts_par &lt;- counts[.gene_idxs, sample_info$experiment == .experiment_name &amp;
+                           sample_info$allele == &quot;par&quot;, drop = FALSE]
+    counts_hyc &lt;- counts_allele[.gene_idxs, sample_info_allele$experiment == .experiment_name &amp;
+                                  sample_info_allele$allele == &quot;cer&quot;, drop = FALSE]
+    counts_hyp &lt;- counts_allele[.gene_idxs, sample_info_allele$experiment == .experiment_name &amp;
+                                  sample_info_allele$allele == &quot;par&quot;, drop = FALSE]
+    info_cer &lt;- sample_info[sample_info$experiment == .experiment_name &amp;
+                              sample_info$allele == &quot;cer&quot;,]
+    info_par &lt;- sample_info[sample_info$experiment == .experiment_name &amp;
+                              sample_info$allele == &quot;par&quot;,]
+    info_hyc &lt;- sample_info_allele[sample_info_allele$experiment == .experiment_name &amp;
+                                     sample_info_allele$allele == &quot;cer&quot;,]
+    info_hyp &lt;- sample_info_allele[sample_info_allele$experiment == .experiment_name &amp;
+                                     sample_info_allele$allele == &quot;par&quot;,]
+  }
+  if (!.quartet) {
+    p &lt;- plotExpressionProfilePair(.cts1 = counts_cer,
+                                   .cts2 = counts_par,
+                                   .info1 = info_cer,
+                                   .info2 = info_par,
+                                   .name1 = &quot;S. cer&quot;,
+                                   .name2 = &quot;S. par&quot;,
+                                   .color1 = &quot;orange1&quot;,
+                                   .color2 = &quot;blue2&quot;,
+                                   .normalization = .normalization,
+                                   .method = &quot;line&quot;,
+                                   .show_points = FALSE,
+                                   .show_confidence_intervals = TRUE,
+                                   .plotlims = .plotlims,
+                                   .plot_titles = .plot_titles)
+  }
+  if (.quartet) {
+    p &lt;- plotExpressionProfileQuartet(.cts1 = counts_cer,
+                                      .cts2 = counts_par,
+                                      .cts3 = counts_hyc,
+                                      .cts4 = counts_hyp,
+                                      .info1 = info_cer,
+                                      .info2 = info_par,
+                                      .info3 = info_hyc,
+                                      .info4 = info_hyp,
+                                      .name1 = &quot;S. cer&quot;,
+                                      .name2 = &quot;S. par&quot;,
+                                      .name3 = &quot;F1, cer allele&quot;,
+                                      .name4 = &quot;F1, par allele&quot;,
+                                      .color1 = &quot;orange1&quot;,
+                                      .color2 = &quot;blue2&quot;,
+                                      .color3 = &quot;orange4&quot;,
+                                      .color4 = &quot;blue4&quot;,
+                                      .normalization = .normalization,
+                                      .method = &quot;line&quot;,
+                                      .show_points = FALSE,
+                                      .show_confidence_intervals = TRUE,
+                                      .plotlims = .plotlims,
+                                      .plot_titles = .plot_titles)
+  }
+  return(p)
+}
+# # tests for plotGenes
+# # YIR041W (only remains in hybrid CC, filtered from all others by low expr)
+# # but it does seem to be species-specific expression, and I want to see if that&#39;s
+# # true across all experiments, just straddling the threshold of low expr
+# test &lt;- plotGenes(&quot;YIR041W&quot;, .experiment_name = &quot;HAP4&quot;) # species specific
+# # before adding drop_na to gdf, profiles didn&#39;t show up in Heat/Cold
+# # b/c of few missing genes
+# # Example: LowPi 1-2
+# gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; dynamics == &quot;diverged&quot; &amp;
+#                                  cer == 1 &amp; par == 2) |&gt;
+#   select(gene_name) |&gt; pull()
+# plotGenes(gene_idxs, .experiment_name = &quot;HAP4&quot;, .plot_titles = &quot;HAP4&quot;)
+# plotGenes(gene_idxs, .experiment_name = &quot;LowPi&quot;, .plot_titles = &quot;LowPi&quot;)
+# plotGenes(gene_idxs, .experiment_name = &quot;LowN&quot;, .plot_titles = &quot;LowN&quot;)
+# plotGenes(gene_idxs, .experiment_name = &quot;Heat&quot;, .plot_titles = &quot;Heat&quot;) # used to be missing
+# plotGenes(gene_idxs, .experiment_name = &quot;Cold&quot;, .plot_titles = &quot;Cold&quot;) # used to be missing
+# na_idxs &lt;- which(is.na(collapsed$cer[gene_idxs, info$experiment == &quot;Heat&quot;]),
+#                  arr.ind = TRUE)
+# plotGenes(gene_idxs[-na_idxs[,1]], .experiment_name = &quot;Heat&quot;)
+# plotGenes(gene_idxs[-na_idxs[,1]], .experiment_name = &quot;Cold&quot;)</code></pre>
+<pre class="r"><code># wrapper for plotExpressionProfile designed for all environments
+plotEnvironments &lt;- function(.gene_idxs,
+                             .normalization = &quot;log2&quot;,
+                             .quartet = FALSE,
+                             .plotlims = NULL,
+                             .plot_titles = &quot;none&quot;,
+                             .collapsed = TRUE) {
+  if (.collapsed) {
+    counts_cer &lt;- collapsed$cer[.gene_idxs,, drop = FALSE]
+    counts_par &lt;- collapsed$par[.gene_idxs,, drop = FALSE]
+    counts_hyc &lt;- collapsed_allele$cer[.gene_idxs,, drop = FALSE]
+    counts_hyp &lt;- collapsed_allele$par[.gene_idxs,, drop = FALSE]
+    info_cer &lt;- info
+    info_par &lt;- info
+    info_hyc &lt;- info_allele
+    info_hyp &lt;- info_allele
+  }
+  if (!.collapsed) {
+    counts_cer &lt;- counts[.gene_idxs, sample_info$allele == &quot;cer&quot;, drop = FALSE]
+    counts_par &lt;- counts[.gene_idxs, sample_info$allele == &quot;par&quot;, drop = FALSE]
+    counts_hyc &lt;- counts_allele[.gene_idxs, sample_info_allele$allele == &quot;cer&quot;, drop = FALSE]
+    counts_hyp &lt;- counts_allele[.gene_idxs, sample_info_allele$allele == &quot;par&quot;, drop = FALSE]
+    info_cer &lt;- sample_info[sample_info$allele == &quot;cer&quot;,]
+    info_par &lt;- sample_info[sample_info$allele == &quot;par&quot;,]
+    info_hyc &lt;- sample_info_allele[sample_info_allele$allele == &quot;cer&quot;,]
+    info_hyp &lt;- sample_info_allele[sample_info_allele$allele == &quot;par&quot;,]
+  }
+  if (!.quartet) {
+    p &lt;- plotExpressionProfilePair(.cts1 = counts_cer,
+                                   .cts2 = counts_par,
+                                   .info1 = info_cer,
+                                   .info2 = info_par,
+                                   .name1 = &quot;S. cer&quot;,
+                                   .name2 = &quot;S. par&quot;,
+                                   .color1 = &quot;orange1&quot;,
+                                   .color2 = &quot;blue2&quot;,
+                                   .normalization = .normalization,
+                                   .method = &quot;line&quot;,
+                                   .show_points = FALSE,
+                                   .show_confidence_intervals = TRUE,
+                                   .plotlims = .plotlims,
+                                   .plot_titles = .plot_titles)
+  }
+  if (.quartet) {
+    p &lt;- plotExpressionProfileQuartet(.cts1 = counts_cer,
+                                      .cts2 = counts_par,
+                                      .cts3 = counts_hyc,
+                                      .cts4 = counts_hyp,
+                                      .info1 = info_cer,
+                                      .info2 = info_par,
+                                      .info3 = info_hyc,
+                                      .info4 = info_hyp,
+                                      .name1 = &quot;S. cer&quot;,
+                                      .name2 = &quot;S. par&quot;,
+                                      .name3 = &quot;F1, cer allele&quot;,
+                                      .name4 = &quot;F1, par allele&quot;,
+                                      .color1 = &quot;orange1&quot;,
+                                      .color2 = &quot;blue2&quot;,
+                                      .color3 = &quot;orange4&quot;,
+                                      .color4 = &quot;blue4&quot;,
+                                      .normalization = .normalization,
+                                      .method = &quot;line&quot;,
+                                      .show_points = FALSE,
+                                      .show_confidence_intervals = TRUE,
+                                      .plotlims = .plotlims,
+                                      .plot_titles = .plot_titles)
+  }
+  return(p)
+}
+# # tests for plotEnvironments
+# gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; dynamics == &quot;diverged&quot; &amp;
+#                                  cer == 1 &amp; par == 2) |&gt;
+#   select(gene_name) |&gt; pull()
+# plotEnvironments(gene_idxs)</code></pre>
+<pre class="r"><code>### proportional area plots, set of 4
+plotPropArea &lt;- function(x1, x2, x3, x4, 
+                         .colors = levdyn_colordf$type,
+                         .buffer = 5, .size_bounds = 8,
+                         .text_bounds = 10) {
+  quad_center &lt;- sqrt(max(x1, x2, x3, x4)) + .buffer
+  # Quadrant 1, level divergers
+  sqx &lt;- sqrt(x1)
+  boundx &lt;- if_else(sqx &gt; .size_bounds, true = sqx/2, false = .text_bounds)
+  df1 &lt;- tibble(box_x = c(sqx[1]/2, -sqx[2]/2, -sqx[3]/2, sqx[4]/2) + quad_center,
+                box_y = c(sqx[1]/2, sqx[2]/2, -sqx[3]/2, -sqx[4]/2) + quad_center,
+                text_x = c(boundx[1], -boundx[2], -boundx[3], boundx[4]) + quad_center,
+                text_y = c(boundx[1], boundx[2], -boundx[3], -boundx[4]) + quad_center,
+                size = sqx, color = .colors[1], label = x1)
+  # Quadrant 2, conserved
+  sqx &lt;- sqrt(x2)
+  boundx &lt;- if_else(sqx &gt; .size_bounds, true = sqx/2, false = .text_bounds)
+  df2 &lt;- tibble(box_x = c(sqx[1]/2, -sqx[2]/2, -sqx[3]/2, sqx[4]/2) - quad_center,
+                box_y = c(sqx[1]/2, sqx[2]/2, -sqx[3]/2, -sqx[4]/2) + quad_center,
+                text_x = c(boundx[1], -boundx[2], -boundx[3], boundx[4]) - quad_center,
+                text_y = c(boundx[1], boundx[2], -boundx[3], -boundx[4]) + quad_center,
+                size = sqx, color = .colors[2], label = x2)
+  # Quadrant 3, dynamics divergers
+  sqx &lt;- sqrt(x3)
+  boundx &lt;- if_else(sqx &gt; .size_bounds, true = sqx/2, false = .text_bounds)
+  df3 &lt;- tibble(box_x = c(sqx[1]/2, -sqx[2]/2, -sqx[3]/2, sqx[4]/2) - quad_center,
+                box_y = c(sqx[1]/2, sqx[2]/2, -sqx[3]/2, -sqx[4]/2) - quad_center,
+                text_x = c(boundx[1], -boundx[2], -boundx[3], boundx[4]) - quad_center,
+                text_y = c(boundx[1], boundx[2], -boundx[3], -boundx[4]) - quad_center,
+                size = sqx, color = .colors[3], label = x3)
+  # Quadrant 4, level and dynamics divergers
+  sqx &lt;- sqrt(x4)
+  boundx &lt;- if_else(sqx &gt; .size_bounds, true = sqx/2, false = .text_bounds)
+  df4 &lt;- tibble(box_x = c(sqx[1]/2, -sqx[2]/2, -sqx[3]/2, sqx[4]/2) + quad_center,
+                box_y = c(sqx[1]/2, sqx[2]/2, -sqx[3]/2, -sqx[4]/2) - quad_center,
+                text_x = c(boundx[1], -boundx[2], -boundx[3], boundx[4]) + quad_center,
+                text_y = c(boundx[1], boundx[2], -boundx[3], -boundx[4]) - quad_center,
+                size = sqx, color = .colors[4], label = x4)
+  df &lt;- bind_rows(df1, df2, df3, df4)
+  mm &lt;- max(df$size)*1.1
+  ggplot(data=df, aes(x = box_x, y = box_y, width=size, height=size, 
+                      group=factor(size))) +
+    geom_tile(fill = df$color) +
+    geom_text(data = filter(df, size &gt; .size_bounds), 
+              aes(label = label, x = text_x, y = text_y),
+              col=&quot;white&quot;, size=5) +
+    geom_text(data = filter(df, size &lt;= .size_bounds), 
+              aes(label=label, x = text_x, y = text_y),
+              col=&quot;black&quot;, size=5) +
+    geom_hline(aes(yintercept = quad_center), linewidth = 0.8) +
+    geom_hline(aes(yintercept = -quad_center), linewidth = 0.8) +
+    geom_vline(aes(xintercept = quad_center), linewidth = 0.8) +
+    geom_vline(aes(xintercept = -quad_center), linewidth = 0.8) +
+    coord_fixed() +
+    theme_void() +
+    theme(legend.position = &quot;none&quot;)
+}
+# # tests for plotPropArea
+# plotPropArea(x1 = c(1870, 683, 23, 0), x2 = c(17, 32, 24, 1),
+#              x3 = c(177, 436, 148, 89), x4 = c(17, 30, 16, 10),
+#              .colors = c(&quot;red&quot;, &quot;green&quot;, &quot;blue&quot;, &quot;yellow&quot;))</code></pre>
+<pre class="r"><code>### proportional area plots, just one set of 4
+plotPropAreaSingle &lt;- function(.counts,
+                               .colors,
+                               .patterns,
+                               .size_bounds = 14,
+                               .text_bounds = 10,
+                               .text_size = 8,
+                               .xlims = NULL,
+                               .ylims = NULL) {
+  sqx &lt;- sqrt(.counts)
+  boundx &lt;- if_else(sqx &gt; .size_bounds, true = sqx/2, false = .text_bounds)
+  df &lt;- tibble(box_x = c(sqx[1]/2, -sqx[2]/2, -sqx[3]/2, sqx[4]/2),
+               box_y = c(sqx[1]/2, sqx[2]/2, -sqx[3]/2, -sqx[4]/2),
+               text_x = c(boundx[1], -boundx[2], -boundx[3], boundx[4]),
+               text_y = c(boundx[1], boundx[2], -boundx[3], -boundx[4]),
+               size = sqx, color = .colors, pattern = .patterns, label = .counts)
+  mm &lt;- max(df$size)*1.1
+  if (is.null(.xlims)) {
+    .xlims &lt;- c(-max(sqx), max(sqx))
+  }
+  if (is.null(.ylims)) {
+    .ylims &lt;- c(-max(sqx), max(sqx))
+  }
+  ggplot(data=df, aes(x = box_x, y = box_y, width=size, height=size,
+                      group=factor(size))) +
+    ggpattern::geom_tile_pattern(fill = df$color,
+                                pattern = df$pattern,
+                                pattern_fill = &quot;black&quot;) +
+    geom_text(data = filter(df, size &gt; .size_bounds),
+              aes(label = label, x = text_x, y = text_y),
+              col = &quot;white&quot;, size = .text_size) +
+    geom_text(data = filter(df, size &lt;= .size_bounds),
+              aes(label=label, x = text_x, y = text_y),
+              col = &quot;black&quot;, size = .text_size) +
+    geom_hline(aes(yintercept = 0), linewidth = 1) +
+    geom_vline(aes(xintercept = 0), linewidth = 1) +
+    coord_fixed() +
+    theme_void() +
+    theme(legend.position = &quot;none&quot;) +
+    xlim(.xlims) +
+    ylim(.ylims)
+}
+# # tests for plotPropAreaSingle
+# plotPropAreaSingle(.counts = c(1870, 17, 177, 10),
+#                    .colors = c(&quot;red&quot;, &quot;green&quot;, &quot;blue&quot;, &quot;yellow&quot;),
+#                    .size_bounds = 12, .text_size = 5)</code></pre>
+<pre class="r"><code># Upset plot
+# given a group name, which must be a column in .df,
+# members of that group (possible values in that column, such as TFs in the deletion column),
+# items in the group, other column names in .df (usually gene names, but can be gene-effect-TF combos if organism is group)
+# creates an upset plot (3+ group Venn diagram) 
+# which enumerates which combinations of groups share how many items
+makeUpsetPlot &lt;- function(.df, .group_name, .group_members, .item_names,
+                          .min_comb_size = 5) {
+  lt &lt;- vector(mode = &quot;list&quot;, length = 0)
+  for (grpmem in .group_members) {
+    lt[[grpmem]] &lt;- filter(.df, .data[[.group_name]] == grpmem)
+  }
+  lt &lt;- lt |&gt; 
+    map(.f = select, .item_names) |&gt; 
+    map(.f = \(x) {purrr::reduce(x, .f = paste0)})
+  plotdf &lt;- make_comb_mat(lt)
+  plotdf &lt;- plotdf[,comb_size(plotdf) &gt;= .min_comb_size]
+  p &lt;- UpSet(plotdf, 
+             set_order = .group_members,
+             comb_order = order(comb_size(plotdf)),
+             top_annotation = HeatmapAnnotation( 
+               &quot;number of genes&quot; = anno_barplot(comb_size(plotdf), 
+                                                ylim = c(0, max(comb_size(plotdf))*1.1),
+                                                border = FALSE, 
+                                                gp = gpar(fill = &quot;black&quot;), 
+                                                height = unit(4, &quot;cm&quot;)), 
+               annotation_name_side = &quot;left&quot;, 
+               annotation_name_rot = 90))
+  draw(p)
+  suppressWarnings(decorate_annotation(&quot;number of genes&quot;, {
+    grid.text(comb_size(plotdf)[column_order(p)], x = seq_along(comb_size(plotdf)), y = unit(comb_size(plotdf)[column_order(p)], &quot;native&quot;) + unit(2, &quot;pt&quot;), 
+              default.units = &quot;native&quot;, just = c(&quot;left&quot;, &quot;bottom&quot;), 
+              gp = gpar(fontsize = 6, col = &quot;#404040&quot;), rot = 45)
+  }))
+}
+# tests for makeUpsetPlot
+# TF example within on organism
+# makeUpsetPlot(.df = filter(effectdf, organism == &quot;hyc&quot; &amp;
+#                              effect == &quot;dynamics&quot;),
+#               .group_name = &quot;deletion&quot;,
+#               .group_members = c(&quot;GAT1&quot;, &quot;URE2&quot;, &quot;GLN3&quot;),
+#               .item_names = &quot;gene_name&quot;)
+# # organism venn diagram of sharing gene-TF-effect items
+# makeUpsetPlot(.df = effectdf,
+#               .group_name = &quot;organism&quot;,
+#               .group_members = c(&quot;cer&quot;, &quot;par&quot;, &quot;hyc&quot;, &quot;hyp&quot;),
+#               .item_names = c(&quot;gene_name&quot;, &quot;deletion&quot;, &quot;effect&quot;))</code></pre>
+<pre class="r"><code># makes heatmap where rows are TF deletions, columns are groups,
+# and counts are the number of significant effects
+# @input: .df: dataframe with columns lfc, padj, deletion, gene_name, and grouping columns
+# .groups: character vector of names of grouping columns
+# @output: heatmap, through print function
+# Note: groups should be in order from last-to-vary to first-to-vary.
+# For example, if you have two groups: dynamics (cons, div) 
+# and organism (cer, par), giving .groups = c(&quot;organism&quot;, &quot;dynamics)
+# would order columns left to right: cer_cons, cer_div, par_cons, par_div
+makeGeneGroupHeatmap &lt;- function(.df, .tf_order,
+                                 .groups,
+                                 .col_fun = colorRamp2(c(0, 10, 30, 100), c(&quot;blue&quot;, &quot;yellow&quot;, &quot;red&quot;, &quot;magenta&quot;)),
+                                 .legend = FALSE,
+                                 .title = NULL) {
+  griddf &lt;- select(.df, c(&quot;deletion&quot;, .groups)) |&gt; 
+    filter(deletion %in% .tf_order) |&gt;
+    unique() |&gt;
+    select(-deletion) |&gt; 
+    expand_grid(deletion = .tf_order) |&gt;
+    unique() |&gt; 
+    arrange(across(.groups))
+  effectsdf &lt;- .df |&gt; 
+    filter(deletion %in% .tf_order) |&gt; 
+    group_by(across(all_of(c(&quot;deletion&quot;, .groups)))) |&gt; 
+    summarise(nGenes = sum(padj &lt; p_thresh))
+  plotdf &lt;- left_join(griddf, effectsdf, by = colnames(griddf)) |&gt; 
+    mutate(nGenes = if_else(is.na(nGenes),
+                            true = 0,
+                            false = nGenes)) |&gt; # group_by/summarise drops groups without any counts, and at the time of this code drop=FALSE wasn&#39;t implemented
+    pivot_wider(id_cols = &quot;deletion&quot;,
+                names_from = .groups,
+                values_from = &quot;nGenes&quot;) |&gt;
+    ungroup()
+  effects_mat &lt;- plotdf |&gt; select(-deletion) |&gt; as.matrix()
+  rownames(effects_mat) &lt;- plotdf$deletion
+  effects_mat &lt;- effects_mat[rownames(effects_mat) %in% .tf_order,]
+  Heatmap(effects_mat, col = .col_fun, na_col = &quot;grey80&quot;,
+          row_order = .tf_order,
+          show_heatmap_legend = .legend,
+          column_title = .title,
+          column_order = colnames(effects_mat),
+          cell_fun = function(j, i, x, y, width, height, fill) {
+            output &lt;- if_else(!(is.na(effects_mat[i, j])), 
+                              true = as.character(effects_mat[i, j]), 
+                              false = &quot;-&quot;)
+            grid.text(output, x, y, gp = gpar(fontsize = 10))
+          })
+}
+# # tests for makeGeneGroupHeatmap
+# # conserved TF effects TP1
+# makeGeneGroupHeatmap(.df = filter(TFdeldf, 
+#                                   tf_effect_conserved == TRUE &amp;
+#                                     timepoint == &quot;TP1&quot; &amp;
+#                                     organism %in% c(&quot;cer&quot;, &quot;par&quot;)),
+#                      .tf_order = tf_order,
+#                      .groups = c(&quot;dynamics&quot;, &quot;cer&quot;, &quot;par&quot;, &quot;lfc_sign&quot;, &quot;organism&quot;))
+# # QC check that effects match what is seen in the heatmap:
+# filter(TFdeldf, 
+#        tf_effect_conserved == TRUE &amp;
+#          timepoint == &quot;TP1&quot; &amp;
+#          organism %in% c(&quot;cer&quot;, &quot;par&quot;) &amp;
+#          cer == &quot;0&quot; &amp; par == &quot;0&quot; &amp; lfc_sign == -1 &amp;
+#          deletion == &quot;GLN3&quot;) |&gt; 
+#   group_by(organism) |&gt; summarise(nGenes = sum(padj &lt; p_thresh))</code></pre>
+<pre class="r"><code># basic volcano plot to compare power
+makeVolcanoPlot &lt;- function(.tfdeldf, .tf, .org, .timepoint) {
+  plotdf &lt;- .tfdeldf |&gt; filter(organism == .org &amp;
+                                 timepoint == .timepoint &amp;
+                                 deletion == .tf)
+  ggplot(plotdf, aes(x = lfc, y = -log10(pval))) +
+    geom_point(aes(color = padj &lt; p_thresh)) +
+    ylim(c(0, 15)) +
+    xlim(c(-5, 5))
+}</code></pre>
+<pre class="r"><code># Helper function for making a discrete heatmap
+# Given matrix of nEnvironments x nGenes where each cell is that
+# gene&#39;s label, this function returns the matrix where the
+# genes (columns) are rearranged to maintain the maximum number
+# of genes next to members of their own group possible.
+# Sorting begins with the top row being perfectly sorted into their groups
+# followed by the remaining rows being nested in there groupings within each
+# top row&#39;s groups
+# recursively order each subset of previous row
+orderGenesByGroup &lt;- function(.mat, .row_idx = 1,
+                              .labels = colordf[colordf$scheme == &quot;group4&quot;,]$limits) {
+  if (ncol(.mat) == 1) {
+    return(.mat)
+  }
+  vec &lt;- .mat[.row_idx,]
+  labels_present &lt;- .labels[.labels %in% unique(vec)]
+  breaks &lt;- factor(vec, levels = labels_present) |&gt; 
+    table(useNA = &quot;ifany&quot;) |&gt; as.numeric()
+  cumulative_breaks &lt;- breaks
+  for(i in 1:length(breaks)) {
+    cumulative_breaks[i] &lt;- sum(breaks[1:i])
+  }
+  vec_order &lt;- factor(vec, levels = .labels) |&gt; order()
+  reordered_mat &lt;- .mat[,vec_order]
+  if (.row_idx == nrow(.mat)) {
+    return(reordered_mat)
+  }
+  out_vec &lt;- map2(.x = c(0, cumulative_breaks[-length(cumulative_breaks)]) + 1, 
+                  .y = cumulative_breaks, 
+                  .f = \(col_start, col_end) {
+                    orderGenesByGroup(.mat = reordered_mat[, col_start:col_end, drop = FALSE],
+                                      .row_idx = .row_idx + 1,
+                                      .labels = .labels)
+                  }) |&gt; purrr::reduce(.f = cbind)
+  return(out_vec)
+}
+# # tests for orderGenesByGroup
+# orderGenesByGroup(.mat = rbind(c(&quot;hai&quot;, &quot;der&quot;, &quot;der&quot;, &quot;hai&quot;),
+#                                c(&quot;der&quot;, &quot;der&quot;, &quot;der&quot;, &quot;hai&quot;)),
+#                   .labels = c(&quot;hai&quot;, &quot;der&quot;))</code></pre>
+</div>
+<div id="gene-ontology-enrichment" class="section level2">
+<h2>Gene ontology enrichment</h2>
+<pre class="r"><code>getGOSlimDf &lt;- function(.idxs, .group_name, .file_prefix = &quot;gene_ontology/results/&quot;,
+                        .min_hits = 5) {
+  test_table &lt;- goslim |&gt; filter(ORF %in% .idxs) |&gt; select(GOslim_term) |&gt; table()
+  test_table &lt;- test_table[test_table &gt;= .min_hits]
+  testdf &lt;- tibble(&quot;term&quot; = names(test_table),
+                   &quot;group_count&quot; = as.numeric(test_table))
+  testdf$overall_count &lt;- map(testdf$term, \(x) {
+    ct &lt;- goslim |&gt; filter(GOslim_term == x) |&gt; select(ORF) |&gt; 
+      pull() |&gt; unique() |&gt; length()
+    return(ct)
+  }) |&gt; unlist()
+  testdf$exact_pval &lt;- map2(testdf$group_count, testdf$overall_count, \(x, y) {
+    n_mod &lt;- length(.idxs)
+    n_genes &lt;- length(unique(finaldf$gene_name))
+    exact_table &lt;- rbind(c(x, n_mod - x), c(y - x, n_genes - n_mod - y))
+    exact_result &lt;- fisher.test(exact_table, alternative = &quot;greater&quot;)
+    return(exact_result$p.value)
+  }) |&gt; unlist()
+  testdf$sig &lt;- testdf$exact_pval &lt; 0.001
+  testdf$genes &lt;- map(testdf$term, \(x) {
+    termgenes &lt;- goslim |&gt; filter(ORF %in% .idxs &amp; GOslim_term == x) |&gt; 
+      select(ORF) |&gt; pull() |&gt; unique()
+    return(reduce(termgenes, paste, sep = &quot; &quot;))
+  }) |&gt; unlist()
+  
+  write_csv(arrange(testdf, exact_pval, desc(group_count)), 
+            file = paste0(.file_prefix, .group_name, &quot;.csv&quot;),
+            quote = &quot;none&quot;, 
+            col_names = TRUE)
+  return(testdf)
+}
+# tests for getGOSlimDf
+# test &lt;- getGOSlimDf(.idxs = c(&quot;YGR192C&quot;, &quot;YJR009C&quot;, &quot;YJL052W&quot;),
+#                     .group_name = &quot;tdhs&quot;, .min_hits = 1)</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

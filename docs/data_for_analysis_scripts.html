@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Data for analysis scripts</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Plasticity</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Data Cleaning
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clean_data.html">Import count data</a>
+    </li>
+    <li>
+      <a href="data_for_analysis_scripts.html">Analysis-specific data cleaning</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Functions
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="functions_for_figure_scripts.html">Functions used throught scripts</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Data for analysis scripts</h1>
+
+</div>
+
+
+<div
+id="additional-data-cleaning-for-heiarchical-clustering-and-generalized-linear-models"
+class="section level1">
+<h1>Additional data cleaning for heiarchical clustering and generalized
+linear models</h1>
+<pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
+         &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, 
+         &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2 
+##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
+##  data.table matrixStats 
+##        TRUE        TRUE</code></pre>
+<pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
+
+### Reading in Count Data
+load(&quot;data_files/Cleaned_Count_Data.RData&quot;)
+load(&quot;data_files/Cleaned_Count_Data_AlleleSpecific.RData&quot;)</code></pre>
+<div id="filtering-out-lowly-expressed-genes" class="section level2">
+<h2>Filtering out lowly expressed genes</h2>
+<p>Filtering out genes that have lower than 30 counts per million
+average expression in Scer, Spar, Hyc, and Hyp.</p>
+<p>Before we filter, we have previously identified a set of genes with a
+lot of regulatory targets according to Yeastract regulatory matrices in
+Scer that get filtered out by the low expression step:</p>
+<pre class="r"><code># Yeastract highly connected genes that are unannotated/filtered out for low expression:
+MissingHubGenes &lt;- c(&quot;YBR240C&quot;, &quot;YCL058C&quot;, &quot;YCR106W&quot;, &quot;YDR123C&quot;, &quot;YER109C&quot;, &quot;YER111C&quot;, &quot;YER184C&quot;, &quot;YFL052W&quot;, &quot;YGL254W&quot;, &quot;YGR288W&quot;, &quot;YHR124W&quot;, &quot;YJL127C&quot;, &quot;YJR094C&quot;, &quot;YKL222C&quot;, &quot;YLR013W&quot;, &quot;YLR176C&quot;, &quot;YLR256W&quot;, &quot;YLR266C&quot;, &quot;YNR063W&quot;, &quot;YOL028C&quot;, &quot;YOR113W&quot;, &quot;YOR380W&quot;, &quot;YPL248C&quot;, &quot;YPL133C&quot;, &quot;YPR196W&quot;, &quot;YJL056C&quot;)
+MissingHubGenes[!(MissingHubGenes %in% rownames(counts))]</code></pre>
+<pre><code>## [1] &quot;YCL058C&quot; &quot;YER109C&quot; &quot;YLR256W&quot; &quot;YOL028C&quot;</code></pre>
+<pre class="r"><code># All 4 unannotated genes have different CDS in Scer than other Saccharomyces:
+# FYV5 (de novo gene), FLO8 (truncated in Scer s288c),
+# HAP1 (ty1 insertion), and YAP7 (indel in Scer)
+# changing to non-log2 scale for actual filtering (log2 scale is for visualizing)
+MissingHubGenes &lt;- intersect(rownames(counts), MissingHubGenes)
+rowMeans(counts[MissingHubGenes,]) # remaining 22 are all lowly expressed (but these averages are across all )</code></pre>
+<pre><code>##   YBR240C   YCR106W   YDR123C   YER111C   YER184C   YFL052W   YGL254W   YGR288W   YHR124W 
+##  9.542522  4.302053 22.601173 23.953079  9.134897 24.337243 11.891496 19.392962  8.363636 
+##   YJL127C   YJL056C   YJR094C   YKL222C   YLR013W   YLR176C   YLR266C   YNR063W   YOR113W 
+##  4.363636 16.847507  6.879765 14.604106  1.504399 26.695015 18.501466  7.897361 18.296188 
+##   YOR380W   YPL248C   YPL133C   YPR196W 
+## 21.721408  5.856305 17.073314 16.111437</code></pre>
+<pre class="r"><code>cutoffExpr &lt;- 30
+
+# Criteria: mean expr less than threshold (30 cpm, not log scale) in
+# cer, par, hyc, and hyp in all experiments
+getGoodExprGeneNames &lt;- function(.organism, .allele, .experiment, .expr_thresh) {
+  if (.organism != &quot;hyb&quot;) {
+    sample_names &lt;- sample_info |&gt; filter(allele == .allele &amp;
+                                            experiment == .experiment) |&gt; 
+      select(sample_name) |&gt; pull()
+    cts &lt;- counts[, sample_names]
+    means &lt;- rowMeans(cts)
+    return(rownames(cts)[means &gt;= .expr_thresh])
+  }
+  if (.organism == &quot;hyb&quot;) {
+    sample_names &lt;- sample_info_allele |&gt; filter(allele == .allele &amp;
+                                                   experiment == .experiment) |&gt; 
+      select(sample_name) |&gt; pull()
+    cts &lt;- counts_allele[, colnames(counts_allele) %in% sample_names]
+    means &lt;- rowMeans(cts)
+    return(rownames(cts)[means &gt;= .expr_thresh])
+  }
+}
+# tests for getGoodExprGeneNames
+# in Scer
+test &lt;- getGoodExprGeneNames(.organism = &quot;cer&quot;, .allele = &quot;cer&quot;,
+                             .experiment = &quot;HAP4&quot;, .expr_thresh = cutoffExpr)
+&quot;YPR199C&quot; %in% test # should be</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>&quot;YFL051C&quot; %in% test # shouldn&#39;t be</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>sum(MissingHubGenes %in% test)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code># in Spar
+test &lt;- getGoodExprGeneNames(.organism = &quot;par&quot;, .allele = &quot;par&quot;,
+                             .experiment = &quot;HAP4&quot;, .expr_thresh = cutoffExpr)
+&quot;YPR199C&quot; %in% test # shouldn&#39;t be</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>&quot;YFL051C&quot; %in% test # should be</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>sum(MissingHubGenes %in% test)</code></pre>
+<pre><code>## [1] 3</code></pre>
+<pre class="r"><code># applying to all genes/groups/experiments
+griddf &lt;- expand_grid(organism = c(&quot;cer&quot;, &quot;par&quot;, &quot;hyb&quot;),
+                      allele = c(&quot;cer&quot;, &quot;par&quot;),
+                      experiment = unique(sample_info$experiment))
+keep &lt;- map(c(1:nrow(griddf)), \(i) getGoodExprGeneNames(griddf$organism[i],
+                                                         griddf$allele[i],
+                                                         griddf$experiment[i],
+                                                         .expr_thresh = cutoffExpr)) |&gt; 
+  unlist() |&gt; unique()
+&quot;YPR199C&quot; %in% keep # should be</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>&quot;YFL051C&quot; %in% keep # should be</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>sum(MissingHubGenes %in% keep)</code></pre>
+<pre><code>## [1] 11</code></pre>
+<pre class="r"><code>sum(!(MissingHubGenes %in% keep))</code></pre>
+<pre><code>## [1] 11</code></pre>
+<pre class="r"><code>length(keep) # number of genes we&#39;re keeping</code></pre>
+<pre><code>## [1] 5045</code></pre>
+<pre class="r"><code># filtering
+counts &lt;- counts[keep,]
+counts_allele &lt;- counts_allele[keep,]
+sample_info |&gt; select(genotype) |&gt; table() # should be all WT</code></pre>
+<pre><code>## genotype
+##  WT 
+## 341</code></pre>
+<pre class="r"><code>sample_info_allele |&gt; select(genotype) |&gt; table() # should be all WT</code></pre>
+<pre><code>## genotype
+##  WT 
+## 360</code></pre>
+</div>
+<div id="taking-mean-count-across-replicates-aka-collapsing"
+class="section level2">
+<h2>Taking mean count across replicates (aka collapsing)</h2>
+<p>For heiarchical clustering, we want the correlation to most directly
+reflect the expression shape rather than variability between replicates.
+So for heiarchical clustering analysis, we take the average of all
+replicates’ expression for each gene in a particular
+environment/timepoint/organism</p>
+<pre class="r"><code># collapsing
+collapsed &lt;- collapseReplicates(sample_info, counts)
+collapsed_allele &lt;- collapseReplicates(sample_info_allele, counts_allele)
+
+# also filtering sample infos down to single info and 
+# info_allele with all conditions
+info &lt;- sample_info |&gt; select(&quot;condition&quot;, &quot;experiment&quot;, 
+                              &quot;time_point_num&quot;, &quot;time_point_str&quot;) |&gt; 
+  unique() |&gt; arrange(experiment, time_point_num)
+info_allele &lt;- sample_info_allele |&gt; select(&quot;condition&quot;, &quot;experiment&quot;,
+                                            &quot;time_point_num&quot;, &quot;time_point_str&quot;) |&gt; 
+  unique() |&gt; arrange(experiment, time_point_num)
+# ordering collapsed counts to same order as info
+collapsed$cer &lt;- collapsed$cer[,info$condition]
+collapsed$par &lt;- collapsed$par[,info$condition]
+collapsed_allele$cer &lt;- collapsed_allele$cer[,info_allele$condition]
+collapsed_allele$par &lt;- collapsed_allele$par[,info_allele$condition]
+
+cat(&quot;pre-collapse\n&quot;)</code></pre>
+<pre><code>## pre-collapse</code></pre>
+<pre class="r"><code>dim(counts[,sample_info$experiment == &quot;LowN&quot; &amp; sample_info$allele == &quot;cer&quot;])</code></pre>
+<pre><code>## [1] 5045   92</code></pre>
+<pre class="r"><code>sample_info |&gt; filter(experiment == &quot;LowN&quot; &amp; allele == &quot;cer&quot;) |&gt; 
+  select(time_point_num) |&gt;
+  table()</code></pre>
+<pre><code>## time_point_num
+##   0  60 960 
+##  33  27  32</code></pre>
+<pre class="r"><code>dim(counts[,sample_info$experiment == &quot;HAP4&quot; &amp; sample_info$allele == &quot;par&quot;])</code></pre>
+<pre><code>## [1] 5045   15</code></pre>
+<pre class="r"><code>sample_info |&gt; filter(experiment == &quot;HAP4&quot; &amp; allele == &quot;par&quot;) |&gt; 
+  select(time_point_num) |&gt;
+  table()</code></pre>
+<pre><code>## time_point_num
+##      0   79.8  124.8  169.8  214.8  259.8  304.8  364.8  424.8  484.8  544.8  604.8  664.8 
+##      1      1      1      1      1      1      1      1      1      1      1      1      1 
+## 1390.2   1950 
+##      1      1</code></pre>
+<pre class="r"><code>cat(&quot;post-collapse\n&quot;)</code></pre>
+<pre><code>## post-collapse</code></pre>
+<pre class="r"><code>dim(collapsed$cer[,info$experiment == &quot;LowN&quot;]) # LowN has been reduced (~30 replicates)</code></pre>
+<pre><code>## [1] 5045    3</code></pre>
+<pre class="r"><code>info |&gt; filter(experiment == &quot;LowN&quot;) |&gt; select(time_point_num) |&gt; table()</code></pre>
+<pre><code>## time_point_num
+##   0  60 960 
+##   1   1   1</code></pre>
+<pre class="r"><code>dim(collapsed$par[,info$experiment == &quot;HAP4&quot;]) # HAP4 has not been reduced (no replicates)</code></pre>
+<pre><code>## [1] 5045   15</code></pre>
+<pre class="r"><code>info |&gt; filter(experiment == &quot;HAP4&quot;) |&gt; select(time_point_num) |&gt; table()</code></pre>
+<pre><code>## time_point_num
+##      0   79.8  124.8  169.8  214.8  259.8  304.8  364.8  424.8  484.8  544.8  604.8  664.8 
+##      1      1      1      1      1      1      1      1      1      1      1      1      1 
+## 1390.2   1950 
+##      1      1</code></pre>
+<pre class="r"><code>### Tests for collapsed/movavg counts
+# additional tests for collapsing replicates
+# toy count matrix using random sample of genes (to test ability to separate low var genes out)
+toy_mat &lt;- counts[, sample_info$organism == &quot;par&quot; &amp; sample_info$experiment == &quot;LowN&quot;]
+toydf &lt;- makeDf(toy_mat, sample_info)
+# assessing distribution of variance, before collapsing replicates
+plotdf0 &lt;- toydf |&gt; group_by(gene_name) |&gt;
+  summarise(var_expr = var(expr),
+            mean_expr = mean(expr))
+p0 &lt;- ggplot(plotdf0, aes(x = log2(var_expr/mean_expr))) + geom_density() +
+  geom_vline(xintercept = 0, color = &quot;red&quot;) +
+  ggtitle(&quot;before collapsing replicates&quot;)
+# after collapsing replicates
+toy_mat_collapsed &lt;- collapsed$par[, info$experiment == &quot;LowN&quot;]
+plotdf1 &lt;- tibble(var_expr = apply(toy_mat_collapsed, 1, var),
+                  mean_expr = apply(toy_mat_collapsed, 1, mean),
+                  gene_name = rownames(toy_mat_collapsed))
+p1 &lt;- ggplot(plotdf1, aes(x = log2(var_expr/mean_expr))) + geom_density() +
+  geom_vline(xintercept = 0, color = &quot;red&quot;) +
+  ggtitle(&quot;after collapsing replicates&quot;)
+ggarrange(p0, p1, nrow = 1, ncol = 2)</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range (`stat_density()`).
+## Removed 3 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code># mean expression pre and post (shouldn&#39;t have changed)
+plotdf &lt;- left_join(plotdf0, plotdf1, by = &quot;gene_name&quot;, suffix = c(&quot;_pre&quot;, &quot;_post&quot;))
+ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
+  geom_point() +
+  geom_abline(slope = 1, intercept = 0, color = &quot;gold&quot;)</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<pre class="r"><code># difference in var/mean pre and post versus mean expr
+plotdf &lt;- select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |&gt;
+  rename(&quot;mean_expr&quot;=&quot;mean_expr_pre&quot;)
+ggplot(plotdf, aes(x = log2(mean_expr + 1),
+                   y = log2(var_expr_pre) - log2(var_expr_post))) +
+  geom_hex() +
+  geom_hline(yintercept = 0, color = &quot;gold&quot;)</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range (`stat_binhex()`).</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-3.png" width="672" /></p>
+<pre class="r"><code># as expected, there is lower variance post collapse (very few genes below y = 0)
+# most genes have fairly little difference in var when collapsing replicates,
+# but the difference can be extreme for a few genes, of middling expression level
+# For genes with a difference, do we trust the collapsed variance to be more accurate to expression shape?
+# first random gene that tend to have very little difference in variance
+gene_idx &lt;- plotdf |&gt; select(gene_name) |&gt; pull() |&gt; sample(1)
+ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
+  geom_jitter() +
+  geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
+            aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
+            color = &quot;red&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-4.png" width="672" /></p>
+<pre class="r"><code># second a gene with variance substantially reduced in collapsed form
+gene_idx &lt;- plotdf |&gt; filter(log2(var_expr_pre) - log2(var_expr_post) &gt; 7) |&gt; select(gene_name) |&gt; pull() |&gt; sample(1)
+ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
+  geom_jitter() +
+  geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
+            aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
+            color = &quot;red&quot;) # these are genes with very little expression change attributable to timepoint,</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can override using the `.groups`
+## argument.</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-5.png" width="672" /></p>
+<pre class="r"><code># the exact kind we want to have significantly reduced variance in collapsed counts</code></pre>
+<p>Moving average of environments without replicates (LowPi and Diauxic
+Shift)</p>
+<pre class="r"><code>#### taking moving average of LowPi and HAP4 ####
+movavg_LowPi_cer &lt;- getMovingAverage(collapsed$cer[,info$experiment == &quot;LowPi&quot;])
+movavg_LowPi_par &lt;- getMovingAverage(collapsed$par[,info$experiment == &quot;LowPi&quot;])
+movavg_LowPi_hyc &lt;- getMovingAverage(collapsed_allele$cer[,info_allele$experiment == &quot;LowPi&quot;])
+movavg_LowPi_hyp &lt;- getMovingAverage(collapsed_allele$par[,info_allele$experiment == &quot;LowPi&quot;])
+movavg_HAP4_cer &lt;- getMovingAverage(collapsed$cer[,info$experiment == &quot;HAP4&quot;])
+movavg_HAP4_par &lt;- getMovingAverage(collapsed$par[,info$experiment == &quot;HAP4&quot;])
+movavg_HAP4_hyc &lt;- getMovingAverage(collapsed_allele$cer[,info_allele$experiment == &quot;HAP4&quot;])
+movavg_HAP4_hyp &lt;- getMovingAverage(collapsed_allele$par[,info_allele$experiment == &quot;HAP4&quot;])
+
+# adding moving average counts to counts
+# cer
+collapsed$cer[, c(colnames(movavg_HAP4_cer),
+                  colnames(movavg_LowPi_cer))] &lt;- cbind(movavg_HAP4_cer, 
+                                                        movavg_LowPi_cer)
+# par
+collapsed$par[, c(colnames(movavg_HAP4_par),
+                  colnames(movavg_LowPi_par))] &lt;- cbind(movavg_HAP4_par, 
+                                                        movavg_LowPi_par)
+# hyc
+collapsed_allele$cer[, c(colnames(movavg_HAP4_hyc),
+                         colnames(movavg_LowPi_hyc))] &lt;- cbind(movavg_HAP4_hyc, 
+                                                               movavg_LowPi_hyc)
+# hyp
+collapsed_allele$par[, c(colnames(movavg_HAP4_hyp),
+                         colnames(movavg_LowPi_hyp))] &lt;- cbind(movavg_HAP4_hyp, 
+                                                               movavg_LowPi_hyp)</code></pre>
+<p>Comparing collapsed and replicated expression</p>
+<pre class="r"><code># tests for getMovingAverage
+# plotting before and after moving average
+gene_idx &lt;- sample(rownames(counts), 1)
+# change to try different experiments (you have to keep the same experiment/allele/species):
+test_counts &lt;- collapseReplicates(sample_info, counts)
+test_collapsed &lt;- test_counts$cer[,info$condition]
+test_movavg &lt;- collapsed$cer
+test_info &lt;- info
+test_experiment &lt;- &quot;LowPi&quot;
+
+plotdf &lt;- tibble(expr = test_collapsed[gene_idx, test_info$experiment == test_experiment],
+                 condition = colnames(test_collapsed[, test_info$experiment == test_experiment])) |&gt;
+  left_join(test_info, by = &quot;condition&quot;)
+#ggplot(plotdf, aes(x = time_point_num, y = expr)) + geom_line()
+
+# same random gene after moving average
+plotdf2 &lt;- tibble(expr = test_movavg[gene_idx, info$experiment == test_experiment],
+                  status = &quot;after moving average&quot;,
+                  condition = colnames(test_movavg[,info$experiment == test_experiment])) |&gt;
+  left_join(test_info, by = &quot;condition&quot;)
+plotdf$status &lt;- &quot;before moving average&quot;
+plotdf &lt;- bind_rows(plotdf, plotdf2)
+ggplot(plotdf, aes(x = time_point_num, y = expr)) +
+  geom_line(aes(group = status, color = status))</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<pre class="r"><code># checking conditions order still matches info
+sum(colnames(collapsed$cer) == info$condition)/nrow(info)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(colnames(collapsed$par) == info$condition)/nrow(info)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(colnames(collapsed_allele$cer) == info_allele$condition)/nrow(info_allele)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(colnames(collapsed_allele$par) == info_allele$condition)/nrow(info_allele)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code># done with data wrangling, cleaning up extra variables
+rm(movavg_LowPi_cer,
+   movavg_LowPi_par,
+   movavg_LowPi_hyc,
+   movavg_LowPi_hyp,
+   movavg_HAP4_cer,
+   movavg_HAP4_par,
+   movavg_HAP4_hyc,
+   movavg_HAP4_hyp,
+   plotdf, plotdf2,
+   test_collapsed,
+   test_info, test_movavg)</code></pre>
+<pre class="r"><code># saving
+save(counts, sample_info, collapsed, info, 
+     file = &quot;data_files/Cleaned_Counts.RData&quot;)
+save(counts_allele, sample_info_allele, collapsed_allele, info_allele,
+     file = &quot;data_files/Cleaned_Counts_Allele.RData&quot;)</code></pre>
+</div>
+<div id="data-for-generalized-linear-models" class="section level2">
+<h2>Data for Generalized Linear Models</h2>
+<p>Using the cleaned counts, we now create data structures for
+heiarchical clustering and for generalized linear modeling. Both need
+lists of counts data with a separate entry for each experiment. Both
+need pre-filtering of genes that are lowly expressed in both species in
+that environment. But the GLM data needs to include replicates while the
+heiarchical clustering used collapsed counts, averaged among replicates
+or moving average if there are not replicates.</p>
+<pre class="r"><code>### Data for single gene GLMs
+load(&quot;data_files/Cleaned_Counts.RData&quot;)
+load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
+# not using collapsed counts (replicates are vital for the glm)
+rm(collapsed, info, collapsed_allele, info_allele)
+
+# combining two species&#39; counts for each experiment into the same dataset
+# filtering down to conditions/replicates (ex. LowN_TP1_rep2) where both species have data
+ExperimentNames &lt;- c(&quot;LowN&quot;, &quot;CC&quot;, &quot;HAP4&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;)
+spcts &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
+names(spcts) &lt;- ExperimentNames
+spinfo &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
+names(spinfo) &lt;- ExperimentNames
+alcts &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
+names(alcts) &lt;- ExperimentNames
+alinfo &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
+names(alinfo) &lt;- ExperimentNames
+for(e in ExperimentNames) {
+  cer_cts &lt;- counts[, sample_info$experiment == e &amp; 
+                      sample_info$allele == &quot;cer&quot;]
+  par_cts &lt;- counts[, sample_info$experiment == e &amp; 
+                      sample_info$allele == &quot;par&quot;]
+  hyc_cts &lt;- counts_allele[, sample_info_allele$experiment == e &amp; 
+                             sample_info_allele$allele == &quot;cer&quot;]
+  hyp_cts &lt;- counts_allele[, sample_info_allele$experiment == e &amp; 
+                             sample_info_allele$allele == &quot;par&quot;]
+  cer_info &lt;- sample_info[sample_info$experiment == e &amp; 
+                            sample_info$organism == &quot;cer&quot;,]
+  par_info &lt;- sample_info[sample_info$experiment == e &amp; 
+                            sample_info$organism == &quot;par&quot;,]
+  hyc_info &lt;- sample_info_allele[sample_info_allele$experiment == e &amp; 
+                                   sample_info_allele$allele == &quot;cer&quot;,]
+  hyp_info &lt;- sample_info_allele[sample_info_allele$experiment == e &amp; 
+                                   sample_info_allele$allele == &quot;par&quot;,]
+  # combining
+  spcts[[e]] &lt;- cbind(cer_cts, par_cts)
+  spinfo[[e]] &lt;- bind_rows(cer_info, par_info)
+  alcts[[e]] &lt;- cbind(hyc_cts, hyp_cts)
+  alinfo[[e]] &lt;- bind_rows(hyc_info, hyp_info)
+  cat(&quot;number of times each condition is represented in&quot;, e, &quot;:&quot;, 
+      names(table(table(spinfo[[e]]$condition))), &quot;\n&quot;) # number of replicates*2 species in each environment (LowPi and HAP4 don&#39;t have replicates). Some timepoints may have different numbers of replicates and therefore there may be more than one number
+}</code></pre>
+<pre><code>## number of times each condition is represented in LowN : 61 63 67 
+## number of times each condition is represented in CC : 4 
+## number of times each condition is represented in HAP4 : 2 
+## number of times each condition is represented in LowPi : 2 3 
+## number of times each condition is represented in Heat : 3 4 
+## number of times each condition is represented in Cold : 3 4</code></pre>
+<pre class="r"><code># factorize genotype, experiment, and time_point_str (no specific reference level for the last two)
+spinfo &lt;- lapply(spinfo, mutate, genotype = as.factor(genotype) %&gt;% relevel(ref = &quot;WT&quot;))
+alinfo &lt;- lapply(alinfo, mutate, genotype = as.factor(genotype) %&gt;% relevel(ref = &quot;WT&quot;))
+# releveling time_point_str is a tad more tricky b/c the reference is named differently in each experiment (and isn&#39;t 0 in LowPi)
+spinfo &lt;- lapply(spinfo, mutate, time_point_str = as.factor(time_point_str) %&gt;% relevel(ref = time_point_str[which.min(parse_number(time_point_str))]))
+spinfo &lt;- lapply(spinfo, mutate, allele = as.factor(allele) %&gt;% relevel(ref = &quot;par&quot;)) # we always do cer/par for expression ratios, so we want a big estimate to also mean cer is more strongly expressed
+alinfo &lt;- lapply(alinfo, mutate, time_point_str = as.factor(time_point_str) %&gt;% relevel(ref = time_point_str[which.min(parse_number(time_point_str))]))
+alinfo &lt;- lapply(alinfo, mutate, allele = as.factor(allele) %&gt;% relevel(ref = &quot;par&quot;))
+
+# removing genes that are lowly expressed in both parental species
+expr_thresh &lt;- 30
+for(e in ExperimentNames) {
+  spcts[[e]] &lt;- spcts[[e]][apply(spcts[[e]], 1, \(x) !all(is.na(x))),]
+  alcts[[e]] &lt;- alcts[[e]][apply(alcts[[e]], 1, \(x) !all(is.na(x))),]
+  good_idxs &lt;- rowMeans(spcts[[e]]) &gt; expr_thresh
+  spcts[[e]] &lt;- spcts[[e]][good_idxs,]
+  alcts[[e]] &lt;- alcts[[e]][good_idxs,]
+}
+# now datasets from different environments have different nGenes
+dim(spcts$LowN)</code></pre>
+<pre><code>## [1] 4412  191</code></pre>
+<pre class="r"><code>dim(alcts$LowN)</code></pre>
+<pre><code>## [1] 4412  210</code></pre>
+<pre class="r"><code>dim(spcts$HAP4)</code></pre>
+<pre><code>## [1] 4290   30</code></pre>
+<pre class="r"><code>dim(alcts$HAP4)</code></pre>
+<pre><code>## [1] 4290   30</code></pre>
+<pre class="r"><code>dim(spcts$Cold)</code></pre>
+<pre><code>## [1] 4052   15</code></pre>
+<pre class="r"><code>dim(alcts$Cold)</code></pre>
+<pre><code>## [1] 4052   16</code></pre>
+<pre class="r"><code># saving
+save(spcts, spinfo, alcts, alinfo, file = &quot;data_files/GLM_Counts.RData&quot;)</code></pre>
+</div>
+<div id="data-for-heiarchical-clustering" class="section level2">
+<h2>Data for Heiarchical Clustering</h2>
+<pre class="r"><code>load(&quot;data_files/Cleaned_Counts.RData&quot;)
+load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
+ExperimentNames &lt;- c(&quot;LowN&quot;, &quot;CC&quot;, &quot;HAP4&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;)
+
+# parents only for clustering
+# using info and collapsed counts from parents only, all WT samples, replicates averaged
+dim(info)</code></pre>
+<pre><code>## [1] 62  4</code></pre>
+<pre class="r"><code>dim(collapsed$cer)</code></pre>
+<pre><code>## [1] 5045   62</code></pre>
+<pre class="r"><code>dim(collapsed$par)</code></pre>
+<pre><code>## [1] 5045   62</code></pre>
+<pre class="r"><code>sum(grepl(&quot;WT&quot;, info$condition))/nrow(info) # should have all WT, ratio is 1</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(grepl(&quot;WT&quot;, colnames(collapsed$cer)))/ncol(collapsed$cer) # should have all WT, ratio is 1</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>table(colnames(collapsed$cer)) |&gt; table() # should all have one entry, 1 for each condition</code></pre>
+<pre><code>## 
+##  1 
+## 62</code></pre>
+<pre class="r"><code>### Splitting counts into species/experiments
+counts_list &lt;- vector(mode = &quot;list&quot;, length = 0)
+for (e in unique(info$experiment)) {
+  for (a in c(&quot;cer&quot;, &quot;par&quot;)) {
+    cts &lt;- collapsed[[a]][, info$experiment == e]
+    cts &lt;- cts[apply(cts, 1, \(x) !all(is.na(x))),] # removing na genes from Heat/Cold
+    counts_list[[paste(a, e, sep = &quot;_&quot;)]] &lt;- cts
+  }
+}
+rm(cts)
+# removing genes that are lowly expressed in BOTH species
+expr_thresh &lt;- 30
+for (e in ExperimentNames) {
+  cer_name &lt;- paste(&quot;cer&quot;, e, sep = &quot;_&quot;)
+  par_name &lt;- paste(&quot;par&quot;, e, sep = &quot;_&quot;)
+  low_cer &lt;- rowMeans(counts_list[[cer_name]]) &lt;= expr_thresh
+  low_par &lt;- rowMeans(counts_list[[par_name]]) &lt;= expr_thresh
+  good_idxs &lt;- !(low_cer &amp; low_par)
+  counts_list[[cer_name]] &lt;- counts_list[[cer_name]][good_idxs,]
+  counts_list[[par_name]] &lt;- counts_list[[par_name]][good_idxs,]
+}
+# now experiments have different nGenes (but species from the same experiment will have the same nGenes)
+dim(counts_list$cer_CC)</code></pre>
+<pre><code>## [1] 4240    8</code></pre>
+<pre class="r"><code>dim(counts_list$par_CC)</code></pre>
+<pre><code>## [1] 4240    8</code></pre>
+<pre class="r"><code>dim(counts_list$cer_Cold)</code></pre>
+<pre><code>## [1] 4260    4</code></pre>
+<pre class="r"><code>dim(counts_list$par_Cold)</code></pre>
+<pre><code>## [1] 4260    4</code></pre>
+<pre class="r"><code>dim(info)</code></pre>
+<pre><code>## [1] 62  4</code></pre>
+<pre class="r"><code># saving
+save(counts_list, info, file = &quot;data_files/Clustering_Counts.RData&quot;)</code></pre>
+<p>Done with data cleaning, on to GLMs and Heiarchical Clustering!</p>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
