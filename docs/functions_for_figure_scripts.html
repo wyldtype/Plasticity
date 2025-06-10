@@ -298,11 +298,13 @@ webpage-ready version displying code for each function with acompanying
 unit tests</p>
 <pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;,
-         &quot;matrixStats&quot;, &quot;ggpattern&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2 
-##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
-##  data.table matrixStats   ggpattern 
-##        TRUE        TRUE        TRUE</code></pre>
+         &quot;matrixStats&quot;, &quot;ggpattern&quot;, &quot;WGCNA&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
+##        TRUE        TRUE        TRUE        TRUE        TRUE 
+##  data.table     ggplot2  data.table matrixStats   ggpattern 
+##        TRUE        TRUE        TRUE        TRUE        TRUE 
+##       WGCNA 
+##        TRUE</code></pre>
 <pre class="r"><code># for testing functions:
 load(&quot;data_files/Cleaned_Counts.RData&quot;)
 load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)</code></pre>
@@ -363,14 +365,18 @@ dim(cbind(test_collapse$cer, test_collapse$par))</code></pre>
 sample_info |&gt; filter(experiment == &quot;LowPi&quot; &amp; organism == &quot;par&quot;) |&gt;
   select(condition) |&gt; table() |&gt; sort(decresing = TRUE)</code></pre>
 <pre><code>## condition
-##   WT_LowPi_0  WT_LowPi_10 WT_LowPi_105 WT_LowPi_120 WT_LowPi_135 WT_LowPi_150 WT_LowPi_165 
-##            1            1            1            1            1            1            1 
-## WT_LowPi_195  WT_LowPi_20 WT_LowPi_210 WT_LowPi_225 WT_LowPi_240 WT_LowPi_255 WT_LowPi_270 
-##            1            1            1            1            1            1            1 
-## WT_LowPi_285  WT_LowPi_30 WT_LowPi_300 WT_LowPi_315 WT_LowPi_330 WT_LowPi_360  WT_LowPi_40 
-##            1            1            1            1            1            1            1 
-##   WT_LowPi_5  WT_LowPi_50  WT_LowPi_60  WT_LowPi_75  WT_LowPi_90  WT_LowPi_-5 WT_LowPi_180 
-##            1            1            1            1            1            2            2</code></pre>
+##   WT_LowPi_0  WT_LowPi_10 WT_LowPi_105 WT_LowPi_120 WT_LowPi_135 
+##            1            1            1            1            1 
+## WT_LowPi_150 WT_LowPi_165 WT_LowPi_195  WT_LowPi_20 WT_LowPi_210 
+##            1            1            1            1            1 
+## WT_LowPi_225 WT_LowPi_240 WT_LowPi_255 WT_LowPi_270 WT_LowPi_285 
+##            1            1            1            1            1 
+##  WT_LowPi_30 WT_LowPi_300 WT_LowPi_315 WT_LowPi_330 WT_LowPi_360 
+##            1            1            1            1            1 
+##  WT_LowPi_40   WT_LowPi_5  WT_LowPi_50  WT_LowPi_60  WT_LowPi_75 
+##            1            1            1            1            1 
+##  WT_LowPi_90  WT_LowPi_-5 WT_LowPi_180 
+##            1            2            2</code></pre>
 <pre class="r"><code># cer first, should not have changed
 test1 &lt;- counts[,sample_info$experiment == &quot;LowPi&quot; &amp;
                   sample_info$allele == &quot;cer&quot;]
@@ -431,8 +437,10 @@ p1 &lt;- ggplot(plotdf1, aes(x = log2(var_expr/mean_expr))) + geom_density() +
   geom_vline(xintercept = 0, color = &quot;red&quot;) +
   ggtitle(&quot;after collapsing replicates&quot;)
 ggarrange(p0, p1, nrow = 1, ncol = 2)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range (`stat_density()`).
-## Removed 3 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 3 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
 <p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 <pre class="r"><code># mean expression pre and post (shouldn&#39;t have changed)
 plotdf &lt;- left_join(plotdf0, plotdf1, by = &quot;gene_name&quot;, suffix = c(&quot;_pre&quot;, &quot;_post&quot;))
@@ -447,7 +455,8 @@ ggplot(plotdf, aes(x = log2(mean_expr + 1),
                    y = log2(var_expr_pre) - log2(var_expr_post))) +
   geom_hex() +
   geom_hline(yintercept = 0, color = &quot;gold&quot;)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range (`stat_binhex()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range
+## (`stat_binhex()`).</code></pre>
 <p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
 <pre class="r"><code># as expected, there is lower variance post collapse (very few genes below y = 0)
 # most genes have fairly little difference in var when collapsing replicates,
@@ -460,8 +469,8 @@ ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(ex
   geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
             aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
             color = &quot;red&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-4.png" width="672" /></p>
 <pre class="r"><code># second a gene with variance substantially reduced in collapsed form
 gene_idx &lt;- plotdf |&gt; filter(log2(var_expr_pre) - log2(var_expr_post) &gt; 7) |&gt; select(gene_name) |&gt; pull() |&gt; sample(1)
@@ -470,8 +479,8 @@ ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(ex
   geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
             aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
             color = &quot;red&quot;) # these are genes with very little expression change attributable to timepoint,</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-5.png" width="672" /></p>
 <pre class="r"><code># the exact kind we want to have significantly reduced variance in collapsed counts</code></pre>
 </div>

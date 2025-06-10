@@ -71,6 +71,11 @@ test <- getGoodExprGeneNames(.organism = "par", .allele = "par",
 "YPR199C" %in% test # shouldn't be
 "YFL051C" %in% test # should be
 sum(MissingHubGenes %in% test)
+
+# in Spar Heat
+test <- getGoodExprGeneNames(.organism = "par", .allele = "par",
+                             .experiment = "Heat", .expr_thresh = cutoffExpr)
+"YOL159C" %in% test # shouldn't be
 ```
 ```{r}
 # applying to all genes/groups/experiments

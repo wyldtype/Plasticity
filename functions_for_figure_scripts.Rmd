@@ -14,7 +14,7 @@ The actual version of these functions that is sourced in the other .Rmd scripts 
 ```{r}
 sapply(c("dplyr", "purrr", "tidyr", "ggpubr", "readr",
          "data.table", "ggplot2", "data.table",
-         "matrixStats", "ggpattern"), require, character.only=TRUE)
+         "matrixStats", "ggpattern", "WGCNA"), require, character.only=TRUE)
 
 # for testing functions:
 load("data_files/Cleaned_Counts.RData")

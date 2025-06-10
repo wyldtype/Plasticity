@@ -1,6 +1,6 @@
 sapply(c("dplyr", "purrr", "tidyr", "ggpubr", "readr",
          "data.table", "ggplot2", "data.table",
-         "matrixStats", "ggpattern"), require, character.only=TRUE)
+         "matrixStats", "ggpattern", "WGCNA"), require, character.only=TRUE)
 
 #### Taking means across replicates ####
 # helper function that turns a counts and info pair into

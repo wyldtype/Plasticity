@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>clustering</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Plasticity</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Data Cleaning
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clean_data.html">Import count data</a>
+    </li>
+    <li>
+      <a href="data_for_analysis_scripts.html">Analysis-specific data cleaning</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Functions
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="functions_for_figure_scripts.html">Functions used throught scripts</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">clustering</h1>
+
+</div>
+
+
+<p>Hierarchical clustering of expression data observation from
+combined-experiment clustering: each experiment only has a small number
+of distinct “shapes” to the expression a happy medium between
+experiment-specific clustering and combined-experiment clustering is to
+describe each gene by its combination of expression “shapes” in each
+experiment</p>
+<pre class="r"><code>options(stringsAsFactors = FALSE)
+source(&quot;functions_for_figure_scripts.R&quot;)
+load(&quot;data_files/Clustering_Counts.RData&quot;)
+set.seed(23)
+
+# Method:
+# 1) Filter out genes with low var/mean ratio (low dispersion)
+# 2) Correlation cluster remaining genes
+
+# initial values for low var filter applied in corCluster (decided in following section)
+var_thresh &lt;- 3</code></pre>
+<div id="clustering-functions-and-unit-tests" class="section level2">
+<h2>Clustering functions and unit tests</h2>
+<p>Bootstrapping function - runs clustering repeatedly on subsets of
+full clustering data and labels each gene by the cluster it is most
+frequently in (will be tested below corCluster)</p>
+<pre class="r"><code># helper function for corCluster
+# runs nIter clusterings on random subsets of genes 
+# returns the majority vote for each gene&#39;s cluster
+bootstrapClustering &lt;- function(.filtered_cts, .nClust,
+                                .nIter = 100, .frac = 0.75) {
+  clusterSubset &lt;- function(.cts) {
+    gene_idxs &lt;- sample(c(1:nrow(.cts)), size = nrow(.cts)*.frac, replace = FALSE)
+    frac_cts &lt;- .cts[gene_idxs,]
+    cor_mat &lt;- frac_cts |&gt; t() |&gt; cor(use = &quot;pairwise.complete.obs&quot;)
+    tree &lt;- hclust(as.dist(-cor_mat), method = &quot;average&quot;)
+    topBranchHeight &lt;- sort(tree$height, decreasing = TRUE)[.nClust]
+    tree_labels &lt;- cutreeStatic(tree, cutHeight = topBranchHeight,
+                                minSize = 1)
+    output &lt;- rep(NA, nrow(.cts))
+    output[gene_idxs] &lt;- tree_labels
+    return(output)
+  }
+  label_list &lt;- vector(mode = &quot;list&quot;, length = .nIter)
+  for (i in c(1:.nIter)) {
+    label_list[[i]] &lt;- clusterSubset(.filtered_cts)
+  }
+  labeldf &lt;- purrr::reduce(label_list, .f = cbind)
+  cat(&quot;finished iterations, nGenes x nIter:&quot;, dim(labeldf), &quot;\n&quot;)
+  rownames(labeldf) &lt;- rownames(.filtered_cts)
+  # aligning labels between iterations
+  matched &lt;- apply(labeldf, 2, matchLabels, reference = labeldf[,1],
+                   ignoreLabels = NA)
+  matched[matched &gt; .nClust] &lt;- NA # matchLabels adds new labels to any gene over pThreshold
+  labels &lt;- apply(matched, 1, \(x) {
+    label &lt;- names(sort(table(x, useNA = &quot;no&quot;), decreasing = TRUE))[1]
+    if (length(label) == 0) {
+      return(NA)
+    }
+    return(as.numeric(label))
+  })
+  return(labels)
+}</code></pre>
+<p>Clustering function given a count matrix where rows are genes and
+columns are samples/conditions, returns heirarchical cluster assignments
+as vector of length nGenes labels follow convention: 1) NA = too lowly
+expressed (mean expression &lt; .min_expr) 2) 0 = too low variance (mean
+expression &gt;= .min_expr &amp; var expression &lt; .min_var) 3) 1 -
+.nClust = clusters of co-varying genes</p>
+<pre class="r"><code>corCluster &lt;- function(.cts, .nClust, .min_var = var_thresh,
+                       .tree_too = FALSE, .gap_stat = FALSE, 
+                       .just_counts = FALSE, .bootstrapIter = 100,
+                       .bootstrapFrac = 0.75) {
+  gene_idxs &lt;- rownames(.cts)
+  gene_means &lt;- apply(.cts, 1, mean, na.rm = TRUE)
+  gene_disps &lt;- apply(.cts, 1, \(x) {var(x, na.rm = TRUE)/abs(mean(x, na.rm = TRUE))})
+  gene_disps[gene_means == 0] &lt;- 0 # avoiding divide by 0 NaN if gene is fully not expressed
+  # identifying low var and low expr genes
+  low_var_genes &lt;- gene_idxs[gene_disps &lt; .min_var]
+  cat(length(low_var_genes), &quot;low variance genes, assigned to 0 label\n&quot;)
+  good_clustering_genes &lt;- setdiff(x = gene_idxs, y = low_var_genes)
+  filtered_cts &lt;- .cts[good_clustering_genes,]
+  if (.gap_stat) {
+    cluster_fun &lt;- function(x, k) {
+      list(cluster = cutree(hclust(d = as.dist(-cor(t(x), use = &quot;pairwise.complete.obs&quot;)), 
+                                   method = &quot;average&quot;), 
+                            k = k))}
+    gap_stat &lt;- clusGap(filtered_cts, FUNcluster = cluster_fun, K.max = 10, B = 5, method = &quot;firstmax&quot;)
+    return(gap_stat)
+  }
+  if (.just_counts) {
+    return(filtered_cts)
+  }
+  # clustering
+  if (sum(apply(filtered_cts, 1, \(x) {all(is.na(x))})) != 0) { # if any rows (genes) have all NA values, they will cause cor to fail below
+    cat(&quot;NA genes in counts matrix, returning counts matrix only\n&quot;)
+    return(cor_mat)
+  }
+  if (.bootstrapIter &gt; 1) {
+    tree_labels &lt;- bootstrapClustering(filtered_cts, .nClust = .nClust,
+                        .nIter = .bootstrapIter, .frac = .bootstrapFrac)
+    labeldf &lt;- tibble(gene_name = rownames(filtered_cts),
+                      label = tree_labels) |&gt; 
+      bind_rows(tibble(gene_name = low_var_genes,
+                       label = 0))
+    # making single tree for .treeToo = TRUE
+    cor_mat &lt;- filtered_cts |&gt; t() |&gt; cor(use = &quot;pairwise.complete.obs&quot;)
+    tree &lt;- hclust(as.dist(-cor_mat), method = &quot;average&quot;)
+  }
+  if (.bootstrapIter &lt;= 1) {
+    cor_mat &lt;- filtered_cts |&gt; t() |&gt; cor(use = &quot;pairwise.complete.obs&quot;)
+    tree &lt;- hclust(as.dist(-cor_mat), method = &quot;average&quot;) # negative because hclust expects distance mat --- the higher the ij value the LESS similar genes i and j are
+    topBranchHeight &lt;- sort(tree$height, decreasing = TRUE)[.nClust]
+    tree_labels &lt;- cutreeStatic(tree, cutHeight = topBranchHeight,
+                                minSize = 1) # guaranteeing no 0 class
+    cat(&quot;cutting tree at height&quot;, topBranchHeight, &quot;into&quot;, length(unique(tree_labels)), &quot;clusters\n&quot;)
+    labeldf &lt;- tibble(gene_name = tree$labels,
+                      label = tree_labels) |&gt; 
+      bind_rows(tibble(gene_name = low_var_genes,
+                       label = 0))
+  }
+  # matching each label to each gene
+  # rearranging genes into their original order
+  outdf &lt;- left_join(tibble(gene_name = rownames(.cts)),
+                     labeldf, by = &quot;gene_name&quot;)
+  if (!.tree_too) {
+    return(outdf)
+  }
+  if (.tree_too) {
+    return(list(tree = tree, df = outdf))
+  }
+}</code></pre>
+<p>Unit tests for boostrapClustering and corCluster</p>
+<pre class="r"><code>### tests for corCluster/bootstrapClustering
+# toy genes
+# known co-expressed genes in LowN
+# should split these into genes highest at TP2 (^ genes)
+# and genes lowest at TP2 (v genes)
+toy_idxs &lt;- c(&quot;YBR172C&quot;, &quot;YML015C&quot;, # v genes
+              &quot;YBR162W-A&quot;, &quot;YKL196C&quot;, &quot;YBR171W&quot;) # ^ genes (the excess of YBRs are coincidental, as I was just scrolling through that part of the module --- although the 171 172 W/C gene pair is probably overlapping)
+toy_mat &lt;- counts_list$par_LowN[toy_idxs,]
+toydf &lt;- makeDf(toy_mat, info, .join_by = &quot;condition&quot;)
+toyoutput &lt;- corCluster(toy_mat, .nClust = 2, .tree_too = TRUE, 
+                        .bootstrapIter = 0)</code></pre>
+<pre><code>## 2 low variance genes, assigned to 0 label
+## cutting tree at height -0.964157 into 2 clusters</code></pre>
+<pre class="r"><code>toydf &lt;- left_join(toydf, toyoutput$df, by = &quot;gene_name&quot;)
+ggplot(toydf, aes(x = time_point_str, y = log2(expr + 1))) + 
+  geom_line(aes(group = gene_name,
+                color = gene_name)) +
+  facet_wrap(~label)</code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<pre class="r"><code># full dataset
+toy_mat &lt;- counts_list$cer_LowN
+toydf &lt;- makeDf(toy_mat, info, .join_by = &quot;condition&quot;)
+# no bootstrap
+test_labels &lt;- corCluster(toy_mat, .nClust = 4, .min_var = 2,
+                          .bootstrapIter = 0)</code></pre>
+<pre><code>## 1027 low variance genes, assigned to 0 label
+## cutting tree at height -0.6549572 into 4 clusters</code></pre>
+<pre class="r"><code># yes bootstrap
+test_labels &lt;- corCluster(toy_mat, .nClust = 4, .min_var = 2,
+                          .bootstrapIter = 10)</code></pre>
+<pre><code>## 1027 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 3580 10</code></pre>
+<pre class="r"><code>plotdf &lt;- toydf |&gt; 
+  group_by(gene_name, time_point_str) |&gt; 
+  summarise(expr = mean(expr)) |&gt; 
+  ungroup() |&gt; 
+  reframe(mean_expr = mean(expr), 
+          sd_expr = sd(expr),
+          expr = expr,
+          time_point_str = time_point_str,
+          .by = &quot;gene_name&quot;) |&gt; 
+  mutate(scaled_expr = (expr - mean_expr)/sd_expr) |&gt; 
+  left_join(y = test_labels, by = &quot;gene_name&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;gene_name&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<pre class="r"><code>ggplot(plotdf, aes(x = time_point_str, y = scaled_expr)) + 
+  geom_line(aes(group = gene_name)) +
+  facet_wrap(~label)</code></pre>
+<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale
+## range (`geom_line()`).</code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<p>Wrapper function for corCluster, repeatedly clusters list of
+environmental datasets</p>
+<pre class="r"><code># Wrapper function that converts named list of counts (from 1 experiment) into
+# tidy counts data frame with nGenes * nConditions * length(counts list) number of rows
+clusterCountsList &lt;- function(.cts_list, .nClust = 4,
+                              .bootstrapIter = 100,
+                              .bootstrapFrac = 0.75,
+                              .min_var = var_thresh,
+                              .tree_too = FALSE,
+                              .gap_stat = FALSE,
+                              .just_counts = FALSE) {
+  # giving each ortholog a unique name: YGR192C becomes YGR192C_cer
+  cts &lt;- map2(.cts_list, names(.cts_list), .f = \(x, nm) {
+    nm &lt;- gsub(&quot;_.*&quot;, &quot;&quot;, nm)
+    rownames(x) &lt;- paste(nm, rownames(x), sep = &quot;_&quot;)
+    return(x)
+  })
+  dfs &lt;- map(cts, makeDf, .info = info, .join_by = &quot;condition&quot;)
+  outdf &lt;- purrr::reduce(dfs, bind_rows)
+  if (all(unlist(map(cts, \(x) {all(colnames(x) == colnames(cts[[1]]))})))) {
+    cat(&quot;counts are in same order, joining counts into single matrix\n&quot;)
+    cts &lt;- purrr::reduce(cts, .f = rbind)
+  }
+  else {
+    cat(&quot;counts colnames don&#39;t match, returning counts list \n&quot;)
+    return(cts)
+  }
+  # after collapsing replicates, samples should be in the same condition order
+  # and able to be rbound
+  if (.just_counts) {
+    filtered_cts &lt;- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+                               .just_counts = TRUE, .bootstrapIter = .bootstrapIter,
+                               .bootstrapFrac = .bootstrapFrac)
+    return(filtered_cts)
+  }
+  if (!.tree_too) {
+    labeldf &lt;- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+                          .bootstrapIter = .bootstrapIter,
+                          .bootstrapFrac = .bootstrapFrac)
+    outdf &lt;- left_join(outdf, labeldf, by = &quot;gene_name&quot;)
+    return(outdf)
+  }
+  if (.tree_too) {
+    output &lt;- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+                         .bootstrapIter = .bootstrapIter,
+                         .bootstrapFrac = .bootstrapFrac,
+                         .tree_too = TRUE)
+    output$df &lt;- left_join(outdf, output$df, by = &quot;gene_name&quot;)
+    return(output)
+  }
+}
+# tests for clusterCountsList
+# par is missing 1 condition versus cer
+testout &lt;- clusterCountsList(list(&quot;cer_LowN&quot; = counts_list$cer_LowN,
+                                  &quot;par_LowN&quot; = counts_list$par_LowN),
+                             .bootstrapIter = 10, .min_var = 3)</code></pre>
+<pre><code>## counts are in same order, joining counts into single matrix
+## 2683 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6531 10</code></pre>
+<pre class="r"><code>testout$gene_name[1:10]</code></pre>
+<pre><code>##  [1] &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL062W&quot;
+##  [5] &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot;
+##  [9] &quot;cer_YAL061W&quot; &quot;cer_YAL060W&quot;</code></pre>
+<p>Visualize clustering</p>
+<pre class="r"><code># given a dataframe with labels for each gene, returns a facet plot
+# showing expression of each gene in each cluster (usually randomly 
+# downsample option to save plotting computation)
+plotClusters &lt;- function(.df, .nDownsample = 0, .normalization = &quot;scale&quot;,
+                         .showProblem = FALSE) {
+  if (.nDownsample != 0) {
+    gene_idxs &lt;- .df$gene_name |&gt; sample(size = .nDownsample, replace = FALSE)
+    .df &lt;- .df |&gt; filter(gene_name %in% gene_idxs)
+  }
+  if (.normalization == &quot;scale&quot;) {
+    plotdf &lt;- .df |&gt;
+      reframe(mean_expr = mean(expr, na.rm = TRUE), 
+              sd_expr = sd(expr, na.rm = TRUE),
+              expr = expr,
+              time_point_num = time_point_num,
+              label = label,
+              .by = &quot;gene_name&quot;) |&gt; 
+      mutate(plot_expr = (expr - mean_expr)/sd_expr)
+  }
+  if (.normalization == &quot;log2&quot;) {
+    plotdf &lt;- .df |&gt; 
+      mutate(plot_expr = log2(expr + 1))
+  }
+  p &lt;- ggplot(plotdf, aes(x = time_point_num, y = plot_expr)) + 
+    geom_line(aes(group = gene_name)) +
+    # adding mean expr line for each cluster:
+    geom_line(data = summarise(group_by(plotdf, time_point_num, label),
+                                mean_expr = mean(plot_expr, na.rm = TRUE)),
+              aes(x = time_point_num, y = mean_expr),
+              color = &quot;gold&quot;) +
+    # adding mean expr for all low expressed genes (group_by won&#39;t create an NA group):
+    geom_line(data = summarise(group_by(filter(plotdf, is.na(label)),
+                                        time_point_num),
+                               mean_expr = mean(plot_expr, na.rm = TRUE),
+                               label = NA),
+              aes(x = time_point_num, y = mean_expr),
+              color = &quot;gold&quot;) +
+    facet_wrap(~ label)
+  return(p)
+}</code></pre>
+</div>
+<div id="choosing-a-low-variance-threshold" class="section level2">
+<h2>Choosing a low variance threshold</h2>
+<p>Blue line in below plots represents dispersion threshold. Genes below
+the line will be assigned to lowly varying (static) cluster. Yellow line
+is best fit for mean/var relationship</p>
+<pre class="r"><code>var_thresh &lt;- 3
+
+getCollapsedCountsByExperiment &lt;- function(.experiment) {
+  name_cer &lt;- paste(&quot;cer&quot;, .experiment, sep = &quot;_&quot;)
+  name_par &lt;- paste(&quot;par&quot;, .experiment, sep = &quot;_&quot;)
+  .cts_list &lt;- list(name_cer = counts_list[[name_cer]],
+                    name_par = counts_list[[name_par]])
+  cts &lt;- map2(.cts_list, names(.cts_list), .f = \(x, nm) {
+    nm &lt;- gsub(&quot;_.*&quot;, &quot;&quot;, nm)
+    rownames(x) &lt;- paste(nm, rownames(x), sep = &quot;_&quot;)
+    return(x)
+  }) 
+  dfs &lt;- map(cts, makeDf, .info = info, .join_by = &quot;condition&quot;)
+  outdf &lt;- purrr::reduce(dfs, bind_rows)
+  # after collapsing replicates, samples should be in the same condition order
+  # and able to be rbound
+  cts &lt;- cts |&gt; 
+    purrr::reduce(rbind)
+  return(cts)
+}
+# HAP4
+toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;HAP4&quot;)
+# note that it is important to specify whether we&#39;re thresholding based on log2(mean(expr))
+# versus mean(log2(expr)):
+plot(rowMeans(log2(toy_mat_collapsed)), 
+     log2(rowMeans(toy_mat_collapsed)))
+abline(a = 0, b = 1, col = &quot;gold&quot;) </code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre class="r"><code># they&#39;re mostly a similar measure, 
+# but for genes with high variance,
+# log2(mean(expr)) tends to be higher 
+# (hence those spikes of genes well above the y=x)
+# we are thresholding by log2(mean(expr)) because it makes more intuitive sense
+plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;Diauxic Shift&quot;)
+mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
+abline(a = mod$coefficients[1], 
+       b = mod$coefficients[2], col = &quot;gold&quot;)
+# the point where the low expr genes &quot;lift off&quot; this mean-var relationship line is where 
+# lowly expressed genes have an abnormally high variance, variance that is more likely
+# due to noise than response to the environment, and should therefore be in the low expr group
+# low var filtering:
+# var thresh is actually a dispersion thresh --- var/mean
+# to filter out lowly varying genes, we apply disp threshold after the expr threshold
+# the higher you&#39;re expressed, the more you need to vary in order to not be put in low var category
+abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;) </code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<pre class="r"><code># HU Shock
+toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;CC&quot;)
+plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;HU Shock&quot;)
+mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
+abline(a = mod$coefficients[1], 
+       b = mod$coefficients[2], col = &quot;gold&quot;) 
+abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-6-3.png" width="672" /></p>
+<pre class="r"><code># LowN
+toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;LowN&quot;)
+plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;LowN&quot;)
+mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
+abline(a = mod$coefficients[1], 
+       b = mod$coefficients[2], col = &quot;gold&quot;) 
+abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-6-4.png" width="672" /></p>
+<pre class="r"><code># LowPi
+toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;LowPi&quot;)
+plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;LowPi&quot;)
+mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
+abline(a = mod$coefficients[1], 
+       b = mod$coefficients[2], col = &quot;gold&quot;) 
+abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-6-5.png" width="672" /></p>
+<pre class="r"><code># Heat
+toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;Heat&quot;)
+plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;Heat&quot;)
+mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
+abline(a = mod$coefficients[1], 
+       b = mod$coefficients[2], col = &quot;gold&quot;) 
+abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-6-6.png" width="672" /></p>
+<pre class="r"><code># Cold
+toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;Cold&quot;)
+plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;Cold&quot;)
+mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
+abline(a = mod$coefficients[1], 
+       b = mod$coefficients[2], col = &quot;gold&quot;) 
+abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-6-7.png" width="672" /></p>
+</div>
+<div id="clustering" class="section level2">
+<h2>Clustering</h2>
+<pre class="r"><code># change for different parameter values we&#39;ll use
+# var_thresh &lt;- 1
+var_thresh &lt;- 3
+# var_thresh &lt;- 5
+
+clusterdf_list &lt;- vector(mode = &quot;list&quot;, length = 0)
+nclust_lookup &lt;- tibble(experiment = c(&quot;HAP4&quot;, &quot;LowPi&quot;, &quot;CC&quot;, &quot;LowN&quot;, &quot;Cold&quot;, &quot;Heat&quot;),
+                        nclust = 2)
+nclust_lookup</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   experiment nclust
+##   &lt;chr&gt;       &lt;dbl&gt;
+## 1 HAP4            2
+## 2 LowPi           2
+## 3 CC              2
+## 4 LowN            2
+## 5 Cold            2
+## 6 Heat            2</code></pre>
+<pre class="r"><code>for (e in nclust_lookup$experiment) {
+  nclust &lt;- nclust_lookup |&gt; filter(experiment == e) |&gt; 
+    select(nclust) |&gt; as.numeric()
+  cat(&quot;*********** working on&quot;, nclust, &quot;clusters in&quot;, e, &quot;*********** \n&quot;)
+  output &lt;- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
+                          .nClust = nclust, .tree_too = TRUE,
+                          .min_var = var_thresh)
+  clusterdf_list[[paste(e, nclust, sep = &quot;_&quot;)]] &lt;- output
+}</code></pre>
+<pre><code>## *********** working on 2 clusters in HAP4 *********** 
+## counts are in same order, joining counts into single matrix
+## 2021 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 7005 100 
+## *********** working on 2 clusters in LowPi *********** 
+## counts are in same order, joining counts into single matrix
+## 690 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 8544 100 
+## *********** working on 2 clusters in CC *********** 
+## counts are in same order, joining counts into single matrix
+## 1034 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 7446 100 
+## *********** working on 2 clusters in LowN *********** 
+## counts are in same order, joining counts into single matrix
+## 2683 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6531 100 
+## *********** working on 2 clusters in Cold *********** 
+## counts are in same order, joining counts into single matrix
+## 4046 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 4474 100 
+## *********** working on 2 clusters in Heat *********** 
+## counts are in same order, joining counts into single matrix
+## 2299 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6521 100</code></pre>
+<pre class="r"><code># getting gene clusters
+getClusterCombination &lt;- function(.clust_list) {
+  cluster_comb &lt;- tibble()
+  for (nm in names(.clust_list)) {
+    e &lt;- gsub(&quot;_.*&quot;, &quot;&quot;, nm)
+    nclust &lt;- gsub(&quot;.*_&quot;, &quot;&quot;, nm)
+    cat(&quot;working on&quot;, e, nclust, &quot;\n&quot;)
+    e_clust &lt;- .clust_list[[paste(e, nclust, sep = &quot;_&quot;)]]$df |&gt; 
+      select(label, gene_name) |&gt; 
+      unique()
+    e_clust$gene_ID &lt;- map(e_clust$gene_name, \(.g) {
+      return(gsub(&quot;.*_&quot;, &quot;&quot;, .g))
+    }) |&gt; unlist()
+    e_clust$species &lt;- map(e_clust$gene_name, \(.g) {
+      return(gsub(&quot;_.*&quot;, &quot;&quot;, .g))
+    }) |&gt; unlist()
+    e_clust &lt;- e_clust |&gt; 
+      select(gene_ID, species, label) |&gt; 
+      pivot_wider(id_cols = gene_ID, names_from = species, values_from = label) |&gt; 
+      mutate(experiment = e)
+    cluster_comb &lt;- bind_rows(cluster_comb, e_clust)
+  }
+  return(cluster_comb)
+}
+clusterdf &lt;- getClusterCombination(clusterdf_list)</code></pre>
+<pre><code>## working on HAP4 2 
+## working on LowPi 2 
+## working on CC 2 
+## working on LowN 2 
+## working on Cold 2 
+## working on Heat 2</code></pre>
+<p>Quality Control: comparing results for different numbers of
+clusters</p>
+<pre class="r"><code>### QC: also clustering by 3 or 4 clusters to compare results
+# 3 clusters
+clusterdf_list3 &lt;- vector(mode = &quot;list&quot;, length = 0)
+nclust_lookup &lt;- tibble(experiment = c(&quot;HAP4&quot;, &quot;LowPi&quot;, &quot;CC&quot;, &quot;LowN&quot;, &quot;Cold&quot;, &quot;Heat&quot;),
+                        nclust = 3)
+nclust_lookup</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   experiment nclust
+##   &lt;chr&gt;       &lt;dbl&gt;
+## 1 HAP4            3
+## 2 LowPi           3
+## 3 CC              3
+## 4 LowN            3
+## 5 Cold            3
+## 6 Heat            3</code></pre>
+<pre class="r"><code>for (e in nclust_lookup$experiment) {
+  nclust &lt;- nclust_lookup |&gt; filter(experiment == e) |&gt;
+    select(nclust) |&gt; as.numeric()
+  cat(&quot;*********** working on&quot;, nclust, &quot;clusters in&quot;, e, &quot;*********** \n&quot;)
+  output &lt;- clusterCountsList(counts_list[grepl(e, names(counts_list))],
+                              .nClust = nclust, .tree_too = TRUE,
+                              .min_var = var_thresh)
+  clusterdf_list3[[paste(e, nclust, sep = &quot;_&quot;)]] &lt;- output
+}</code></pre>
+<pre><code>## *********** working on 3 clusters in HAP4 *********** 
+## counts are in same order, joining counts into single matrix
+## 2021 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 7005 100 
+## *********** working on 3 clusters in LowPi *********** 
+## counts are in same order, joining counts into single matrix
+## 690 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 8544 100 
+## *********** working on 3 clusters in CC *********** 
+## counts are in same order, joining counts into single matrix
+## 1034 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 7446 100 
+## *********** working on 3 clusters in LowN *********** 
+## counts are in same order, joining counts into single matrix
+## 2683 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6531 100 
+## *********** working on 3 clusters in Cold *********** 
+## counts are in same order, joining counts into single matrix
+## 4046 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 4474 100 
+## *********** working on 3 clusters in Heat *********** 
+## counts are in same order, joining counts into single matrix
+## 2299 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6521 100</code></pre>
+<pre class="r"><code>clusterdf3 &lt;- getClusterCombination(clusterdf_list3)</code></pre>
+<pre><code>## working on HAP4 3 
+## working on LowPi 3 
+## working on CC 3 
+## working on LowN 3 
+## working on Cold 3 
+## working on Heat 3</code></pre>
+<pre class="r"><code># 4 clusters
+clusterdf_list4 &lt;- vector(mode = &quot;list&quot;, length = 0)
+nclust_lookup &lt;- tibble(experiment = c(&quot;HAP4&quot;, &quot;LowPi&quot;, &quot;CC&quot;, &quot;LowN&quot;, &quot;Cold&quot;, &quot;Heat&quot;),
+                        nclust = 4)
+nclust_lookup</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   experiment nclust
+##   &lt;chr&gt;       &lt;dbl&gt;
+## 1 HAP4            4
+## 2 LowPi           4
+## 3 CC              4
+## 4 LowN            4
+## 5 Cold            4
+## 6 Heat            4</code></pre>
+<pre class="r"><code>for (e in nclust_lookup$experiment) {
+  nclust &lt;- nclust_lookup |&gt; filter(experiment == e) |&gt;
+    select(nclust) |&gt; as.numeric()
+  cat(&quot;*********** working on&quot;, nclust, &quot;clusters in&quot;, e, &quot;*********** \n&quot;)
+  output &lt;- clusterCountsList(counts_list[grepl(e, names(counts_list))],
+                              .nClust = nclust, .tree_too = TRUE,
+                              .min_var = var_thresh)
+  clusterdf_list4[[paste(e, nclust, sep = &quot;_&quot;)]] &lt;- output
+}</code></pre>
+<pre><code>## *********** working on 4 clusters in HAP4 *********** 
+## counts are in same order, joining counts into single matrix
+## 2021 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 7005 100 
+## *********** working on 4 clusters in LowPi *********** 
+## counts are in same order, joining counts into single matrix
+## 690 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 8544 100 
+## *********** working on 4 clusters in CC *********** 
+## counts are in same order, joining counts into single matrix
+## 1034 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 7446 100 
+## *********** working on 4 clusters in LowN *********** 
+## counts are in same order, joining counts into single matrix
+## 2683 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6531 100 
+## *********** working on 4 clusters in Cold *********** 
+## counts are in same order, joining counts into single matrix
+## 4046 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 4474 100 
+## *********** working on 4 clusters in Heat *********** 
+## counts are in same order, joining counts into single matrix
+## 2299 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6521 100</code></pre>
+<pre class="r"><code>clusterdf4 &lt;- getClusterCombination(clusterdf_list4)</code></pre>
+<pre><code>## working on HAP4 4 
+## working on LowPi 4 
+## working on CC 4 
+## working on LowN 4 
+## working on Cold 4 
+## working on Heat 4</code></pre>
+</div>
+<div id="saving" class="section level2">
+<h2>Saving</h2>
+<pre class="r"><code># save(clusterdf, clusterdf_list, file = &quot;data_files/CorrelationClustering1Disp.RData&quot;)
+save(clusterdf, clusterdf_list, file = &quot;data_files/CorrelationClustering3Disp.RData&quot;)
+save(clusterdf, clusterdf_list,
+     clusterdf3, clusterdf_list3,
+     clusterdf4, clusterdf_list4, file = &quot;data_files/QC_CorrelationClustering3Disp.RData&quot;)
+# save(clusterdf, clusterdf_list, file = &quot;data_files/CorrelationClustering5Disp.RData&quot;)</code></pre>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
