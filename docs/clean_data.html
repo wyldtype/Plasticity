@@ -260,17 +260,8 @@ $(document).ready(function () {
     </li>
   </ul>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Functions
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="functions_for_figure_scripts.html">Functions used throught scripts</a>
-    </li>
-  </ul>
+<li>
+  <a href="functions_for_figure_scripts.html">Functions used throughout figure scripts</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -296,7 +287,6 @@ class="section level1">
 metadata</h1>
 <p>Working with RNAseq data published in Krieger et al. 2020 and Fay et
 al. 2023</p>
-<pre><code>## Loading required package: openxlsx</code></pre>
 <pre><code>##       dplyr       readr       tidyr       purrr     ggplot2 
 ##        TRUE        TRUE        TRUE        TRUE        TRUE 
 ##      ggpubr    openxlsx matrixStats 
@@ -362,7 +352,7 @@ countsPerMillionAllele &lt;- function(.cts_cer, .cts_par, .allele) {
     normalized &lt;- (x/librarySizes)*1e6
     return(round(normalized))
   })
-  return(t(output)) # For some unhinged reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
+  return(t(output)) # For some reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
 }
 # tests for countsPerMillionAllele
 test_cts &lt;- tagseq_cer[,-1]
@@ -375,16 +365,16 @@ test_cpm &lt;- countsPerMillionAllele(.cts_cer = tagseq_cer[,-1],
 ((test_count/(colSums(tagseq_cer[,-1], na.rm = TRUE) + 
                 colSums(tagseq_par[,-1], na.rm = TRUE))[test_colIdx])*1e6) %&gt;% 
   round() # what it should be</code></pre>
-<pre><code>##   WT_40_cer_CellCycle_rep2
-## 1                        0</code></pre>
+<pre><code>##   WT_TP2_cer_WTs_D7_G6_GS2018
+## 1                           0</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   WT_40_cer_CellCycle_rep2
-##                      &lt;dbl&gt;
-## 1                        0</code></pre>
+##   WT_TP2_cer_WTs_D7_G6_GS2018
+##                         &lt;dbl&gt;
+## 1                           0</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## WT_40_cer_CellCycle_rep2 
-##                        0</code></pre>
+<pre><code>## WT_TP2_cer_WTs_D7_G6_GS2018 
+##                           0</code></pre>
 <p>Now we can calculate percent reads mapping to each allele in parental
 samples</p>
 <pre class="r"><code># 1) normalize to counts per million based on total 
@@ -432,7 +422,7 @@ sample_genes &lt;- sample(plotdf$gene, size = 100)
 ggplot(filter(plotdf, gene %in% sample_genes),
        aes(x = gene, y = pct_cer)) + 
   geom_point(aes(color = organism))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/gene-wise-mapping-bias-1.png" width="672" /></p>
 <p>Do any Scer/Spar samples have many incorrect gene mappings?</p>
 <pre class="r"><code>sampdf &lt;- plotdf |&gt; filter(organism %in% c(&quot;cerSample&quot;, &quot;parSample&quot;)) |&gt; 
   group_by(sample_name, organism) |&gt; 
@@ -475,7 +465,7 @@ ggplot(filter(plotdf, gene %in% sample_genes),
   geom_density(aes(fill = organism)) + 
   geom_vline(xintercept = 0.75) +
   geom_vline(xintercept = 0.25)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/sample-wise-mapping-bias-1.png" width="672" /></p>
 <pre class="r"><code>filter(sampdf, (organism == &quot;cerSample&quot; &amp; round(avg_pct_cer, digits = 1) &lt; 0.8) |
            (organism == &quot;parSample&quot; &amp; round(avg_pct_cer, digits = 1) &gt; 0.2)) |&gt; 
   arrange(organism, desc(avg_pct_cer))</code></pre>
@@ -504,7 +494,7 @@ bad_libsizes |&gt; sort()</code></pre>
 ##                   584945</code></pre>
 <pre class="r"><code>hist(colSums(tagseq_cer[,-1] + tagseq_par[,-1]), breaks = 50)
 abline(v = bad_libsizes, col = &quot;red&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/sample-wise-mapping-bias-2.png" width="672" /></p>
 <p>Do any genes have consistently biased mappings? These might be genes
 with above-average seq conservation btwn Scer and Spar and therefore
 shouldn’t be used for allele-specific comparisons in the hybrid</p>
@@ -513,14 +503,14 @@ shouldn’t be used for allele-specific comparisons in the hybrid</p>
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
 hist(cer_genedf$avg_pct_cer, breaks = 50)
 abline(v = 0.9, col = &quot;red&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 <pre class="r"><code>par_genedf &lt;- plotdf |&gt; filter(organism == &quot;parSample&quot; &amp;
                                  !(sample_name %in% biased_samples)) |&gt; 
   group_by(gene) |&gt; 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
 hist(par_genedf$avg_pct_cer, breaks = 50)
 abline(v = 0.1, col = &quot;red&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
 <pre class="r"><code>cer_biased_genes &lt;- par_genedf |&gt; filter(avg_pct_cer &gt; 0.1) |&gt; select(gene) |&gt; pull()
 par_biased_genes &lt;- cer_genedf |&gt; filter(avg_pct_cer &lt; 0.9) |&gt; select(gene) |&gt; pull()
 both_biased_genes &lt;- intersect(cer_biased_genes, par_biased_genes)
@@ -805,7 +795,7 @@ p_cerbias &lt;- ggplot(par_genedf, aes(x = log2(mean_expr), y = avg_pct_cer)) +
   geom_point(aes(color = avg_pct_cer &gt; 0.1)) +
   ylab(&quot;% reads mapping to Scer allele&quot;)
 ggarrange(p_parbias, p_cerbias, nrow = 1, ncol = 2)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-6-3.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
 <p>Lastly we’ll check if cer/par ratio of parents matches hybrids for
 each gene across samples</p>
 <pre class="r"><code>plotdf$bias &lt;- if_else(plotdf$gene %in% cer_biased_genes,
@@ -836,20 +826,20 @@ plotdf_vshyb$pct_cer_hybrids_sum &lt;- plotdf_vshyb$mean_counts_cer_hybSample/(p
 # summing parental allele reads
 ggplot(plotdf_vshyb, aes(x = pct_cer_parents_sum, y = pct_cer_hybrids_sum)) +
   geom_point(aes(color = bias), alpha = 0.5)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <pre class="r"><code>ggplot(filter(plotdf_vshyb, bias != &quot;none&quot;), aes(x = pct_cer_parents_sum, y = pct_cer_hybrids_sum)) +
   geom_point(aes(color = bias), alpha = 0.5)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
 <pre class="r"><code># single parental allele reads
 ggplot(plotdf_vshyb, aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
   geom_point(aes(color = bias), alpha = 0.5)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-7-3.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-3-3.png" width="672" /></p>
 <pre class="r"><code>ggplot(filter(plotdf_vshyb, bias != &quot;none&quot;), aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
   geom_point(aes(color = bias), alpha = 0.5)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-7-4.png" width="672" />
-Conclusion: slight differences in the counts of biased genes, no visible
-difference in the counts of unbiased genes. We can count just reads
-mapping to correct parent allele and remove any biased genes after
+<p><img src="clean_data_files/figure-html/unnamed-chunk-3-4.png" width="672" /></p>
+<p>Conclusion: slight differences in the counts of biased genes, no
+visible difference in the counts of unbiased genes. We can count just
+reads mapping to correct parent allele and remove any biased genes after
 adding Fay et al. 2023 samples and filtering for low expression.</p>
 <p>Here are our lists of based genes/samples:</p>
 <pre class="r"><code>cer_biased_genes</code></pre>
@@ -944,7 +934,7 @@ ggplot(pivot_wider(sampdf, id_cols = c(&quot;sample_name&quot;, &quot;allele&quo
                    names_from = &quot;read&quot;, values_from = &quot;lib_size&quot;), 
        aes(x = R1, y = R2)) +
   geom_point(aes(color = allele))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <pre class="r"><code># good agreement in libsize between reads. 
 # Scer samples have a narrower libsize range though
 # was this also seen in Fay alignment?
@@ -962,7 +952,7 @@ sampdf &lt;- fay_sampdf |&gt;
 ggplot(sampdf, aes(x = lib_size_fay, y = lib_size)) +
   geom_point(aes(color = allele, shape = read)) +
   geom_abline(slope = 1, intercept = 0)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
 <pre class="r"><code># highly correlated with fay alignment, R^2 &gt; 0.99
 lm(lib_size ~ lib_size_fay, data = sampdf) |&gt; summary()</code></pre>
 <pre><code>## 
@@ -1028,42 +1018,42 @@ random_gene &lt;- sample(c(1:nrow(fay_cer)), 1)
 # what it was
 fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S35_R1
+##   S58_R1
 ##    &lt;dbl&gt;
-## 1     14</code></pre>
+## 1     23</code></pre>
 <pre class="r"><code>fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S35_R2
+##   S58_R2
 ##    &lt;dbl&gt;
-## 1      1</code></pre>
+## 1     29</code></pre>
 <pre class="r"><code># what it should be
 (fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)] +
   fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)])/2</code></pre>
-<pre><code>##   S35_R1
-## 1    7.5</code></pre>
+<pre><code>##   S58_R1
+## 1     26</code></pre>
 <pre class="r"><code># what it is
 fay_cer[random_gene, random_Sample]</code></pre>
-<pre><code>## [1] 7.5</code></pre>
+<pre><code>## [1] 26</code></pre>
 <pre class="r"><code># par
 # what it was
 fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S35_R1
+##   S58_R1
 ##    &lt;dbl&gt;
-## 1     75</code></pre>
+## 1    369</code></pre>
 <pre class="r"><code>fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S35_R2
+##   S58_R2
 ##    &lt;dbl&gt;
-## 1     52</code></pre>
+## 1    370</code></pre>
 <pre class="r"><code># what it should be
 (fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)] +
     fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)])/2</code></pre>
-<pre><code>##   S35_R1
-## 1   63.5</code></pre>
+<pre><code>##   S58_R1
+## 1  369.5</code></pre>
 <pre class="r"><code># what it is
 fay_par[random_gene, random_Sample]</code></pre>
-<pre><code>## [1] 63.5</code></pre>
+<pre><code>## [1] 369.5</code></pre>
 <pre class="r"><code>rm(fay_cer_R1R2, fay_par_R1R2)
 
 # setting rownames to gene names for each count matrix
@@ -1649,7 +1639,7 @@ class="section level2">
 libsizes &lt;- colSums(counts) # these counts include all samples, hybrid and parental
 ggplot(tibble(libsize = libsizes), aes(x = libsize)) + geom_histogram()</code></pre>
 <pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <pre class="r"><code>min(libsizes)</code></pre>
 <pre><code>## [1] 11902.5</code></pre>
 <pre class="r"><code>max(libsizes)</code></pre>
@@ -1703,7 +1693,7 @@ ggplot(plotdf, aes(x = cer, y = par)) +
   geom_hline(yintercept = 100000, color = &quot;blue&quot;, alpha = 0.5)</code></pre>
 <pre><code>## Warning: Removed 32 rows containing missing values or values outside the
 ## scale range (`geom_point()`).</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
 <pre class="r"><code># (the samples within the blue box will be removed by our library size threshold below)
 # and no other samples should be below the blue lines but not within the blue box
 
@@ -1715,7 +1705,7 @@ counts_lcpm &lt;- log2((counts/libsizes)*1e6 + 2/avgLibSizeInMillions) # equival
 # (already checked this more elegantly in hybrid, where samples can be paired)
 cer_par_mean_expr_diffs_parents &lt;- rowMeans(counts[,sample_info$allele == &quot;cer&quot;]) - rowMeans(counts[,sample_info$allele == &quot;par&quot;])
 hist(sign(cer_par_mean_expr_diffs_parents)*log(abs(cer_par_mean_expr_diffs_parents)), breaks = 50) </code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-3.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-12-3.png" width="672" /></p>
 <pre class="r"><code># Does one species tend to have larger libsizes?
 plotdf &lt;- tibble(libsize_cer = colSums(counts[, grepl(&quot;_cer&quot;, colnames(counts))])[sample(c(1:400), 400)],
                  libsize_par = colSums(counts[, grepl(&quot;_par&quot;, colnames(counts))])[sample(c(1:400), 400)],
@@ -1725,7 +1715,7 @@ plotdf &lt;- tibble(libsize_cer = colSums(counts[, grepl(&quot;_cer&quot;, colna
 ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name)) </code></pre>
 <pre><code>## Warning: Removed 457 rows containing non-finite outside the scale range
 ## (`stat_boxplot()`).</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-4.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-12-4.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)))</code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -1741,7 +1731,7 @@ ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quo
 <pre class="r"><code>ggplot(filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name))</code></pre>
 <pre><code>## Warning: Removed 438 rows containing non-finite outside the scale range
 ## (`stat_boxplot()`).</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-5.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-12-5.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;))) </code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -1762,7 +1752,7 @@ plotdf &lt;- tibble(libsize_cer = colSums(counts[, grepl(&quot;_cer&quot;, colna
                  libsize_hyp = colSums(counts[, grepl(&quot;_hyp&quot;, colnames(counts)) &amp; sample_info$experiment %in% c(&quot;Heat&quot;, &quot;Cold&quot;)])) %&gt;%
   pivot_longer(cols = c(libsize_cer, libsize_par, libsize_hyc, libsize_hyp))
 ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name)) </code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-6.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-12-6.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)))</code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -1776,7 +1766,7 @@ ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quo
 ## mean in group libsize_cer mean in group libsize_par 
 ##                  421439.9                 4222772.2</code></pre>
 <pre class="r"><code>ggplot(filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-7.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-12-7.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;)))</code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -1801,7 +1791,7 @@ countsPerMillion &lt;- function(.cts) {
     normalized &lt;- (x/librarySizes)*1e6
     return(round(normalized))
   })
-  return(t(output)) # For some unhinged reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
+  return(t(output)) # For some reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
 }
 # tests for countsPerMillion
 test_cts &lt;- counts[,grepl(&quot;_par&quot;, colnames(counts))]
@@ -1811,14 +1801,14 @@ test_count &lt;- test_cts[test_rowIdx, test_colIdx]
 test_cpm &lt;- countsPerMillion(test_cts)
 test_cpm_cpm &lt;- countsPerMillion(test_cpm)
 ((test_count/colSums(test_cts, na.rm = TRUE)[test_colIdx])*1e6) %&gt;% round() # what it should be</code></pre>
-<pre><code>## WT_TP1_par_WTs_D2_G6_GS2018 
-##                          15</code></pre>
+<pre><code>## WT_TP2_par_P5_B3_G6_GS13 
+##                        3</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## [1] 5</code></pre>
+<pre><code>## [1] 2</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## [1] 15</code></pre>
+<pre><code>## [1] 3</code></pre>
 <pre class="r"><code>test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (should be the same as test_cpm)</code></pre>
-<pre><code>## [1] 15</code></pre>
+<pre><code>## [1] 3</code></pre>
 <pre class="r"><code># Example of how small libraries skew data, YIL134W in CC before normalizing:
 test_counts &lt;- counts[, (grepl(&quot;_hyc&quot;, colnames(counts)) | 
                            grepl(&quot;_hyp&quot;, colnames(counts))) &amp;
@@ -1829,14 +1819,14 @@ genedf &lt;- tibble(expr = as.numeric(test_counts[&quot;YIL134W&quot;,]),
                  libsize = libSizes,
                  sample_name = colnames(test_counts))
 ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == &quot;WT_02_hyp_CellCycle_rep2&quot;)) + theme(legend.position = &quot;none&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <pre class="r"><code># after normalizing:
 test_counts_cpm &lt;- countsPerMillion(test_counts)
 genedf &lt;- tibble(expr = as.numeric(test_counts_cpm[&quot;YIL134W&quot;,]),
                  libsize = libSizes,
                  sample_name = colnames(test_counts))
 ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == &quot;WT_02_hyp_CellCycle_rep2&quot;)) + theme(legend.position = &quot;none&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-17-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
 <pre class="r"><code># At a certain lib size, there appears to begin to be a correlation between count and libsize, what size is that?
 libSizes &lt;- colSums(counts)
 gene_idx &lt;- sample(rownames(counts), 1) # rerun to make sure most genes have expr and libsize correlated past cutoff of 200k libsize
@@ -1848,7 +1838,7 @@ plotdf &lt;- tibble(libsize = libSizes,
             by = &quot;sample_name&quot;)
 ggplot(plotdf, aes(x = libsize, y = expr)) + 
   geom_point(aes(color = experiment)) + geom_vline(xintercept = 100000, col = &quot;red&quot;) + theme_classic() + ggtitle(gene_idx)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-17-3.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-13-3.png" width="672" /></p>
 <p>If we didn’t filter out the samples with small library size, genes
 like this would have highly unpredictable counts in those samples.</p>
 <p>Eliminating samples with libsize &lt; 100,000:</p>
@@ -1996,7 +1986,7 @@ plotdf &lt;- left_join(x = dplyr::rename(select(gene_lens_scer, gene_name, lengt
                     y = dplyr::rename(select(gene_lens_spar, gene_name, length), &quot;Spar&quot;=&quot;length&quot;),
                     by = &quot;gene_name&quot;)
 ggplot(plotdf, aes(x = Scer, y = Spar)) + geom_point()</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 <pre class="r"><code># most are the same exact length, a few have slightly different lengths
 # arranging gene_lens into same gene order as count matrices
 sum(gene_lens_scer$gene_name == common_genes) # pre-arranging</code></pre>
@@ -2039,11 +2029,11 @@ sum(gene_lens_scer$gene_name == rownames(test_cts))/nrow(test_cts) # should be 1
 <pre class="r"><code>test_cpm &lt;- countsPerMillionWithLength(test_cts, test_lens)
 # test_cpm_cpm &lt;- countsPerMillionWithLength(test_cpm, test_lens)
 round(((test_count/test_lens[test_rowIdx])/sum(test_cts[,test_colIdx]/test_lens))*10^6) # what it should be</code></pre>
-<pre><code>## [1] 17</code></pre>
+<pre><code>## [1] 6</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## [1] 17</code></pre>
+<pre><code>## [1] 1</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## [1] 17</code></pre>
+<pre><code>## [1] 6</code></pre>
 <pre class="r"><code># test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (unlike the TagSeq normalization, this cannot be run over and over again)
 
 counts_unnorm &lt;- counts
@@ -2094,29 +2084,29 @@ dim(counts)</code></pre>
 <pre class="r"><code>dim(sample_info_allele)</code></pre>
 <pre><code>## [1] 360   9</code></pre>
 <pre class="r"><code>sample_info |&gt; select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
-<pre><code>##                        sample_name organism allele
-## 1        WT_TP3_par_P5_F5_G12_GS14      par    par
-## 2         WT_TP1_par_P5_F3_G6_GS13      par    par
-## 3         WT_18_cer_SCtoLowPi_rep1      cer    cer
-## 4          WT_8_cer_SCtoLowPi_rep1      cer    cer
-## 5          WT_6_par_HAP4andWTonYPD      par    par
-## 6          WT_2_cer_SCtoLowPi_rep1      cer    cer
-## 7         WT_TP3_cer_C1_F6_G12_GS3      cer    cer
-## 8         WT_TP2_par_P5_A3_G6_GS13      par    par
-## 9  WT_TP3_par_remnants2_F5_G6_GS13      par    par
-## 10       WT_TP2_par_P5_F5_G12_GS13      par    par</code></pre>
+<pre><code>##                    sample_name organism allele
+## 1     WT_TP1_cer_C1_F6_G12_GS1      cer    cer
+## 2                      S26_cer      cer    cer
+## 3     WT_02_cer_CellCycle_rep2      cer    cer
+## 4      WT_TP3_cer_C1_F3_G6_GS3      cer    cer
+## 5     WT_17_par_SCtoLowPi_rep2      par    par
+## 6  WT_TP2_cer_WTs_A7_G6_GS2018      cer    cer
+## 7     WT_TP2_par_P5_B3_G6_GS13      par    par
+## 8    WT_TP3_par_P5_B6_G12_GS14      par    par
+## 9      WT_TP1_cer_C3_H2_G6_GS7      cer    cer
+## 10    WT_TP2_cer_C3_C6_G12_GS8      cer    cer</code></pre>
 <pre class="r"><code>sample_info_allele |&gt; select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
 <pre><code>##                      sample_name organism allele
-## 1  WT_TP2_hyp_WTs_B12_G12_GS2018      hyb    par
-## 2      WT_TP3_hyc_H3_B6_G12_GS12      hyb    cer
-## 3        WT_2_hyp_SCtoLowPi_rep1      hyb    par
-## 4  WT_TP2_hyp_WTs_F12_WT2_GS2018      hyb    par
-## 5   WT_TP3_hyp_WTs_H3_WT2_GS2018      hyb    par
-## 6   WT_TP1_hyp_WTs_A3_G12_GS2018      hyb    par
-## 7   WT_TP1_hyc_WTs_A4_G12_GS2018      hyb    cer
-## 8   WT_TP3_hyp_WTs_A4_G12_GS2018      hyb    par
-## 9   WT_TP1_hyp_WTs_D3_G12_GS2018      hyb    par
-## 10  WT_TP1_hyp_WTs_F3_WT2_GS2018      hyb    par</code></pre>
+## 1       WT_17_hyp_SCtoLowPi_rep2      hyb    par
+## 2      WT_TP3_hyc_H3_D5_G12_GS12      hyb    cer
+## 3   WT_TP1_hyc_WTs_G5_WT2_GS2018      hyb    cer
+## 4        WT_6_hyc_HAP4andWTonYPD      hyb    cer
+## 5       WT_13_hyp_SCtoLowPi_rep1      hyb    par
+## 6  WT_TP2_hyc_WTs_A10_G12_GS2018      hyb    cer
+## 7   WT_TP2_hyc_WTs_B9_G12_GS2018      hyb    cer
+## 8      WT_TP1_hyp_H3_C5_G12_GS12      hyb    par
+## 9   WT_TP3_hyp_WTs_B3_G12_GS2018      hyb    par
+## 10  WT_TP3_hyp_WTs_A3_G12_GS2018      hyb    par</code></pre>
 <pre class="r"><code># checking that every hybrid sample name has exactly one cer and one par row
 sample_info_allele |&gt; select(sample_name, organism, allele) |&gt; 
   group_by(sample_name) |&gt; 
@@ -2148,7 +2138,7 @@ oneGeneBoxplots &lt;- function(.gene_idx) {
   return(p)
 }
 oneGeneBoxplots(random_gene)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <pre class="r"><code># all genes
 mean_expr_cer &lt;- rowMeans(counts[, which(sample_info$organism == &quot;cer&quot;)], na.rm = TRUE)
 mean_expr_par &lt;- rowMeans(counts[, which(sample_info$organism == &quot;par&quot;)], na.rm = TRUE)
@@ -2158,7 +2148,7 @@ plotdf &lt;- tibble(cer_expr = c(mean_expr_cer, mean_expr_hyc),
                  par_expr = c(mean_expr_par, mean_expr_hyp),
                  type = c(rep(&quot;parent&quot;, length(rownames(counts))), rep(&quot;hybrid&quot;, length(rownames(counts)))))
 ggplot(plotdf, aes(x = log(cer_expr), y = log(par_expr))) + geom_point(aes(color = type))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-21-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-17-2.png" width="672" /></p>
 <pre class="r"><code># Mean expression of most genes is highly correlated between species and between hybrid alleles</code></pre>
 </div>
 <div id="visualizing-lowly-expressed-genes" class="section level2">
@@ -2180,7 +2170,7 @@ mean(meansdel, na.rm = TRUE)</code></pre>
 <pre class="r"><code># choosing cutoff expression (in not-log scale)
 ggplot(data = plotdf, aes(x = meanExpr, y = sdExpr)) + geom_hex(bins = 70) + 
   geom_vline(xintercept = 5, color = &quot;red&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 <pre class="r"><code># a good cutoff is where the lower bound of the sd stops being related to mean (i.e. becomes horizontal)
 # lowly expressed genes will systematically have higher variance (or extremely low variance for that tiny tail of genes with high 0 counts)
 2^5</code></pre>
@@ -2190,7 +2180,7 @@ ggplot(data = plotdf, aes(x = meanExpr, y = sdExpr)) + geom_hex(bins = 70) +
 # Note: we only want to filter genes that are lowly expressed in cer, par, hyc and hyp
 # Example of why this matters: YPR199C
 oneGeneBoxplots(&quot;YPR199C&quot;) # strongly expressed in cer and hyc</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-22-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-18-2.png" width="672" /></p>
 <pre class="r"><code>keep_overall &lt;- apply(counts_lcpm, 1, mean) &gt; 5
 &quot;YPR199C&quot; %in% rownames(counts)[keep_overall] # wouldn&#39;t be kept by overall cutoff threshold</code></pre>
 <pre><code>## [1] FALSE</code></pre>
@@ -2212,14 +2202,14 @@ genedf &lt;- tibble(expr = as.numeric(counts[gene_idx,])) |&gt;
                                         names_from = &quot;allele&quot;, values_from = &quot;expr&quot;,
                                         values_fn = mean)
 ggplot(genedf, aes(x = cer, y = par)) + geom_point(aes(color = experiment))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 <pre class="r"><code># hybrid
 genedf &lt;- tibble(expr = as.numeric(counts_allele[gene_idx,])) |&gt; 
   bind_cols(sample_info_allele) |&gt; pivot_wider(id_cols = c(&quot;condition&quot;, &quot;experiment&quot;),
                                                names_from = &quot;allele&quot;, values_from = &quot;expr&quot;,
                                                values_fn = mean)
 ggplot(genedf, aes(x = cer, y = par)) + geom_point(aes(color = experiment))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-23-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-19-2.png" width="672" /></p>
 </div>
 <div id="heatcold-qc" class="section level2">
 <h2>Heat/Cold QC</h2>
@@ -2293,7 +2283,7 @@ ggplot(pcadf,
   ylab(paste0(&quot;PC2, &quot;, round(var_pct[2]*100, digits = 0), 
               &quot;% of variance&quot;)) +
   theme(legend.title = element_blank())</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-24-1.png" width="672" />
+<p><img src="clean_data_files/figure-html/unnamed-chunk-20-1.png" width="672" />
 Those two Scer Heat 30min sample outliers are due to one gene, YFL014W
 (HSP12), (run the PCA without this gene and the outlier samples will no
 longer be outliers), which had ~100000 reads in our in-house alignment

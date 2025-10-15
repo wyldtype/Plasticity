@@ -1,0 +1,13 @@
+dplyr
+readr
+tidyr
+purrr
+ggplot2
+ggpubr
+openxlsx
+matrixStats
+data.table
+ggpattern
+dynamicTreeCut
+fastcluster
+WGCNA

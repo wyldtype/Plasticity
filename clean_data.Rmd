@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Working with RNAseq data published in Krieger et al. 2020 and Fay et al. 2023
 
-```{r, echo = FALSE}
+```{r, echo=FALSE}
 sapply(c("dplyr", "readr", "tidyr", "purrr", "ggplot2", "ggpubr", "openxlsx", "matrixStats"), require, character.only=TRUE)
 ```
 
@@ -18,7 +18,7 @@ sapply(c("dplyr", "readr", "tidyr", "purrr", "ggplot2", "ggpubr", "openxlsx", "m
 
 Reading in quantified RNAseq counts as individual *.ReadsPerGene.out.tab files, one file per sample
 
-```{r}
+```{r read-tagseq, cache=TRUE}
 tagseq <- list.files("data_files/tagseq_counts/", full.names = TRUE) |> 
   map(read_table, col_names = FALSE, show_col_types = FALSE) |> 
   map(.f = select, X1, X3) |> # X1 are gene names, X3 is the sense strand read count
@@ -48,7 +48,7 @@ This is a quality control step to check for counts mapping to the wrong allele i
 
 Before we check percent mapping, we should filter out genes with very few reads total, as they'll have highly variable percents based only on a few reads.
 
-```{r}
+```{r countsPerMillionAllele}
 # normalizing function for filtering out lowly expressed 
 # genes prior to assessing mapping bias
 # (used later to actually normalize count data)
@@ -69,7 +69,7 @@ countsPerMillionAllele <- function(.cts_cer, .cts_par, .allele) {
     normalized <- (x/librarySizes)*1e6
     return(round(normalized))
   })
-  return(t(output)) # For some unhinged reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
+  return(t(output)) # For some reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
 }
 # tests for countsPerMillionAllele
 test_cts <- tagseq_cer[,-1]
@@ -88,7 +88,7 @@ test_cpm[test_rowIdx, test_colIdx] # what it is using our function
 
 Now we can calculate percent reads mapping to each allele in parental samples
 
-```{r}
+```{r gene-wise-mapping-bias}
 # 1) normalize to counts per million based on total 
 # library size: cer reads + par reads regardless of sample organism
 cpm_cer <- countsPerMillionAllele(.cts_cer = tagseq_cer[,-1],
@@ -137,7 +137,7 @@ ggplot(filter(plotdf, gene %in% sample_genes),
 
 Do any Scer/Spar samples have many incorrect gene mappings?
 
-```{r}
+```{r sample-wise-mapping-bias}
 sampdf <- plotdf |> filter(organism %in% c("cerSample", "parSample")) |> 
   group_by(sample_name, organism) |> 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
@@ -262,6 +262,7 @@ ggplot(plotdf_vshyb, aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_s
 ggplot(filter(plotdf_vshyb, bias != "none"), aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
   geom_point(aes(color = bias), alpha = 0.5)
 ```
+
 Conclusion: slight differences in the counts of biased genes, no visible difference in the counts of unbiased genes. We can count just reads mapping to correct parent allele and remove any biased genes after adding Fay et al. 2023 samples and filtering for low expression.
 
 Here are our lists of based genes/samples:
@@ -835,7 +836,7 @@ countsPerMillion <- function(.cts) {
     normalized <- (x/librarySizes)*1e6
     return(round(normalized))
   })
-  return(t(output)) # For some unhinged reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
+  return(t(output)) # For some reason, a vector output of apply across ROWS forms the COLUMNS of a new matrix
 }
 # tests for countsPerMillion
 test_cts <- counts[,grepl("_par", colnames(counts))]

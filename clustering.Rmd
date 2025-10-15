@@ -242,7 +242,7 @@ testout$gene_name[1:10]
 ```
 Visualize clustering
 
-```{r}
+```{r plotClusters}
 # given a dataframe with labels for each gene, returns a facet plot
 # showing expression of each gene in each cluster (usually randomly 
 # downsample option to save plotting computation)
@@ -289,7 +289,7 @@ plotClusters <- function(.df, .nDownsample = 0, .normalization = "scale",
 
 Blue line in below plots represents dispersion threshold. Genes below the line will be assigned to lowly varying (static) cluster. Yellow line is best fit for mean/var relationship
 
-```{r}
+```{r var-thresh-exploration, cache=TRUE}
 var_thresh <- 3
 
 getCollapsedCountsByExperiment <- function(.experiment) {
@@ -373,33 +373,29 @@ abline(a = 0, b = log2(var_thresh), col = "blue")
 
 ## Clustering
 
-```{r}
-# change for different parameter values we'll use
-# var_thresh <- 1
-var_thresh <- 3
-# var_thresh <- 5
+Running the heirarchical clustering using 2, 3, or 4 clusters per environment and a dispersion threshold of 1, 3, or 5 (using nClust=2 when modulating dispersion threshold)
 
+```{r clustering, cache=TRUE}
+# setting dispersion threshold
+var_thresh <- 3
+
+# clustering with nClust=2, disp=3
 clusterdf_list <- vector(mode = "list", length = 0)
-nclust_lookup <- tibble(experiment = c("HAP4", "LowPi", "CC", "LowN", "Cold", "Heat"),
-                        nclust = 2)
-nclust_lookup
-for (e in nclust_lookup$experiment) {
-  nclust <- nclust_lookup |> filter(experiment == e) |> 
-    select(nclust) |> as.numeric()
-  cat("*********** working on", nclust, "clusters in", e, "*********** \n")
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters disp=", var_thresh, "in", e, "*********** \n")
   output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
-                          .nClust = nclust, .tree_too = TRUE,
+                          .nClust = 2, 
+                          .tree_too = TRUE,
                           .min_var = var_thresh)
-  clusterdf_list[[paste(e, nclust, sep = "_")]] <- output
+  clusterdf_list[[paste(e, 2, sep = "_")]] <- output
 }
 
-# getting gene clusters
+# converting cluster lists to a dataframe
 getClusterCombination <- function(.clust_list) {
   cluster_comb <- tibble()
   for (nm in names(.clust_list)) {
     e <- gsub("_.*", "", nm)
     nclust <- gsub(".*_", "", nm)
-    cat("working on", e, nclust, "\n")
     e_clust <- .clust_list[[paste(e, nclust, sep = "_")]]$df |> 
       select(label, gene_name) |> 
       unique()
@@ -418,52 +414,64 @@ getClusterCombination <- function(.clust_list) {
   return(cluster_comb)
 }
 clusterdf <- getClusterCombination(clusterdf_list)
-```
 
-Quality Control: comparing results for different numbers of clusters
+# clustering with nClust=2, disp=1
+clusterdf_list_1disp <- vector(mode = "list", length = 0)
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters disp=1 in", e, "*********** \n")
+  output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
+                          .nClust = 2, 
+                          .tree_too = TRUE,
+                          .min_var = 1) # changed dispersion threshold for this run
+  clusterdf_list_1disp[[paste(e, 2, sep = "_")]] <- output
+}
+clusterdf_1disp <- getClusterCombination(clusterdf_list_1disp)
 
-```{r}
-### QC: also clustering by 3 or 4 clusters to compare results
-# 3 clusters
+# clustering with nClust=2, disp=5
+clusterdf_list_5disp <- vector(mode = "list", length = 0)
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters disp=5 in", e, "*********** \n")
+  output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
+                          .nClust = 2, 
+                          .tree_too = TRUE,
+                          .min_var = 5) # changed dispersion threshold for this run
+  clusterdf_list_5disp[[paste(e, 3, sep = "_")]] <- output
+}
+clusterdf_5disp <- getClusterCombination(clusterdf_list_5disp)
+
+# clustering with nClust=3, disp=3
 clusterdf_list3 <- vector(mode = "list", length = 0)
-nclust_lookup <- tibble(experiment = c("HAP4", "LowPi", "CC", "LowN", "Cold", "Heat"),
-                        nclust = 3)
-nclust_lookup
-for (e in nclust_lookup$experiment) {
-  nclust <- nclust_lookup |> filter(experiment == e) |>
-    select(nclust) |> as.numeric()
-  cat("*********** working on", nclust, "clusters in", e, "*********** \n")
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 3 clusters disp=", var_thresh, "in", e, "*********** \n")
   output <- clusterCountsList(counts_list[grepl(e, names(counts_list))],
-                              .nClust = nclust, .tree_too = TRUE,
+                              .nClust = 3, .tree_too = TRUE,
                               .min_var = var_thresh)
-  clusterdf_list3[[paste(e, nclust, sep = "_")]] <- output
+  clusterdf_list3[[paste(e, 3, sep = "_")]] <- output
 }
 clusterdf3 <- getClusterCombination(clusterdf_list3)
-# 4 clusters
+
+# clustering with nClust=4, disp=3
 clusterdf_list4 <- vector(mode = "list", length = 0)
-nclust_lookup <- tibble(experiment = c("HAP4", "LowPi", "CC", "LowN", "Cold", "Heat"),
-                        nclust = 4)
-nclust_lookup
-for (e in nclust_lookup$experiment) {
-  nclust <- nclust_lookup |> filter(experiment == e) |>
-    select(nclust) |> as.numeric()
-  cat("*********** working on", nclust, "clusters in", e, "*********** \n")
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 4 clusters disp=", var_thresh, "in", e, "*********** \n")
   output <- clusterCountsList(counts_list[grepl(e, names(counts_list))],
-                              .nClust = nclust, .tree_too = TRUE,
+                              .nClust = 4, .tree_too = TRUE,
                               .min_var = var_thresh)
-  clusterdf_list4[[paste(e, nclust, sep = "_")]] <- output
+  clusterdf_list4[[paste(e, 4, sep = "_")]] <- output
 }
 clusterdf4 <- getClusterCombination(clusterdf_list4)
 ```
 
 ## Saving
 
-```{r}
-# save(clusterdf, clusterdf_list, file = "data_files/CorrelationClustering1Disp.RData")
+```{r saving}
+# primary clustering set we'll use:
 save(clusterdf, clusterdf_list, file = "data_files/CorrelationClustering3Disp.RData")
+# QC changing nClust or dispersion threshold
 save(clusterdf, clusterdf_list,
+     clusterdf_1disp, clusterdf_list_1disp,
+     clusterdf_5disp, clusterdf_list_5disp,
      clusterdf3, clusterdf_list3,
-     clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering3Disp.RData")
-# save(clusterdf, clusterdf_list, file = "data_files/CorrelationClustering5Disp.RData")
+     clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering.RData")
 ```
 
