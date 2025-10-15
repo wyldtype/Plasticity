@@ -4,12 +4,12 @@ navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "Data Cleaning"
-      menu:
-      - text: "Import count data"
-        href: clean_data.html
-      - text: "Analysis-specific data cleaning"
-        href: data_for_analysis_scripts.html
-    - text: "Functions used throughout figure scripts"
+    - text: "1. Import data and QC"
+      href: clean_data.html
+    - text: "2. Data cleaning"
+      href: data_for_analysis_scripts.html
+    - text: "3. Functions"
       href: functions_for_figure_scripts.html
+    - text: "4. Clustering"
+      href: clustering.html
 output_dir: docs
