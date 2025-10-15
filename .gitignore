@@ -4,4 +4,4 @@
 .Ruserdata
 /data_files
 /docs/data_files
-*.png
+.gitignore

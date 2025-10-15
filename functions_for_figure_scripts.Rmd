@@ -1,5 +1,5 @@
 ---
-title: "functions_for_figure_scripts"
+title: "Functions used throughout figure scripts"
 ---
 
 ```{r setup, include=FALSE}
