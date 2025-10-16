@@ -449,13 +449,13 @@ test_labels &lt;- corCluster(toy_mat, .nClust = 4, .min_var = 2,
           .by = &quot;gene_name&quot;) |&gt; 
   mutate(scaled_expr = (expr - mean_expr)/sd_expr) |&gt; 
   left_join(y = test_labels, by = &quot;gene_name&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;gene_name&#39;. You can override
-## using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;gene_name&#39;. You can override using the `.groups`
+## argument.</code></pre>
 <pre class="r"><code>ggplot(plotdf, aes(x = time_point_str, y = scaled_expr)) + 
   geom_line(aes(group = gene_name)) +
   facet_wrap(~label)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale range
+## (`geom_line()`).</code></pre>
 <p><img src="clustering_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
 <p>Wrapper function for corCluster, repeatedly clusters list of
 environmental datasets</p>
@@ -517,9 +517,8 @@ testout &lt;- clusterCountsList(list(&quot;cer_LowN&quot; = counts_list$cer_LowN
 ## 2683 low variance genes, assigned to 0 label
 ## finished iterations, nGenes x nIter: 6531 10</code></pre>
 <pre class="r"><code>testout$gene_name[1:10]</code></pre>
-<pre><code>##  [1] &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL062W&quot;
-##  [5] &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot;
-##  [9] &quot;cer_YAL061W&quot; &quot;cer_YAL060W&quot;</code></pre>
+<pre><code>##  [1] &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot;
+##  [7] &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL060W&quot;</code></pre>
 <p>Visualize clustering</p>
 <pre class="r"><code># given a dataframe with labels for each gene, returns a facet plot
 # showing expression of each gene in each cluster (usually randomly 

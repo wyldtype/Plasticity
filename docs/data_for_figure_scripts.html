@@ -280,15 +280,522 @@ $(document).ready(function () {
 <p>Final data cleaning steps that import level and plasticity divergence
 information from DESeq2 and Heiarchical clustering. The end result of
 this script is a dataframe, finaldf, that is used in all the figure
-scripts</p>
+scripts (also as Supplementary Table 1)</p>
 <pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, 
          &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
-##        TRUE        TRUE        TRUE        TRUE        TRUE 
-##  data.table     ggplot2  data.table matrixStats 
-##        TRUE        TRUE        TRUE        TRUE</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2 
+##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
+##  data.table matrixStats 
+##        TRUE        TRUE</code></pre>
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)</code></pre>
+<p>Defining our color schemes and category names to be used throughout
+the paper figures</p>
+<pre class="r"><code># Environment Names, so I only have to change them in one place
+ExperimentNames &lt;- c(&quot;HAP4&quot;, &quot;CC&quot;, &quot;LowN&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;)
+LongExperimentNames &lt;- c(&quot;Diauxic Shift&quot;, &quot;Hydroxyurea Shock&quot;, &quot;Low Nitrogen&quot;, &quot;Low Phosphate&quot;, &quot;Heat Stress&quot;, &quot;Cold Stress&quot;)
+
+# colors used throughout paper
+group4_colordf &lt;- tibble(type = c(&quot;grey80&quot;, &quot;gold&quot;, &quot;grey80&quot;, &quot;gold&quot;, &quot;grey20&quot;),
+                         labels = c(&quot;conserved level \nand plasticity&quot;, 
+                                    &quot;conserved level, \ndiverged plasticity&quot;, 
+                                    &quot;diverged level, \nconserved plasticity&quot;, 
+                                    &quot;diverged level \nand plasticity&quot;,
+                                    &quot;lowly expressed&quot;),
+                         limits = c(&quot;conserved level and plasticity&quot;, 
+                                    &quot;conserved level, diverged plasticity&quot;, 
+                                    &quot;diverged level, conserved plasticity&quot;, 
+                                    &quot;diverged level and plasticity&quot;,
+                                    &quot;lowly expressed&quot;),
+                         pattern = c(&quot;none&quot;, &quot;none&quot;,
+                                     &quot;stripe&quot;, &quot;stripe&quot;,
+                                     &quot;none&quot;),
+                         scheme = &quot;group4&quot;)
+experiment_colordf &lt;- tibble(type = c(&quot;grey&quot;, &quot;yellow&quot;, &quot;green&quot;, &quot;purple&quot;, &quot;red&quot;, &quot;blue&quot;),
+                                               labels = LongExperimentNames,
+                                               limits = ExperimentNames,
+                                               scheme = &quot;experiment&quot;)
+plasticity_colordf &lt;- tibble(type = c(&quot;grey80&quot;, &quot;grey60&quot;, &quot;orange1&quot;, &quot;blue2&quot;, &quot;purple&quot;),
+                           labels = c(&quot;conserved plastic&quot;, &quot;conserved static&quot;, &quot;Scer-unique plasticity&quot;, &quot;Spar-unique plasticity&quot;, &quot;plasticity reversal&quot;),
+                           limits = c(&quot;conserved plastic&quot;, &quot;conserved static&quot;, &quot;Scer-unique&quot;, &quot;Spar-unique&quot;, &quot;reversal&quot;),
+                           scheme = &quot;plasticity&quot;)
+colordf &lt;- bind_rows(group4_colordf, experiment_colordf, plasticity_colordf)</code></pre>
+<div id="creating-final-dataframe" class="section level2">
+<h2>Creating final dataframe</h2>
+<p>Loading heiarchical clustering and DESeq2 model outputs:</p>
+<pre class="r"><code>load(&quot;data_files/CorrelationClustering3Disp.RData&quot;)
+load(&quot;data_files/single_gene_models.RData&quot;)
+load(&quot;data_files/Cleaned_Count_Data.RData&quot;)
+load(&quot;data_files/Cleaned_Counts.RData&quot;)
+load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
+p_thresh &lt;- 0.05
+eff_thresh &lt;- log2(1.5) # gene needs to be 1.5x higher in one species than the other to be considered DE
+eff_thresh0 &lt;- 0
+eff_thresh2 &lt;- log2(2)</code></pre>
+<p>Benjamini-Hochberg FDR correction:</p>
+<pre class="r"><code># Benjamini-Hochberg FDR correction of glm p-values
+spaldf$padj &lt;- p.adjust(spaldf$pvalue, method = &quot;BH&quot;)
+sum(spaldf$pvalue &lt; p_thresh)</code></pre>
+<pre><code>## [1] 25607</code></pre>
+<pre class="r"><code>sum(spaldf$padj &lt; p_thresh)</code></pre>
+<pre><code>## [1] 22628</code></pre>
+<p>Creating mutually exclusive sets of genes based on level and
+plasticity divergence in parents each gene is a combination of its level
+category and its plasticity category ## level categories: 1) conserved:
+parent padj &gt;= p_thresh 2) diverged: parent padj &lt; p_thresh, not
+taking into account hybrid yet ## plasticity categories (just looking at
+parents): 1) conserved: 11, 22, 00 2) diverged: 12, 21, 01, 10, 02,
+20</p>
+<pre class="r"><code>finaldf &lt;- pivot_wider(spaldf, id_cols = c(&quot;gene_name&quot;, &quot;experiment&quot;), 
+                       values_from = c(&quot;effect_size&quot;, &quot;padj&quot;),
+                       names_from = &quot;coefficient&quot;) |&gt; 
+  drop_na() |&gt; # 1 gene missing from species, YMR107W
+  inner_join(y =  clusterdf, 
+             by = join_by(&quot;gene_name&quot;==&quot;gene_ID&quot;,
+                          &quot;experiment&quot;))
+
+### Removing hybrid par allele-deleted genes from CC experiment (where the deletion was present)
+omit_list &lt;- c(&quot;YLR078C&quot;, &quot;YLR077W&quot;, &quot;YLR074C&quot;, &quot;YLR072W&quot;, &quot;YLR075W&quot;, &quot;YLR073C&quot;, # large hybrid CC paradoxus haplotype deletion
+               &quot;YNL247W&quot;, &quot;YNL244C&quot;)
+finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; gene_name %in% omit_list)</code></pre>
+<pre><code>## # A tibble: 8 × 8
+##   gene_name experiment effect_size_allele effect_size_species padj_allele padj_species   cer
+##   &lt;chr&gt;     &lt;chr&gt;                   &lt;dbl&gt;               &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt;
+## 1 YLR072W   CC                       8.76             -0.0546   1.19e- 27     8.27e- 1     1
+## 2 YLR073C   CC                       9.16              0.424    2.60e- 16     3.82e- 1     1
+## 3 YLR074C   CC                       9.85             -0.0309   4.67e- 40     8.97e- 1     2
+## 4 YLR075W   CC                       8.26             -0.469    5.33e-139     5.87e- 9     2
+## 5 YLR077W   CC                      42.4               0.930    1.00e+  0     1.00e- 6     0
+## 6 YLR078C   CC                      42.9               0.469    1.00e+  0     4.24e- 2     1
+## 7 YNL247W   CC                      12.0               0.429    4.31e- 30     5.08e- 4     2
+## 8 YNL244C   CC                       8.70             -0.717    1.81e-186     3.58e-17     2
+## # ℹ 1 more variable: par &lt;dbl&gt;</code></pre>
+<pre class="r"><code>dim(finaldf)</code></pre>
+<pre><code>## [1] 25264     8</code></pre>
+<pre class="r"><code>finaldf &lt;- finaldf |&gt; filter(!(experiment == &quot;CC&quot; &amp; gene_name %in% omit_list))
+dim(finaldf)</code></pre>
+<pre><code>## [1] 25256     8</code></pre>
+<p>Adding plasticity column. If cluster in Scer is the same as cluster
+in Spar, plasticity is conserved. If clusters are different, plasticity
+is diverged.</p>
+<pre class="r"><code>finaldf$plasticity &lt;- map2(finaldf$cer, finaldf$par, \(x, y) {
+  if (x == y) {
+    return(&quot;conserved&quot;)
+  }
+  if (x != y) {
+    return(&quot;diverged&quot;)
+  }
+}) |&gt; unlist()</code></pre>
+<p>Adding level column. If the DEseq2-estimated log2 fold change when
+you change from an Spar count to an Scer count (Spar is reference) is
+greater (in magnitude) than the log2 fold change threshold (eff_thresh)
+and the BH-adjusted p-value is less than 0.05, the gene is considered
+diverged in level. Using three different log2 fold change thresholds to
+compare the effect in a Supplemental figure.</p>
+<pre class="r"><code>finaldf$level &lt;- map(c(1:nrow(finaldf)), \(i) {
+  x &lt;- finaldf$padj_species[i] |&gt; as.numeric()
+  y &lt;- finaldf$effect_size_species[i] |&gt; as.numeric()
+  output &lt;- if_else(x &lt; p_thresh &amp; abs(y) &gt; eff_thresh,
+                    true = &quot;diverged&quot;,
+                    false = &quot;conserved&quot;)
+  return(output)
+}) |&gt; unlist()
+finaldf$level0 &lt;- map(c(1:nrow(finaldf)), \(i) {
+  x &lt;- finaldf$padj_species[i] |&gt; as.numeric()
+  y &lt;- finaldf$effect_size_species[i] |&gt; as.numeric()
+  output &lt;- if_else(x &lt; p_thresh &amp; abs(y) &gt; eff_thresh0,
+                    true = &quot;diverged&quot;,
+                    false = &quot;conserved&quot;)
+  return(output)
+}) |&gt; unlist()
+finaldf$level2 &lt;- map(c(1:nrow(finaldf)), \(i) {
+  x &lt;- finaldf$padj_species[i] |&gt; as.numeric()
+  y &lt;- finaldf$effect_size_species[i] |&gt; as.numeric()
+  output &lt;- if_else(x &lt; p_thresh &amp; abs(y) &gt; eff_thresh2,
+                    true = &quot;diverged&quot;,
+                    false = &quot;conserved&quot;)
+  return(output)
+}) |&gt; unlist()</code></pre>
+<p>Tables of gene counts to report in main paper:</p>
+<pre class="r"><code># gene counts to report
+table(finaldf$plasticity, finaldf$level, useNA = &quot;always&quot;) # checking that all observations are in the 2x2 box</code></pre>
+<pre><code>##            
+##             conserved diverged  &lt;NA&gt;
+##   conserved     10020     5436     0
+##   diverged       6244     3556     0
+##   &lt;NA&gt;              0        0     0</code></pre>
+<pre class="r"><code>sum(table(finaldf$level, finaldf$plasticity))</code></pre>
+<pre><code>## [1] 25256</code></pre>
+<pre class="r"><code>nrow(finaldf) # mutually exclusive group categories</code></pre>
+<pre><code>## [1] 25256</code></pre>
+<pre class="r"><code>finaldf |&gt; filter(plasticity == &quot;diverged&quot;) |&gt; select(experiment) |&gt; table()</code></pre>
+<pre><code>## experiment
+##    CC  Cold  HAP4  Heat  LowN LowPi 
+##  1766  1786  1455  1743  1305  1745</code></pre>
+<pre class="r"><code>finaldf |&gt; filter(level == &quot;diverged&quot;) |&gt; select(experiment) |&gt; table()</code></pre>
+<pre><code>## experiment
+##    CC  Cold  HAP4  Heat  LowN LowPi 
+##  1532  1563  1238  1415  1657  1587</code></pre>
+<p>Calculating ortholog pair correlations for EnvironmentalPatterns
+figure</p>
+<pre class="r"><code># between hybrid alleles and for parent-hybrid allele of the same species (Hyc/Scer and Hyp/Spar)
+getCorelation &lt;- function(.gene_name, .experiment, 
+                          .cts1, .cts2, .info1, .info2) {
+  common_cols &lt;- intersect(colnames(.cts1[,.info1$experiment == .experiment]), 
+                           colnames(.cts2[,.info2$experiment == .experiment]))
+  output &lt;- cor(as.numeric(.cts1[.gene_name, common_cols]),
+                as.numeric(.cts2[.gene_name, common_cols]))
+  return(as.numeric(output))
+}
+# tests for getCorelation
+getCorelation(&quot;YGR192C&quot;, &quot;HAP4&quot;,
+              .cts1 = collapsed$cer,
+              .cts2 = collapsed_allele$cer,
+              .info1 = info,
+              .info2 = info_allele)</code></pre>
+<pre><code>## [1] 0.9640884</code></pre>
+<p>Adding correlation columns:</p>
+<pre class="r"><code># adding correlation columns
+finaldf$cor_hybrid &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
+                           .cts1 = collapsed_allele$cer,
+                           .cts2 = collapsed_allele$par,
+                           .info1 = info_allele,
+                           .info2 = info_allele) |&gt; unlist()</code></pre>
+<pre><code>## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero</code></pre>
+<pre class="r"><code>finaldf$cor_parents &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
+                            .cts1 = collapsed$cer,
+                            .cts2 = collapsed$par,
+                            .info1 = info,
+                            .info2 = info) |&gt; unlist()</code></pre>
+<pre><code>## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero</code></pre>
+<pre class="r"><code>finaldf$cor_scer &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
+                         .cts1 = collapsed_allele$cer,
+                         .cts2 = collapsed$cer,
+                         .info1 = info_allele,
+                         .info2 = info) |&gt; unlist()</code></pre>
+<pre><code>## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero</code></pre>
+<pre class="r"><code>finaldf$cor_spar &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
+                         .cts1 = collapsed_allele$par,
+                         .cts2 = collapsed$par,
+                         .info1 = info_allele,
+                         .info2 = info) |&gt; unlist()</code></pre>
+<pre><code>## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero
+## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
+## standard deviation is zero</code></pre>
+<p>Calculating the mean and var of each gene’s expression across both
+species, which is mainly relevant in a couple Supplemental/QC plots</p>
+<p>mean:</p>
+<pre class="r"><code>getMean &lt;- function(.gene_name, .experiment, 
+                   .cts, .info) {
+  output &lt;- rowMeans(.cts[.gene_name, .info$experiment == .experiment, drop = FALSE])
+  return(as.numeric(output))
+}
+# tests for getMean
+getMean(&quot;YGR192C&quot;, &quot;HAP4&quot;,
+        .cts = counts,
+        .info = sample_info)</code></pre>
+<pre><code>## [1] 9339.933</code></pre>
+<p>var:</p>
+<pre class="r"><code>getVar &lt;- function(.gene_name, .experiment, 
+                    .cts, .info) {
+  output &lt;- rowVars(.cts[.gene_name, .info$experiment == .experiment, drop = FALSE])
+  return(as.numeric(output))
+}
+# tests for getVar
+getVar(&quot;YGR192C&quot;, &quot;HAP4&quot;,
+        .cts = counts,
+        .info = sample_info)</code></pre>
+<pre><code>## [1] 67159939</code></pre>
+<p>calculating for each gene (including both parent’s counts):</p>
+<pre class="r"><code># adding mean&amp;var columns
+finaldf$mean_parents &lt;- map2(finaldf$gene_name, finaldf$experiment, getMean,
+                             .cts = counts,
+                             .info = sample_info) |&gt; unlist()
+finaldf$var_parents &lt;- map2(finaldf$gene_name, finaldf$experiment, getVar,
+                             .cts = counts,
+                             .info = sample_info) |&gt; unlist()</code></pre>
+<p>Remember those biased genes we identified in the very first importing
+count data script? These were genes that had a high proportion of counts
+mapping to the wrong species allele. They become relevant here. We
+re-label any gene that has been flagged as diverged in level as “biased”
+instead of “diverged”</p>
+<pre class="r"><code>finaldf &lt;- finaldf |&gt; mutate(bias = if_else(gene_name %in% cer_biased_genes,
+                                           true = &quot;cer&quot;,
+                                           false = if_else(gene_name %in% par_biased_genes,
+                                                           true = &quot;par&quot;,
+                                                           false = if_else(gene_name %in% both_biased_genes,
+                                                                           true = &quot;both&quot;,
+                                                                           false = &quot;none&quot;)))) 
+plotdf &lt;- finaldf |&gt; 
+  filter(level == &quot;diverged&quot;)
+# effect of bias on level divergence
+ggplot(plotdf, aes(x = effect_size_species)) +
+  geom_density(aes(fill = bias), alpha = 0.5) </code></pre>
+<p><img src="data_for_figure_scripts_files/figure-html/bias-1.png" width="672" /></p>
+<p>Re-labeling these biased genes:</p>
+<pre class="r"><code>finaldf$level &lt;- if_else(finaldf$bias == &quot;none&quot;,
+                         true = finaldf$level,
+                         false = &quot;biased&quot;)
+
+# effect of bias on plasticity divergence
+p_none &lt;- plotdf |&gt; filter(bias == &quot;none&quot;) |&gt; 
+  select(cer, par) |&gt; table()
+p_cer &lt;- plotdf |&gt; filter(bias == &quot;cer&quot;) |&gt; 
+  select(cer, par) |&gt; table()
+p_par &lt;- plotdf |&gt; filter(bias == &quot;par&quot;) |&gt; 
+  select(cer, par) |&gt; table()
+
+round(p_none/sum(p_none), digits = 2)</code></pre>
+<pre><code>##    par
+## cer    0    1    2
+##   0 0.10 0.08 0.02
+##   1 0.10 0.38 0.05
+##   2 0.05 0.09 0.13</code></pre>
+<pre class="r"><code>round(p_cer/sum(p_cer), digits = 2)</code></pre>
+<pre><code>##    par
+## cer    0    1    2
+##   0 0.05 0.01 0.03
+##   1 0.15 0.59 0.05
+##   2 0.06 0.03 0.03</code></pre>
+<pre class="r"><code>round(p_par/sum(p_par), digits = 2)</code></pre>
+<pre><code>##    par
+## cer    0    1    2
+##   0 0.03 0.13 0.09
+##   1 0.04 0.52 0.08
+##   2 0.02 0.03 0.07</code></pre>
+<pre class="r"><code># proportions are the same between the three groups</code></pre>
+<p>Numbers for the workflow figure:</p>
+<pre class="r"><code>### numbers for workflow figure
+nrow(finaldf)</code></pre>
+<pre><code>## [1] 25256</code></pre>
+<pre class="r"><code>n_per_experiment &lt;- table(finaldf$experiment)
+# min filtered out for low expression:
+max(n_per_experiment)</code></pre>
+<pre><code>## [1] 4412</code></pre>
+<pre class="r"><code>(nrow(genedf) - max(n_per_experiment))/nrow(genedf)</code></pre>
+<pre><code>## [1] -71.32787</code></pre>
+<pre class="r"><code># max filtered out for low expression:
+min(n_per_experiment)</code></pre>
+<pre><code>## [1] 3952</code></pre>
+<pre class="r"><code>(nrow(genedf) - min(n_per_experiment))/nrow(genedf)</code></pre>
+<pre><code>## [1] -63.78689</code></pre>
+<pre class="r"><code># percent low variance per experiment:
+finaldf |&gt; group_by(experiment) |&gt; 
+  summarise(n_cer_lowvar = sum(cer == 0),
+            n_par_lowvar = sum(par == 0),
+            n_genes = n()*2) |&gt; 
+  mutate(pct_low_var = (n_cer_lowvar + n_par_lowvar)/n_genes)</code></pre>
+<pre><code>## # A tibble: 6 × 5
+##   experiment n_cer_lowvar n_par_lowvar n_genes pct_low_var
+##   &lt;chr&gt;             &lt;int&gt;        &lt;int&gt;   &lt;dbl&gt;       &lt;dbl&gt;
+## 1 CC                  315          617    7904      0.118 
+## 2 Cold               1585         2148    8102      0.461 
+## 3 HAP4                971          850    8572      0.212 
+## 4 Heat                833         1207    8344      0.244 
+## 5 LowN               1300         1196    8824      0.283 
+## 6 LowPi               372          253    8766      0.0713</code></pre>
+<div
+id="how-the-choice-of-effect-size-threshold-influence-level-divergence"
+class="section level3">
+<h3>How the choice of effect size threshold influence level
+divergence</h3>
+<p>This is slightly sacrilegious to put a figure plot in this
+data-cleaning script. But it is easier than having a separate script
+just for this figure. Here we compare how the three different effect
+size thresholds affect the number of genes considered to be diverging in
+expression level.</p>
+<pre class="r"><code># for testing how eff_threshold affects level divergence
+finaldf &lt;- finaldf |&gt; pivot_longer(cols = c(&quot;level0&quot;, &quot;level&quot;, &quot;level2&quot;),
+                                   names_to = &quot;eff_threshold&quot;,
+                                   values_to = &quot;level&quot;)
+
+### Barplot of 4 divergence categories
+finaldf$group4 &lt;- map2(finaldf$level, finaldf$plasticity, \(l, d) {
+  if (l != &quot;diverged&quot; &amp; d == &quot;conserved&quot;) {
+    return(&quot;conserved level and plasticity&quot;)
+  }
+  if (l != &quot;diverged&quot; &amp; d == &quot;diverged&quot;) {
+    return(&quot;conserved level, diverged plasticity&quot;)
+  }
+  if (l == &quot;diverged&quot; &amp; d == &quot;conserved&quot;) {
+    return(&quot;diverged level, conserved plasticity&quot;)
+  }
+  if (l == &quot;diverged&quot; &amp; d == &quot;diverged&quot;) {
+    return(&quot;diverged level and plasticity&quot;)
+  }
+}) |&gt; unlist()
+
+plotdf &lt;- finaldf
+plotdf$eff_threshold &lt;- factor(plotdf$eff_threshold, levels = c(&quot;level0&quot;, &quot;level&quot;, &quot;level2&quot;),
+                               labels = c(&quot;no threshold&quot;, &quot;1.5x&quot;, &quot;2x&quot;))
+p &lt;- ggplot(mutate(plotdf, experiment = factor(experiment,
+                                          levels = ExperimentNames)),
+       aes(x = group4)) +
+  geom_bar_pattern(aes(fill = group4, pattern = group4), pattern_fill = &quot;black&quot;) +
+  geom_text(stat=&#39;count&#39;, aes(label = after_stat(count)), vjust=-1) +
+  scale_fill_discrete(limits =  colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                      type = colordf[colordf$scheme == &quot;group4&quot;,]$type) +
+  scale_pattern_discrete(limits =  colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                         choices = colordf[colordf$scheme == &quot;group4&quot;,]$pattern) +
+  scale_x_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                   breaks = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                   labels = colordf[colordf$scheme == &quot;group4&quot;,]$labels) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        legend.position = &quot;bottom&quot;) +
+  xlab(&quot;&quot;) +
+  ylim(c(0, 3500)) +
+  facet_grid(eff_threshold ~ experiment) +
+  guides(fill = guide_legend(nrow = 3, byrow=TRUE))
+p</code></pre>
+<p><img src="data_for_figure_scripts_files/figure-html/level-threshold-qc-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/bar.pdf&quot;,
+    width = 11, height = 5)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Removing level thresholds that we don’t use, just keeping the 1.5
+threshold</p>
+<pre class="r"><code># removing effect size threshold we don&#39;t use
+finaldf &lt;- filter(finaldf, eff_threshold == &quot;level&quot;) |&gt; 
+  select(-eff_threshold)</code></pre>
+</div>
+<div id="group-codes" class="section level3">
+<h3>Group codes</h3>
+<p>I am 99% sure these group codes are no longer used in any of the
+figure scripts, but keeping them in just in case. These incorporate all
+the level and plasticiy divergence information from the other columns
+into one column The idea was that these codes might effectively group
+certain types of genes together more than the individual properties. As
+we discovered in the course of the analyses of the paper, however, level
+and plasticity divergence do not have any relationship with each other,
+and the types of plasticity divergence observed tended to have more to
+do with the environment than the particular genes that had that
+divergence pattern.</p>
+<pre class="r"><code>### longer group codes
+# gene groups factor in a) whether level is conserved, b) whether dynamics are conserved,
+# and c) if level or dynamics are diverged, which direction that is happening in (i.e. up in Scer, or 2 in Scer and 1 in Spar)
+# group code format: type_direction_cluster(s)
+# type: &lt;cons, lev, dyn, or levdyn&gt;
+# direction (of level divergence): &lt;uppar, upcer, or empty&gt;
+# clusters: &lt;0, 1, 2, 01, 02, etc.&gt;
+finaldf$group &lt;- apply(finaldf, 1, \(x) {
+  x_cer &lt;- x[&quot;cer&quot;] |&gt; as.numeric()
+  x_par &lt;- x[&quot;par&quot;] |&gt; as.numeric()
+  x_effect_size &lt;- x[&quot;effect_size_species&quot;] |&gt; as.numeric()
+  x_level &lt;- x[&quot;level&quot;] |&gt; as.character()
+  x_plasticity &lt;- x[&quot;plasticity&quot;] |&gt; as.character()
+  if (x_level != &quot;diverged&quot; &amp; x_plasticity == &quot;conserved&quot;) {
+    type_str &lt;- &quot;cons&quot;
+  }
+  if (x_level == &quot;diverged&quot; &amp; x_plasticity == &quot;conserved&quot;) {
+    type_str &lt;- &quot;lev&quot;
+  }
+  if (x_level != &quot;diverged&quot; &amp; x_plasticity == &quot;diverged&quot;) {
+    type_str &lt;- &quot;dyn&quot;
+  }
+  if (x_level == &quot;diverged&quot; &amp; x_plasticity == &quot;diverged&quot;) {
+    type_str &lt;- &quot;levdyn&quot;
+  }
+  if (x_level != &quot;diverged&quot;) {
+    dir_str &lt;- NULL
+  }
+  if (x_level == &quot;diverged&quot;) {
+    if (x_effect_size &gt; 0) {
+      dir_str &lt;- &quot;upcer&quot;
+    }
+    if (x_effect_size &lt; 0) {
+      dir_str &lt;- &quot;uppar&quot;
+    }
+  }
+  if (identical(x_cer, x_par)) {
+    full_str &lt;- paste0(type_str, dir_str, x_cer)
+  }
+  if (!identical(x_cer, x_par)) {
+    full_str &lt;- paste0(type_str, dir_str, x_cer, x_par)
+  }
+  return(full_str)
+}) |&gt; unlist()</code></pre>
+</div>
+</div>
+<div id="saving-and-exporting-final-data-frame-to-supplementary-table-1"
+class="section level2">
+<h2>Saving and exporting final data frame to Supplementary Table 1</h2>
+<pre class="r"><code>save(finaldf, colordf, ExperimentNames,
+     LongExperimentNames, file = &quot;data_files/FinalDataframe3Disp.RData&quot;)
+write_delim(finaldf, delim = &quot;,&quot;, file = &quot;data_files/Supplementary_Table1.csv&quot;,
+            col_names = TRUE)</code></pre>
+</div>
+<div id="gene-ontology-enrichment" class="section level2">
+<h2>Gene Ontology Enrichment</h2>
+<p>Creating a GOslim table recording all the gene ontology terms
+associated with each gene (filtering out a few terms that are a little
+too vague to be useful, such as “cellular process”).</p>
+<pre class="r"><code># table of gene ontology terms associated with each gene
+# each row is a term, so this is a very long table
+goslim &lt;- read.table(&quot;data_files/downloaded_genomes_and_features/go_slim_mapping.tab&quot;, header = FALSE, sep = &quot;\t&quot;) |&gt;
+  as_tibble()
+colnames(goslim) &lt;- c(&quot;ORF&quot;, # (mandatory) - Systematic name of the gene (or gene complex if it starts with CPX-)
+                      &quot;gene&quot;, # (optional) - Gene name, if one exists
+                      &quot;SGDID&quot;, # SGDID (mandatory) - the SGDID, unique database identifier for the gene
+                      &quot;GO_aspect&quot;, # (mandatory) - which ontology: P=Process, F=Function, C=Component
+                      &quot;GOslim_term&quot;, # (mandatory) - the name of the GO term that was selected as a GO Slim term
+                      &quot;GOID&quot;, # (optional) - the unique numerical identifier of the GO term
+                      &quot;feature_type&quot;) # (mandatory) - a description of the sequence feature, such as ORF or tRNA
+too_vague_terms &lt;- c(&quot;cellular process&quot;, &quot;molecular function&quot;, &quot;biological process&quot;)
+goslim &lt;- filter(goslim, !(GOslim_term %in% too_vague_terms) &amp; 
+                   (ORF %in% finaldf$gene_name))
+save(goslim, file = &quot;data_files/GO_Slim.RData&quot;)</code></pre>
+</div>
 
 
 

@@ -278,15 +278,19 @@ DESeq2 to determine divergence in expression level</h1>
 </div>
 
 
-<pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
-         &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, &quot;DESeq2&quot;,
+<pre class="r"><code>library(DESeq2) # DESeq2 depends on IRanges, GenomicRanges,
+# and S4Vectors, which include their own functions
+# that share names with common tidyverse functions
+# such as reduce and rename (which causes me problems)
+# So loading it before tidyverse packages so that
+# its functions get over-written by purrr::reduce and dplyr::rename
+sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
+         &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;,
          &quot;matrixStats&quot;, &quot;ggpubr&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
-##        TRUE        TRUE        TRUE        TRUE        TRUE 
-##  data.table     ggplot2  data.table      DESeq2 matrixStats 
-##        TRUE        TRUE        TRUE        TRUE        TRUE 
-##      ggpubr 
-##        TRUE</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2 
+##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
+##  data.table matrixStats      ggpubr 
+##        TRUE        TRUE        TRUE</code></pre>
 <pre class="r"><code>library(MASS, include.only = &quot;glm.nb&quot;)
 source(&quot;functions_for_figure_scripts.R&quot;)
 load(&quot;data_files/GLM_Counts.RData&quot;)
@@ -458,14 +462,14 @@ plotSingleGeneModelExample &lt;- function(.genedf, .gene_name, .fitted_vals = FA
 }
 plotSingleGeneModelExample(test_genedf, random_gene, 
                            .log2 = TRUE, .fitted_vals = TRUE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
+## argument.</code></pre>
 <pre><code>## min and max expression: 7.280771 4.930737</code></pre>
 <p><img src="DESeq2_files/figure-html/plotSingleGeneModelExample-1.png" width="672" /></p>
 <pre class="r"><code>plotSingleGeneModelExample(test_genedf, random_gene, 
                            .log2 = FALSE, .fitted_vals = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
+## argument.</code></pre>
 <pre><code>## min and max expression: 155.5 30.5</code></pre>
 <p><img src="DESeq2_files/figure-html/plotSingleGeneModelExample-2.png" width="672" /></p>
 </div>
@@ -478,16 +482,21 @@ test_genedf &lt;- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
                                 gene_name = gene_idx,
                                 allele_or_species = &quot;species&quot;),
                          spinfo$HAP4)
-pdf(&quot;paper_figures/ExperimentOverview/level_lfc.pdf&quot;,
-    width = 2.1, height = 2.5)
-plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
+p &lt;- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
   theme(legend.position = &quot;none&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
+## argument.</code></pre>
 <pre><code>## no replicates for this experiment, getting moving average
 ## min and max expression: 2213 38.6</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
+<pre class="r"><code>p</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<p><img src="DESeq2_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/ExperimentOverview/level_lfc.pdf&quot;,
+    width = 2.1, height = 2.5)
+p</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -497,16 +506,21 @@ test_genedf &lt;- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
                                 gene_name = gene_idx,
                                 allele_or_species = &quot;species&quot;),
                          spinfo$HAP4)
-pdf(&quot;paper_figures/ExperimentOverview/dynamics_lfc.pdf&quot;,
-    width = 2.1, height = 2.5)
-plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
+p &lt;- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
   theme(legend.position = &quot;none&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
+## argument.</code></pre>
 <pre><code>## no replicates for this experiment, getting moving average
 ## min and max expression: 163.6 45.33333</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
+<pre class="r"><code>p</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
+<p><img src="DESeq2_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/ExperimentOverview/dynamics_lfc.pdf&quot;,
+    width = 2.1, height = 2.5)
+p</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -60159,10 +60173,8 @@ ggMarginal(ggplot(spaldf, aes(x = effect_size, y = -log(pvalue))) +
   geom_point(aes(color = pvalue &lt; p_thresh)) +
   theme(legend.position = &quot;none&quot;) + geom_vline(xintercept = c(-1, 1), color = &quot;gold&quot;),
   margins = &quot;both&quot;, groupColour = TRUE, groupFill = TRUE)</code></pre>
-<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 10 rows containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range (`stat_density()`).
+## Removed 10 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
 <p><img src="DESeq2_files/figure-html/QC-12.png" width="672" /></p>
 <pre class="r"><code># creating genedf, where each row is one gene
 genedf &lt;-  spaldf %&gt;%
