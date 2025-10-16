@@ -9,6 +9,7 @@
 /docs/paper_figures
 /clean_data_cache
 /DESeq2_cache
+/data_for_figure_scripts_cache
 /clustering_cache
 .DS_Store
 .Rproj.user
