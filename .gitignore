@@ -3,6 +3,11 @@
 *.RData
 *.Ruserdata
 /data_files
+/paper_figures
 /docs/data_files
+/docs/paper_figures
+/clean_data_cache
+/DESeq2_cache
+/clustering_cache
 .DS_Store
 .Rproj.user
