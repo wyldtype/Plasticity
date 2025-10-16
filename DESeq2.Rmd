@@ -249,7 +249,7 @@ test
 
 ## Full model fitting
 
-```{r model-fitting, cache=TRUE}
+```{r model-fitting, cache=TRUE, warning=FALSE}
 # applying to each experiment (takes ~1-2 min per dataset)
 spmods <- map2(spcts, spinfo, fitDatasetModels)
 spmods <- map2(spmods, spcts, function(x, y) {
