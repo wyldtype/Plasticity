@@ -771,8 +771,15 @@ finaldf$group &lt;- apply(finaldf, 1, \(x) {
 class="section level2">
 <h2>Saving and exporting final data frame to Supplementary Table 1</h2>
 <pre class="r"><code>save(finaldf, colordf, ExperimentNames,
-     LongExperimentNames, file = &quot;data_files/FinalDataframe3Disp.RData&quot;)
-write_delim(finaldf, delim = &quot;,&quot;, file = &quot;data_files/Supplementary_Table1.csv&quot;,
+     LongExperimentNames, file = &quot;data_files/FinalDataframe3Disp.RData&quot;)</code></pre>
+<p>Renaming some column names and selecting specific finaldf columns for
+the supplementary table, so that it appears as close to the workflow
+figure as possible</p>
+<pre class="r"><code>supp_tab1 &lt;- finaldf |&gt; select(gene_name, experiment, effect_size_species, padj_species,
+                               cer, par, level, plasticity) |&gt; 
+  dplyr::rename(c(&quot;gene&quot;=&quot;gene_name&quot;, &quot;log2_fold_change&quot;=&quot;effect_size_species&quot;,
+                  &quot;padj&quot;=&quot;padj_species&quot;, &quot;cluster_Scer&quot;=&quot;cer&quot;, &quot;cluster_Spar&quot;=&quot;par&quot;))
+write_delim(supp_tab1, delim = &quot;,&quot;, file = &quot;data_files/Supplementary_Table1.csv&quot;,
             col_names = TRUE)</code></pre>
 </div>
 <div id="gene-ontology-enrichment" class="section level2">
