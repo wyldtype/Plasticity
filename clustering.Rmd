@@ -1,5 +1,5 @@
 ---
-title: "clustering"
+title: "Heiarchical Clustering"
 ---
 
 ```{r setup, include=FALSE}

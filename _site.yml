@@ -12,4 +12,6 @@ navbar:
       href: functions_for_figure_scripts.html
     - text: "4. Clustering"
       href: clustering.html
+    - text: "5. DESeq2"
+      href: DESeq2.html
 output_dir: docs

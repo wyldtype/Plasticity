@@ -6,13 +6,13 @@ title: "Data for analysis scripts"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Additional data cleaning for heiarchical clustering and generalized linear models
+Additional data cleaning for heiarchical clustering and generalized linear models
 
 ```{r}
+source("functions_for_figure_scripts.R")
 sapply(c("dplyr", "purrr", "tidyr", "ggpubr", "readr",
          "data.table", "ggplot2", "data.table", 
          "matrixStats"), require, character.only=TRUE)
-source("functions_for_figure_scripts.R")
 
 ### Reading in Count Data
 load("data_files/Cleaned_Count_Data.RData")
@@ -166,7 +166,7 @@ ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
   geom_abline(slope = 1, intercept = 0, color = "gold")
 # difference in var/mean pre and post versus mean expr
 plotdf <- select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |>
-  rename("mean_expr"="mean_expr_pre")
+  dplyr::rename("mean_expr"="mean_expr_pre")
 ggplot(plotdf, aes(x = log2(mean_expr + 1),
                    y = log2(var_expr_pre) - log2(var_expr_post))) +
   geom_hex() +

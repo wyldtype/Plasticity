@@ -11,7 +11,7 @@
 
 
 
-<title>About This Website</title>
+<title>Data cleaning for figure scripts</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -245,23 +245,20 @@ $(document).ready(function () {
         <li>
   <a href="index.html">Home</a>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Data Cleaning
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="clean_data.html">Import count data</a>
-    </li>
-    <li>
-      <a href="data_for_analysis_scripts.html">Analysis-specific data cleaning</a>
-    </li>
-  </ul>
+<li>
+  <a href="clean_data.html">1. Import data and QC</a>
 </li>
 <li>
-  <a href="functions_for_figure_scripts.html">Functions used throughout figure scripts</a>
+  <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
+</li>
+<li>
+  <a href="functions_for_figure_scripts.html">3. Functions</a>
+</li>
+<li>
+  <a href="clustering.html">4. Clustering</a>
+</li>
+<li>
+  <a href="DESeq2.html">5. DESeq2</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -275,12 +272,23 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">About This Website</h1>
+<h1 class="title toc-ignore">Data cleaning for figure scripts</h1>
 
 </div>
 
 
-<p>More about this website.</p>
+<p>Final data cleaning steps that import level and plasticity divergence
+information from DESeq2 and Heiarchical clustering. The end result of
+this script is a dataframe, finaldf, that is used in all the figure
+scripts</p>
+<pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
+         &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, 
+         &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
+##        TRUE        TRUE        TRUE        TRUE        TRUE 
+##  data.table     ggplot2  data.table matrixStats 
+##        TRUE        TRUE        TRUE        TRUE</code></pre>
+<pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)</code></pre>
 
 
 

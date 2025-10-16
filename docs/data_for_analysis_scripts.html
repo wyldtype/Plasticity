@@ -245,23 +245,20 @@ $(document).ready(function () {
         <li>
   <a href="index.html">Home</a>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Data Cleaning
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="clean_data.html">Import count data</a>
-    </li>
-    <li>
-      <a href="data_for_analysis_scripts.html">Analysis-specific data cleaning</a>
-    </li>
-  </ul>
+<li>
+  <a href="clean_data.html">1. Import data and QC</a>
 </li>
 <li>
-  <a href="functions_for_figure_scripts.html">Functions used throughout figure scripts</a>
+  <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
+</li>
+<li>
+  <a href="functions_for_figure_scripts.html">3. Functions</a>
+</li>
+<li>
+  <a href="clustering.html">4. Clustering</a>
+</li>
+<li>
+  <a href="DESeq2.html">5. DESeq2</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -280,21 +277,17 @@ $(document).ready(function () {
 </div>
 
 
-<div
-id="additional-data-cleaning-for-heiarchical-clustering-and-generalized-linear-models"
-class="section level1">
-<h1>Additional data cleaning for heiarchical clustering and generalized
-linear models</h1>
-<pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
+<p>Additional data cleaning for heiarchical clustering and generalized
+linear models</p>
+<pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
+sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, 
          &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
 <pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
 ##        TRUE        TRUE        TRUE        TRUE        TRUE 
 ##  data.table     ggplot2  data.table matrixStats 
 ##        TRUE        TRUE        TRUE        TRUE</code></pre>
-<pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
-
-### Reading in Count Data
+<pre class="r"><code>### Reading in Count Data
 load(&quot;data_files/Cleaned_Count_Data.RData&quot;)
 load(&quot;data_files/Cleaned_Count_Data_AlleleSpecific.RData&quot;)</code></pre>
 <div id="filtering-out-lowly-expressed-genes" class="section level2">
@@ -495,7 +488,7 @@ ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
 <p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
 <pre class="r"><code># difference in var/mean pre and post versus mean expr
 plotdf &lt;- select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |&gt;
-  rename(&quot;mean_expr&quot;=&quot;mean_expr_pre&quot;)
+  dplyr::rename(&quot;mean_expr&quot;=&quot;mean_expr_pre&quot;)
 ggplot(plotdf, aes(x = log2(mean_expr + 1),
                    y = log2(var_expr_pre) - log2(var_expr_post))) +
   geom_hex() +
@@ -758,7 +751,6 @@ dim(counts_list$cer_CC)</code></pre>
 <pre class="r"><code># saving
 save(counts_list, info, file = &quot;data_files/Clustering_Counts.RData&quot;)</code></pre>
 <p>Done with data cleaning, on to GLMs and Heiarchical Clustering!</p>
-</div>
 </div>
 
 

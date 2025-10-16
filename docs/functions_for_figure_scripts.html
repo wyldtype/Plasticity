@@ -11,7 +11,7 @@
 
 
 
-<title>Functions used throughout figure scripts</title>
+<title>Functions used in multiple scripts</title>
 
 <script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
@@ -245,23 +245,20 @@ $(document).ready(function () {
         <li>
   <a href="index.html">Home</a>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Data Cleaning
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="clean_data.html">Import count data</a>
-    </li>
-    <li>
-      <a href="data_for_analysis_scripts.html">Analysis-specific data cleaning</a>
-    </li>
-  </ul>
+<li>
+  <a href="clean_data.html">1. Import data and QC</a>
 </li>
 <li>
-  <a href="functions_for_figure_scripts.html">Functions used throughout figure scripts</a>
+  <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
+</li>
+<li>
+  <a href="functions_for_figure_scripts.html">3. Functions</a>
+</li>
+<li>
+  <a href="clustering.html">4. Clustering</a>
+</li>
+<li>
+  <a href="DESeq2.html">5. DESeq2</a>
 </li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
@@ -275,15 +272,11 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Functions used throughout figure
-scripts</h1>
+<h1 class="title toc-ignore">Functions used in multiple scripts</h1>
 
 </div>
 
 
-<div id="version-of-function-script-that-includes-unit-tests"
-class="section level1">
-<h1>Version of function script that includes unit tests</h1>
 <p>The actual version of these functions that is sourced in the other
 .Rmd scripts is functions_for_figure_scripts.R. This is the
 webpage-ready version displying code for each function with acompanying
@@ -331,13 +324,13 @@ collapseReplicates &lt;- function(.info, .cts) {
       select(sample_name) |&gt; pull()
     cts &lt;- .cts[,samps, drop = FALSE] # in HAP4 and LowPi, which don&#39;t have replicates, this will take the mean of one sample
     return(rowMeans(cts))
-  }) |&gt; reduce(cbind)
+  }) |&gt; purrr::reduce(cbind)
   collapsed_cts_par &lt;- map(common_conditions, \(cond) {
     samps &lt;- .info |&gt; filter(condition == cond &amp; allele == &quot;par&quot;) |&gt; 
       select(sample_name) |&gt; pull()
     cts &lt;- .cts[,samps, drop = FALSE] 
     return(rowMeans(cts))
-  }) |&gt; reduce(cbind)
+  }) |&gt; purrr::reduce(cbind)
   colnames(collapsed_cts_cer) &lt;- common_conditions
   colnames(collapsed_cts_par) &lt;- common_conditions
   rownames(collapsed_cts_cer) &lt;- rownames(.cts)
@@ -441,7 +434,7 @@ ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
   geom_abline(slope = 1, intercept = 0, color = &quot;gold&quot;)</code></pre>
 <p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
 <pre class="r"><code>plotdf &lt;- select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |&gt;
-  rename(&quot;mean_expr&quot;=&quot;mean_expr_pre&quot;)
+  dplyr::rename(&quot;mean_expr&quot;=&quot;mean_expr_pre&quot;)
 # difference in var/mean pre and post versus mean expr
 ggplot(plotdf, aes(x = log2(mean_expr + 1),
                    y = log2(var_expr_pre) - log2(var_expr_post))) +
@@ -509,7 +502,7 @@ getMovingAverage &lt;- function(.cts) {
       return(.cts[, idxs])
     }
     return(rowMeans(.cts[, idxs, drop = FALSE]))
-  }) |&gt; reduce(.f = cbind)
+  }) |&gt; purrr::reduce(.f = cbind)
   colnames(cts_movavg) &lt;- colnames(.cts)
   rownames(cts_movavg) &lt;- rownames(.cts)
   return(cts_movavg)
@@ -1718,7 +1711,7 @@ orderGenesByGroup &lt;- function(.mat, .row_idx = 1,
   testdf$genes &lt;- map(testdf$term, \(x) {
     termgenes &lt;- goslim |&gt; filter(ORF %in% .idxs &amp; GOslim_term == x) |&gt; 
       select(ORF) |&gt; pull() |&gt; unique()
-    return(reduce(termgenes, paste, sep = &quot; &quot;))
+    return(purrr::reduce(termgenes, paste, sep = &quot; &quot;))
   }) |&gt; unlist()
   
   write_csv(arrange(testdf, exact_pval, desc(group_count)), 
@@ -1730,7 +1723,6 @@ orderGenesByGroup &lt;- function(.mat, .row_idx = 1,
 # tests for getGOSlimDf
 # test &lt;- getGOSlimDf(.idxs = c(&quot;YGR192C&quot;, &quot;YJR009C&quot;, &quot;YJL052W&quot;),
 #                     .group_name = &quot;tdhs&quot;, .min_hits = 1)</code></pre>
-</div>
 </div>
 
 

@@ -1,5 +1,15 @@
 ---
-title: "About This Website"
+title: "Data cleaning for figure scripts"
 ---
 
-More about this website.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Final data cleaning steps that import level and plasticity divergence information from DESeq2 and Heiarchical clustering. The end result of this script is a dataframe, finaldf, that is used in all the figure scripts
+
+```{r}
+sapply(c("dplyr", "purrr", "tidyr", "ggpubr", "readr",
+         "data.table", "ggplot2", "data.table", 
+         "matrixStats"), require, character.only=TRUE)
+source("functions_for_figure_scripts.R")

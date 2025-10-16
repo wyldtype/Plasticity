@@ -26,13 +26,13 @@ collapseReplicates <- function(.info, .cts) {
       select(sample_name) |> pull()
     cts <- .cts[,samps, drop = FALSE] # in HAP4 and LowPi, which don't have replicates, this will take the mean of one sample
     return(rowMeans(cts))
-  }) |> reduce(cbind)
+  }) |> purrr::reduce(cbind)
   collapsed_cts_par <- map(common_conditions, \(cond) {
     samps <- .info |> filter(condition == cond & allele == "par") |> 
       select(sample_name) |> pull()
     cts <- .cts[,samps, drop = FALSE] 
     return(rowMeans(cts))
-  }) |> reduce(cbind)
+  }) |> purrr::reduce(cbind)
   colnames(collapsed_cts_cer) <- common_conditions
   colnames(collapsed_cts_par) <- common_conditions
   rownames(collapsed_cts_cer) <- rownames(.cts)
@@ -162,7 +162,7 @@ getMovingAverage <- function(.cts) {
       return(.cts[, idxs])
     }
     return(rowMeans(.cts[, idxs, drop = FALSE]))
-  }) |> reduce(.f = cbind)
+  }) |> purrr::reduce(.f = cbind)
   colnames(cts_movavg) <- colnames(.cts)
   rownames(cts_movavg) <- rownames(.cts)
   return(cts_movavg)
@@ -1376,7 +1376,7 @@ getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/result
   testdf$genes <- map(testdf$term, \(x) {
     termgenes <- goslim |> filter(ORF %in% .idxs & GOslim_term == x) |> 
       select(ORF) |> pull() |> unique()
-    return(reduce(termgenes, paste, sep = " "))
+    return(purrr::reduce(termgenes, paste, sep = " "))
   }) |> unlist()
   
   write_csv(arrange(testdf, exact_pval, desc(group_count)), 
