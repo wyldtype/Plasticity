@@ -7,8 +7,14 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r asset-loading}
+library(DESeq2) # DESeq2 depends on IRanges, GenomicRanges,
+# and S4Vectors, which include their own functions
+# that share names with common tidyverse functions
+# such as reduce and rename (which causes me problems)
+# So loading it before tidyverse packages so that
+# its functions get over-written by purrr::reduce and dplyr::rename
 sapply(c("dplyr", "purrr", "tidyr", "ggpubr", "readr",
-         "data.table", "ggplot2", "data.table", "DESeq2",
+         "data.table", "ggplot2", "data.table",
          "matrixStats", "ggpubr"), require, character.only=TRUE)
 library(MASS, include.only = "glm.nb")
 source("functions_for_figure_scripts.R")
@@ -166,10 +172,12 @@ test_genedf <- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
                                 gene_name = gene_idx,
                                 allele_or_species = "species"),
                          spinfo$HAP4)
+p <- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
+  theme(legend.position = "none")
+p
 pdf("paper_figures/ExperimentOverview/level_lfc.pdf",
     width = 2.1, height = 2.5)
-plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
-  theme(legend.position = "none")
+p
 dev.off()
 
 # plot of example gene diverging in dynamics, showing high noise but going in different directions at different timepoints
@@ -178,10 +186,12 @@ test_genedf <- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
                                 gene_name = gene_idx,
                                 allele_or_species = "species"),
                          spinfo$HAP4)
+p <- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
+  theme(legend.position = "none")
+p
 pdf("paper_figures/ExperimentOverview/dynamics_lfc.pdf",
     width = 2.1, height = 2.5)
-plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
-  theme(legend.position = "none")
+p
 dev.off()
 ```
 

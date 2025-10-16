@@ -2,6 +2,7 @@
 *.Rhistory
 *.RData
 *.Ruserdata
+*.ai
 /data_files
 /paper_figures
 /docs/data_files
