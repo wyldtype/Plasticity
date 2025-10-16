@@ -14,4 +14,20 @@ navbar:
       href: clustering.html
     - text: "5. DESeq2"
       href: DESeq2.html
+    - text: "6. Final dataframe"
+      href: data_for_figure_scripts.html
+    - text: "7. Single-environment"
+      menu:
+        - text: "Diauxic Shift"
+          href: DiauxicShift.html
+        - text: "HU Shock"
+          href: HUShock.html
+        - text: "Low Nitrogen"
+          href: LowNitrogen.html
+        - text: "Low Phosphate"
+          href: LowPhosphate.html
+        - text: "Heat Stress"
+          href: HeatStress.html
+        - text: "Cold Stress"
+          href: ColdStress.html
 output_dir: docs
