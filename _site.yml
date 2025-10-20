@@ -4,19 +4,23 @@ navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "1. Import data and QC"
-      href: clean_data.html
-    - text: "2. Data cleaning"
-      href: data_for_analysis_scripts.html
-    - text: "3. Functions"
-      href: functions_for_figure_scripts.html
-    - text: "4. Clustering"
-      href: clustering.html
-    - text: "5. DESeq2"
-      href: DESeq2.html
-    - text: "6. Final dataframe"
-      href: data_for_figure_scripts.html
-    - text: "7. Single-environment"
+    - text: "1-3. Data Cleaning"
+      menu:
+      - text: "1. Import data and QC"
+        href: clean_data.html
+      - text: "2. Data cleaning"
+        href: data_for_analysis_scripts.html
+      - text: "3. Functions"
+        href: functions_for_figure_scripts.html
+    - text: "4-6. Data Analysis"
+      menu:
+      - text: "4. Clustering"
+        href: clustering.html
+      - text: "5. DESeq2"
+        href: DESeq2.html
+      - text: "6. Final dataframe"
+        href: data_for_figure_scripts.html
+    - text: "7. Fig 5/S3: Single-environment"
       menu:
         - text: "Diauxic Shift"
           href: DiauxicShift.html

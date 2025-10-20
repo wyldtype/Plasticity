@@ -430,6 +430,22 @@ supp_tab1 <- finaldf |> select(gene_name, experiment, effect_size_species, padj_
                                cer, par, level, plasticity) |> 
   dplyr::rename(c("gene"="gene_name", "log2_fold_change"="effect_size_species",
                   "padj"="padj_species", "cluster_Scer"="cer", "cluster_Spar"="par"))
+# changing cluster names for clarity
+# 0 = "static"
+# 1 = "increasing"
+# 2 = "decreasing"
+supp_tab1$cluster_Scer <-
+  if_else(supp_tab1$cluster_Scer == 0,
+          true = "static",
+          false = if_else(supp_tab1$cluster_Scer == 1,
+                          true = "increasing",
+                          false = "decreasing"))
+supp_tab1$cluster_Spar <-
+  if_else(supp_tab1$cluster_Spar == 0,
+          true = "static",
+          false = if_else(supp_tab1$cluster_Spar == 1,
+                          true = "increasing",
+                          false = "decreasing"))
 write_delim(supp_tab1, delim = ",", file = "data_files/Supplementary_Table1.csv",
             col_names = TRUE)
 ```
