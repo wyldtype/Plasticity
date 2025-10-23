@@ -156,6 +156,16 @@ finaldf |> filter(plasticity == "diverged") |> select(experiment) |> table()
 finaldf |> filter(level == "diverged") |> select(experiment) |> table()
 ```
 
+Tables of number of timepoints per experiment for paper figure:
+
+```{r paper-table-samples}
+sample_info |> select(experiment, time_point_str) |> 
+  unique() |> 
+  group_by(experiment) |> 
+  summarise(n = n())
+```
+
+
 Calculating ortholog pair correlations for EnvironmentalPatterns figure
 
 ```{r getCorelation}
@@ -178,7 +188,7 @@ getCorelation("YGR192C", "HAP4",
 
 Adding correlation columns:
 
-```{r correlation, cache=TRUE}
+```{r correlation, cache=TRUE, warning=FALSE}
 # adding correlation columns
 finaldf$cor_hybrid <- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
                            .cts1 = collapsed_allele$cer,
@@ -286,8 +296,10 @@ Numbers for the workflow figure:
 
 ```{r workflow-numbers}
 ### numbers for workflow figure
-nrow(finaldf)
+nrow(finaldf) # for workflow figure E
+length(unique(finaldf$gene_name)) # total number of genes
 n_per_experiment <- table(finaldf$experiment)
+n_per_experiment # number of genes used in each environment (number expressed > 30cpm)
 # min filtered out for low expression:
 max(n_per_experiment)
 (nrow(genedf) - max(n_per_experiment))/nrow(genedf)
@@ -426,8 +438,7 @@ save(finaldf, colordf, ExperimentNames,
 Renaming some column names and selecting specific finaldf columns for the supplementary table, so that it appears as close to the workflow figure as possible
 
 ```{r supplementary-table1}
-supp_tab1 <- finaldf |> select(gene_name, experiment, effect_size_species, padj_species,
-                               cer, par, level, plasticity) |> 
+supp_tab1 <- finaldf |> select(gene_name, experiment, effect_size_species, padj_species, cer, par, level, plasticity) |>
   dplyr::rename(c("gene"="gene_name", "log2_fold_change"="effect_size_species",
                   "padj"="padj_species", "cluster_Scer"="cer", "cluster_Spar"="par"))
 # changing cluster names for clarity

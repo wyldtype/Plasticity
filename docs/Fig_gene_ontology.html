@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Gene ontology enrichment tests among plasticity-reversing genes</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Plasticity</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    1-3. Data Cleaning
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clean_data.html">1. Import data and QC</a>
+    </li>
+    <li>
+      <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
+    </li>
+    <li>
+      <a href="functions_for_figure_scripts.html">3. Functions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    4-6. Data Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clustering.html">4. Clustering</a>
+    </li>
+    <li>
+      <a href="single_gene_models.html">5. Generalized linear models</a>
+    </li>
+    <li>
+      <a href="data_for_figure_scripts.html">6. Final dataframe</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    7. Single-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_DiauxicShift.html">Fig 5: Diauxic Shift</a>
+    </li>
+    <li>
+      <a href="Fig_HUShock.html">Fig S3: HU Shock</a>
+    </li>
+    <li>
+      <a href="Fig_LowNitrogen.html">Fig S3: Low Nitrogen</a>
+    </li>
+    <li>
+      <a href="Fig_LowPhosphate.html">Fig S3: Low Phosphate</a>
+    </li>
+    <li>
+      <a href="Fig_HeatStress.html">Fig S3: Heat Stress</a>
+    </li>
+    <li>
+      <a href="Fig_ColdStress.html">Fig S3: Cold Stress</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    8-10.: Multi-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_gene_ontology.html">8. Table 1: Gene Ontology</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Gene ontology enrichment tests among
+plasticity-reversing genes</h1>
+
+</div>
+
+
+<pre class="r"><code>source(file = &quot;functions_for_figure_scripts.R&quot;)
+library(dplyr)
+library(purrr)
+load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
+load(&quot;data_files/GO_Slim.RData&quot;)
+nGenes &lt;- finaldf$gene_name |&gt; unique() |&gt; length() # for exact tests 
+# filtering for just Biological Processess
+goslim &lt;- filter(goslim, GO_aspect == &quot;P&quot;)</code></pre>
+<div id="print-gene-lists-for-saccharomyces-genome-database-sgd"
+class="section level2">
+<h2>Print gene lists for Saccharomyces Genome Database (SGD)</h2>
+<pre class="r"><code>printGeneList &lt;- function(.gene_idxs, .folder = &quot;gene_ontology/gene_lists/&quot;,
+                          .file_name = &quot;test&quot;, .file_suffix = &quot;.txt&quot;) {
+  return(write.table(.gene_idxs, 
+              file = paste0(.folder, .file_name, .file_suffix),
+              quote = FALSE, 
+              row.names = FALSE, 
+              col.names = FALSE))
+}
+# # tests for printGeneList
+# test &lt;- printGeneList(.gene_idxs = c(&quot;YGR192C&quot;, &quot;YJR009C&quot;, &quot;YJL052W&quot;),
+#                       .file_name = &quot;TDHs&quot;)</code></pre>
+</div>
+<div id="in-house-go-enrichment-test-based-on-goslim-table"
+class="section level2">
+<h2>In-house GO enrichment test based on GOslim table</h2>
+<pre class="r"><code>getGOSlimDf &lt;- function(.idxs, .group_name, .file_prefix = &quot;gene_ontology/results/&quot;,
+                        .min_hits = 5) {
+  test_table &lt;- goslim |&gt; filter(ORF %in% .idxs) |&gt; select(GOslim_term) |&gt; table()
+  test_table &lt;- test_table[test_table &gt;= .min_hits]
+  testdf &lt;- tibble(&quot;term&quot; = names(test_table),
+                   &quot;group_count&quot; = as.numeric(test_table))
+  testdf$overall_count &lt;- purrr::map(testdf$term, \(x) {
+    ct &lt;- goslim |&gt; filter(GOslim_term == x) |&gt; select(ORF) |&gt; 
+      pull() |&gt; unique() |&gt; length()
+    return(ct)
+  }) |&gt; unlist()
+  testdf$exact_pval &lt;- map2(testdf$group_count, testdf$overall_count, \(x, y) {
+    n_mod &lt;- length(.idxs)
+    n_genes &lt;- nGenes
+    exact_table &lt;- rbind(c(x, n_mod - x), c(y - x, n_genes - n_mod - y))
+    exact_result &lt;- fisher.test(exact_table, alternative = &quot;greater&quot;)
+    return(exact_result$p.value)
+  }) |&gt; unlist()
+  testdf$sig &lt;- testdf$exact_pval &lt; 0.001
+  testdf$genes &lt;- purrr::map(testdf$term, \(x) {
+    termgenes &lt;- goslim |&gt; filter(ORF %in% .idxs &amp; GOslim_term == x) |&gt; 
+      select(ORF) |&gt; pull() |&gt; unique()
+    return(purrr::reduce(termgenes, paste, sep = &quot; &quot;))
+  }) |&gt; unlist()
+  
+  write_csv(arrange(testdf, exact_pval, desc(group_count)), 
+            file = paste0(.file_prefix, .group_name, &quot;.csv&quot;),
+            quote = &quot;none&quot;, 
+            col_names = TRUE)
+  return(testdf)
+}
+
+# tests for getGOSlimDf
+test &lt;- getGOSlimDf(.idxs = c(&quot;YGR192C&quot;, &quot;YJR009C&quot;, &quot;YJL052W&quot;),
+                    .group_name = &quot;tdhs&quot;, .min_hits = 1)</code></pre>
+<p>Looping through all the plasticity reversal categories to get GOSlim
+results:</p>
+<pre class="r"><code>griddf &lt;- expand_grid(experiment = ExperimentNames,
+                      cer_clust = c(1, 2))
+slimlist &lt;- vector(mode = &quot;list&quot;, length = nrow(griddf))
+for (i in 1:nrow(griddf)) {
+  e &lt;- griddf$experiment[i]
+  cer_clust &lt;- griddf$cer_clust[i]
+  par_clust &lt;- setdiff(c(1, 2), cer_clust)
+  gene_idxs &lt;- filter(finaldf, experiment == e &amp;
+                        cer == cer_clust &amp;
+                        par == par_clust) |&gt; 
+    select(gene_name) |&gt; pull()
+  slimlist[[i]] &lt;- getGOSlimDf(.idxs = gene_idxs,
+                               .group_name = paste0(e, cer_clust, par_clust))
+}
+names(slimlist) &lt;- as.character(apply(griddf, 1, \(x) {paste(x[1], x[2], sep = &quot;_&quot;)}))</code></pre>
+</div>
+<div id="combining-go-terms-for-main-paper-summary-table"
+class="section level2">
+<h2>Combining GO terms for main paper summary table</h2>
+<p>Manually selecting groups of terms related to broader but meaningful
+biological processes.</p>
+<pre class="r"><code># @input: GOslim enrichment results df for one ccm, character vector of GOslim terms to combine
+# @output: character vector of all the genes associated with those terms in that ccm, each gene only appearing once
+getCombinedTermGenes &lt;- function(.df, .term_vec) {
+  .df |&gt; filter(term %in% .term_vec) |&gt; 
+    select(genes) |&gt; pull() |&gt; purrr::map(.f = strsplit, split = &quot; &quot;) |&gt; 
+    unlist() |&gt; unique()
+}</code></pre>
+<pre class="r"><code># manually combining terms
+term_RNAprocessing &lt;- c(&quot;mRNA binding&quot;,
+                        &quot;sno(s)RNA processing&quot;,
+                        &quot;mRNA processing&quot;,
+                        &quot;nucleobase-containing compound catabolic process&quot;,
+                        &quot;nucleobase-containing small molecule metabolic process&quot;,
+                        &quot;RNA binding&quot;,
+                        &quot;RNA modification&quot;,
+                        &quot;RNA catabolic process&quot;,
+                        &quot;RNA splicing&quot;,
+                        &quot;protein-RNA complex assembly&quot;,
+                        &quot;small nuclear ribonucleoprotein complex&quot;,
+                        &quot;spliceosomal complex&quot;,
+                        &quot;U2-type spliceosomal complex&quot;,
+                        &quot;U4/U6 x U5 tri-snRNP complex&quot;,
+                        &quot;U6 snRNP&quot;,
+                        &quot;box C/D RNP complex&quot;)
+
+term_chaperone &lt;- c(&quot;chaperonin-containing T-complex&quot;,
+                    &quot;prefoldin complex&quot;,
+                    &quot;protein-containing complex assembly&quot;,
+                    &quot;protein folding&quot;,
+                    &quot;protein folding chaperone complex&quot;,
+                    &quot;protein glycosylation&quot;,
+                    &quot;protein acylation&quot;,
+                    &quot;protein maturation&quot;,
+                    &quot;protein modification by small protein conjugation or removal&quot;,
+                    &quot;protein targeting&quot;,
+                    &quot;unfolded protein binding&quot;)
+
+term_proteasome &lt;- c(&quot;proteasome core complex, alpha-subunit complex&quot;,
+                     &quot;proteasome core complex, beta-subunit complex&quot;,
+                     &quot;proteasome regulatory particle, lid subcomplex&quot;,
+                     &quot;proteasome storage granule&quot;)
+
+term_mRNADegrading &lt;- c(&quot;P-body&quot;, &quot;Lsm1-7-Pat1 complex&quot;)
+
+term_transport &lt;- c(&quot;Golgi vesicle transport&quot;,
+                    &quot;nuclear transport&quot;,
+                    &quot;nucleocytoplasmic transport&quot;,
+                    &quot;transport&quot;,
+                    &quot;vacuolar transport&quot;,
+                    &quot;vacuole&quot;,
+                    &quot;vacuole organization&quot;,
+                    &quot;vesicle-mediated transport&quot;,
+                    &quot;regulation of transport&quot;,
+                    &quot;vesicle organization&quot;)
+
+term_vacuoleGolgiTransport &lt;- c(&quot;Golgi vesicle transport&quot;,
+                                &quot;transport&quot;,
+                                &quot;vacuolar transport&quot;,
+                                &quot;vacuole&quot;,
+                                &quot;vacuole organization&quot;,
+                                &quot;vesicle-mediated transport&quot;,
+                                &quot;regulation of transport&quot;,
+                                &quot;vesicle organization&quot;)
+
+term_metabolism &lt;- c(&quot;carbohydrate metabolic process&quot;,
+                     &quot;catabolic process&quot;,
+                     &quot;cellular nitrogen compound metabolic process&quot;,
+                     &quot;hydrolase activity&quot;,
+                     &quot;nucleobase-containing compound catabolic process&quot;,
+                     &quot;nucleobase-containing small molecule metabolic process&quot;,
+                     &quot;small molecule metabolic process&quot;)
+
+term_cytoskeleton &lt;- c(&quot;cytoplasmic microtubule&quot;,
+                       &quot;cytoskeletal protein binding&quot;,
+                       &quot;cytoskeleton organization&quot;,
+                       &quot;cytoskeleton-dependent intracellular transport&quot;,
+                       &quot;microtubule&quot;,
+                       &quot;microtubule organizing center&quot;,
+                       &quot;organelle assembly&quot;,
+                       &quot;organelle fusion&quot;,
+                       &quot;regulation of organelle organization&quot;,
+                       &quot;site of polarized growth&quot;,
+                       &quot;cell cortex&quot;)
+
+term_cellularRespiration &lt;- c(&quot;generation of precursor metabolites and energy&quot;,
+                              &quot;MICOS complex&quot;,
+                              &quot;mitochondrial proton-transporting ATP synthase complex  coupling factor F(o)&quot;,
+                              &quot;mitochondrial respiratory chain complex III&quot;,
+                              &quot;mitochondrial respiratory chain complex IV&quot;,
+                              &quot;cellular respiration&quot;)
+
+term_DNArepairMetabolismBinding &lt;- c(&quot;DNA binding&quot;,
+                                     &quot;DNA damage response&quot;,
+                                     &quot;DNA metabolic process&quot;,
+                                     &quot;DNA recombination&quot;,
+                                     &quot;DNA repair&quot;,
+                                     &quot;DNA-binding transcription factor activity&quot;,
+                                     &quot;DNA-templated transcription&quot;,
+                                     &quot;telomere organization&quot;)
+
+term_transcription &lt;- c(&quot;RNA polymerase II transcription regulator complex&quot;,
+                        &quot;DNA-templated transcription&quot;,
+                        &quot;transcription&quot;,
+                        &quot;DNA-templated transcription elongation&quot;,
+                        &quot;DNA-templated transcription termination&quot;,
+                        &quot;RNA polymerase I complex&quot;,
+                        &quot;RNA polymerase II core complex&quot;,
+                        &quot;RNA polymerase III complex&quot;,
+                        &quot;transcription by RNA polymerase I&quot;,
+                        &quot;transcription by RNA polymerase II&quot;,
+                        &quot;transcription by RNA polymerase III&quot;)
+
+term_translation &lt;- c(&quot;translation&quot;,
+                      &quot;cytoplasmic translation&quot;,
+                      &quot;regulation of translation&quot;,
+                      &quot;translational initiation&quot;,
+                      &quot;translational elongation&quot;,
+                      &quot;eukaryotic 48S preinitiation complex&quot;,
+                      &quot;eukaryotic translation initiation factor 3 complex&quot;,
+                      &quot;translation factor activity RNA binding&quot;)
+
+term_tRNA &lt;- c(&quot;tRNA aminoacylation for protein translation&quot;,
+               &quot;tRNA metabolic process&quot;,
+               &quot;tRNA methyltransferase complex&quot;,
+               &quot;tRNA processing&quot;)
+
+term_TF &lt;- c(&quot;DNA-binding transcription factor activity&quot;,
+             &quot;transcription factor binding&quot;,
+             &quot;transcription regulator complex&quot;)
+
+term_chromatin &lt;- c(&quot;chromatin&quot;,
+                    &quot;chromatin binding&quot;,
+                    &quot;chromatin organization&quot;,
+                    &quot;NuA4 histone acetyltransferase complex&quot;,
+                    &quot;histone acetyltransferase complex&quot;,
+                    &quot;histone deacetylase complex&quot;,
+                    &quot;rDNA heterochromatin&quot;)
+
+term_cellCycle &lt;- c(&quot;chromosome segregation&quot;,
+                    &quot;regulation of cell cycle&quot;)
+
+term_ubiquitin &lt;- c(&quot;ubiquitin ligase complex&quot;,
+                    &quot;ubiquitin-like protein binding&quot;)
+
+term_exoendocytosis &lt;- c(&quot;endocytosis&quot;,
+                         &quot;exocytosis&quot;,
+                         &quot;SNARE complex&quot;,
+                         &quot;endosomal transport&quot;,
+                         &quot;endosome&quot;)
+
+term_endocytosis &lt;- c(&quot;endocytosis&quot;,
+                      &quot;endosomal transport&quot;,
+                      &quot;endosome&quot;)
+
+term_membrane &lt;- c(&quot;membrane&quot;,
+                   &quot;membrane fusion&quot;,
+                   &quot;membrane organization&quot;,
+                   &quot;transmembrane transporter activity&quot;,
+                   &quot;transmembrane transport&quot;)
+
+term_ribosome &lt;- c(&quot;90S preribosome&quot;,
+                   &quot;cytosolic large ribosomal subunit&quot;,
+                   &quot;cytosolic small ribosomal subunit&quot;,
+                   &quot;cytosolic ribosome&quot;,
+                   &quot;large ribosomal subunit&quot;,
+                   &quot;preribosome&quot;,
+                   &quot;preribosome large subunit precursor&quot;,
+                   &quot;ribonucleoprotein complex&quot;,
+                   &quot;ribosome biogenesis&quot;,
+                   &quot;ribosomal subunit export from nucleus&quot;,
+                   &quot;rRNA processing&quot;,
+                   &quot;protein-RNA complex assembly&quot;,
+                   &quot;sno(s)RNA-containing ribonucleoprotein complex&quot;,
+                   &quot;rRNA binding&quot;,
+                   &quot;small ribosomal subunit&quot;,
+                   &quot;structural constituent of ribosome&quot;,
+                   &quot;preribosome small subunit precursor&quot;,
+                   &quot;Pwp2p-containing subcomplex of 90S preribosome&quot;,
+                   &quot;small-subunit processome&quot;,
+                   &quot;t-UTP complex&quot;)
+
+term_mitochondrialTranslation &lt;- c(&quot;mitochondrial large ribosomal subunit&quot;,
+                                   &quot;mitochondrial small ribosomal subunit&quot;,
+                                   &quot;mitochondrial translation&quot;)
+
+term_mitochondria &lt;- c(&quot;mitochondrion&quot;,
+                       &quot;mitochondrion organization&quot;)
+
+term_bioMoleculeSynthesis &lt;- c(&quot;small molecule metabolic process&quot;,
+                               &quot;nucleobase-containing small molecule metabolic process&quot;,
+                               &quot;biosynthetic process&quot;,
+                               &quot;amino acid metabolic process&quot;,
+                               &quot;lipid metabolic process&quot;,
+                               &quot;monocarboxylic acid metabolic process&quot;,
+                               &quot;tRNA metabolic process&quot;)
+
+term_stress &lt;- c(&quot;response to stress&quot;,
+                 &quot;sporulation&quot;,
+                 &quot;response to heat&quot;,
+                 &quot;response to osmotic stress&quot;,
+                 &quot;DNA damage response&quot;,
+                 &quot;response to oxidative stress&quot;,
+                 &quot;response to chemical&quot;)</code></pre>
+<p>Counting number of genes in each plasticity group that are associated
+with terms belong to the combined term (the combined term was decided by
+visually inspecting the Supplementary_Table2.xlsx full GOslim
+results):</p>
+<pre class="r"><code># HAP4, 1-2, chaperone and transport
+term_genes &lt;- getCombinedTermGenes(slimlist$HAP4_1, .term_vec = c(term_chaperone, term_transport))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; par == 2) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 24</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 55</code></pre>
+<pre class="r"><code># HAP4, 2-1, DNA repair and golgi/vessicle transport
+term_genes &lt;- getCombinedTermGenes(slimlist$HAP4_2, .term_vec = c(term_DNArepairMetabolismBinding, term_vacuoleGolgiTransport))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; par == 1) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 104</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 289</code></pre>
+<pre class="r"><code># CC, 1-2, respiration and metabolism
+term_genes &lt;- getCombinedTermGenes(slimlist$CC_1, .term_vec = c(term_cellularRespiration, term_metabolism))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; cer == 1 &amp; par == 2) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 186</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 405</code></pre>
+<pre class="r"><code># CC, 2-1, ribosome and tRNA processing
+term_genes &lt;- getCombinedTermGenes(slimlist$CC_2, .term_vec = c(term_ribosome, term_tRNA))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; cer == 2 &amp; par == 1) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 129</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 567</code></pre>
+<pre class="r"><code># LowN, 1-2, protein folding and translation
+term_genes &lt;- getCombinedTermGenes(slimlist$LowN_1, .term_vec = c(term_chaperone, term_translation))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; cer == 1 &amp; par == 2) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 23</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 52</code></pre>
+<pre class="r"><code># LowN, 2-1, lipid/amino acid/tRNA synthesis
+term_genes &lt;- getCombinedTermGenes(slimlist$LowN_2, .term_vec = term_bioMoleculeSynthesis)
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; cer == 2 &amp; par == 1) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 32</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 75</code></pre>
+<pre class="r"><code># LowPi, 1-2, stress and protein folding
+term_genes &lt;- getCombinedTermGenes(slimlist$LowPi_1, .term_vec = c(term_stress, term_chaperone))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; cer == 1 &amp; par == 2) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 121</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 375</code></pre>
+<pre class="r"><code># LowPi, 2-1, ribosome, tRNA, and small molecule biosynthesis
+term_genes &lt;- getCombinedTermGenes(slimlist$LowPi_2, .term_vec = c(term_ribosome, term_tRNA, term_bioMoleculeSynthesis))
+term_genes_cc &lt;- getCombinedTermGenes(slimlist$CC_2, .term_vec = c(term_ribosome, term_tRNA))
+length(intersect(term_genes, term_genes_cc)) # comparing to CC 2-1 which had the same term enrichment</code></pre>
+<pre><code>## [1] 53</code></pre>
+<pre class="r"><code>length(union(term_genes, term_genes_cc)) # some overlap</code></pre>
+<pre><code>## [1] 445</code></pre>
+<pre class="r"><code>all_genes &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; cer == 2 &amp; par == 1) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 369</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 803</code></pre>
+<pre class="r"><code># Heat, 1-2, translation, RNA processing, ribosome
+term_genes &lt;- getCombinedTermGenes(slimlist$Heat_1, .term_vec = c(term_translation, term_RNAprocessing, term_ribosome))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;Heat&quot; &amp; cer == 1 &amp; par == 2) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 36</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 118</code></pre>
+<pre class="r"><code># Heat, 2-1, transcription, small molecule synthesis
+term_genes &lt;- getCombinedTermGenes(slimlist$Heat_2, .term_vec = c(term_transcription, term_tRNA, term_bioMoleculeSynthesis))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;Heat&quot; &amp; cer == 2 &amp; par == 1) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 167</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 431</code></pre>
+<pre class="r"><code># Cold, 1-2, translation, ribosome, and cellular nitrogen compound metabolic process
+term_genes &lt;- getCombinedTermGenes(slimlist$Cold_1, .term_vec = c(term_translation, term_RNAprocessing, term_ribosome, &quot;cellular nitrogen compound metabolic process&quot;))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;Cold&quot; &amp; cer == 1 &amp; par == 2) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 130</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 262</code></pre>
+<pre class="r"><code># Cold, 2-1, translation, transport
+term_genes &lt;- getCombinedTermGenes(slimlist$Cold_2, .term_vec = c(term_translation, term_transport))
+all_genes &lt;- finaldf |&gt; filter(experiment == &quot;Cold&quot; &amp; cer == 2 &amp; par == 1) |&gt; select(gene_name) |&gt; pull()
+sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
+<pre><code>## [1] 39</code></pre>
+<pre class="r"><code>length(all_genes)</code></pre>
+<pre><code>## [1] 97</code></pre>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

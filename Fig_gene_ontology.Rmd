@@ -1,0 +1,400 @@
+---
+title: "Gene ontology enrichment tests among plasticity-reversing genes"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r package-loading}
+source(file = "functions_for_figure_scripts.R")
+library(dplyr)
+library(purrr)
+load("data_files/FinalDataframe3Disp.RData")
+load("data_files/GO_Slim.RData")
+nGenes <- finaldf$gene_name |> unique() |> length() # for exact tests 
+# filtering for just Biological Processess
+goslim <- filter(goslim, GO_aspect == "P")
+```
+
+## Print gene lists for Saccharomyces Genome Database (SGD)
+
+```{r printGeneList}
+printGeneList <- function(.gene_idxs, .folder = "gene_ontology/gene_lists/",
+                          .file_name = "test", .file_suffix = ".txt") {
+  return(write.table(.gene_idxs, 
+              file = paste0(.folder, .file_name, .file_suffix),
+              quote = FALSE, 
+              row.names = FALSE, 
+              col.names = FALSE))
+}
+# # tests for printGeneList
+# test <- printGeneList(.gene_idxs = c("YGR192C", "YJR009C", "YJL052W"),
+#                       .file_name = "TDHs")
+```
+
+## In-house GO enrichment test based on GOslim table
+
+```{r getGOSlimDf}
+getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/results/",
+                        .min_hits = 5) {
+  test_table <- goslim |> filter(ORF %in% .idxs) |> select(GOslim_term) |> table()
+  test_table <- test_table[test_table >= .min_hits]
+  testdf <- tibble("term" = names(test_table),
+                   "group_count" = as.numeric(test_table))
+  testdf$overall_count <- purrr::map(testdf$term, \(x) {
+    ct <- goslim |> filter(GOslim_term == x) |> select(ORF) |> 
+      pull() |> unique() |> length()
+    return(ct)
+  }) |> unlist()
+  testdf$exact_pval <- map2(testdf$group_count, testdf$overall_count, \(x, y) {
+    n_mod <- length(.idxs)
+    n_genes <- nGenes
+    exact_table <- rbind(c(x, n_mod - x), c(y - x, n_genes - n_mod - y))
+    exact_result <- fisher.test(exact_table, alternative = "greater")
+    return(exact_result$p.value)
+  }) |> unlist()
+  testdf$sig <- testdf$exact_pval < 0.001
+  testdf$genes <- purrr::map(testdf$term, \(x) {
+    termgenes <- goslim |> filter(ORF %in% .idxs & GOslim_term == x) |> 
+      select(ORF) |> pull() |> unique()
+    return(purrr::reduce(termgenes, paste, sep = " "))
+  }) |> unlist()
+  
+  write_csv(arrange(testdf, exact_pval, desc(group_count)), 
+            file = paste0(.file_prefix, .group_name, ".csv"),
+            quote = "none", 
+            col_names = TRUE)
+  return(testdf)
+}
+
+# tests for getGOSlimDf
+test <- getGOSlimDf(.idxs = c("YGR192C", "YJR009C", "YJL052W"),
+                    .group_name = "tdhs", .min_hits = 1)
+```
+
+Looping through all the plasticity reversal categories to get GOSlim results:
+
+```{r slimlist}
+griddf <- expand_grid(experiment = ExperimentNames,
+                      cer_clust = c(1, 2))
+slimlist <- vector(mode = "list", length = nrow(griddf))
+for (i in 1:nrow(griddf)) {
+  e <- griddf$experiment[i]
+  cer_clust <- griddf$cer_clust[i]
+  par_clust <- setdiff(c(1, 2), cer_clust)
+  gene_idxs <- filter(finaldf, experiment == e &
+                        cer == cer_clust &
+                        par == par_clust) |> 
+    select(gene_name) |> pull()
+  slimlist[[i]] <- getGOSlimDf(.idxs = gene_idxs,
+                               .group_name = paste0(e, cer_clust, par_clust))
+}
+names(slimlist) <- as.character(apply(griddf, 1, \(x) {paste(x[1], x[2], sep = "_")}))
+```
+
+## Combining GO terms for main paper summary table
+
+Manually selecting groups of terms related to broader but meaningful biological processes.
+
+```{r getCombinedTermGenes}
+# @input: GOslim enrichment results df for one ccm, character vector of GOslim terms to combine
+# @output: character vector of all the genes associated with those terms in that ccm, each gene only appearing once
+getCombinedTermGenes <- function(.df, .term_vec) {
+  .df |> filter(term %in% .term_vec) |> 
+    select(genes) |> pull() |> purrr::map(.f = strsplit, split = " ") |> 
+    unlist() |> unique()
+}
+```
+
+```{r term-groupings}
+# manually combining terms
+term_RNAprocessing <- c("mRNA binding",
+                        "sno(s)RNA processing",
+                        "mRNA processing",
+                        "nucleobase-containing compound catabolic process",
+                        "nucleobase-containing small molecule metabolic process",
+                        "RNA binding",
+                        "RNA modification",
+                        "RNA catabolic process",
+                        "RNA splicing",
+                        "protein-RNA complex assembly",
+                        "small nuclear ribonucleoprotein complex",
+                        "spliceosomal complex",
+                        "U2-type spliceosomal complex",
+                        "U4/U6 x U5 tri-snRNP complex",
+                        "U6 snRNP",
+                        "box C/D RNP complex")
+
+term_chaperone <- c("chaperonin-containing T-complex",
+                    "prefoldin complex",
+                    "protein-containing complex assembly",
+                    "protein folding",
+                    "protein folding chaperone complex",
+                    "protein glycosylation",
+                    "protein acylation",
+                    "protein maturation",
+                    "protein modification by small protein conjugation or removal",
+                    "protein targeting",
+                    "unfolded protein binding")
+
+term_proteasome <- c("proteasome core complex, alpha-subunit complex",
+                     "proteasome core complex, beta-subunit complex",
+                     "proteasome regulatory particle, lid subcomplex",
+                     "proteasome storage granule")
+
+term_mRNADegrading <- c("P-body", "Lsm1-7-Pat1 complex")
+
+term_transport <- c("Golgi vesicle transport",
+                    "nuclear transport",
+                    "nucleocytoplasmic transport",
+                    "transport",
+                    "vacuolar transport",
+                    "vacuole",
+                    "vacuole organization",
+                    "vesicle-mediated transport",
+                    "regulation of transport",
+                    "vesicle organization")
+
+term_vacuoleGolgiTransport <- c("Golgi vesicle transport",
+                                "transport",
+                                "vacuolar transport",
+                                "vacuole",
+                                "vacuole organization",
+                                "vesicle-mediated transport",
+                                "regulation of transport",
+                                "vesicle organization")
+
+term_metabolism <- c("carbohydrate metabolic process",
+                     "catabolic process",
+                     "cellular nitrogen compound metabolic process",
+                     "hydrolase activity",
+                     "nucleobase-containing compound catabolic process",
+                     "nucleobase-containing small molecule metabolic process",
+                     "small molecule metabolic process")
+
+term_cytoskeleton <- c("cytoplasmic microtubule",
+                       "cytoskeletal protein binding",
+                       "cytoskeleton organization",
+                       "cytoskeleton-dependent intracellular transport",
+                       "microtubule",
+                       "microtubule organizing center",
+                       "organelle assembly",
+                       "organelle fusion",
+                       "regulation of organelle organization",
+                       "site of polarized growth",
+                       "cell cortex")
+
+term_cellularRespiration <- c("generation of precursor metabolites and energy",
+                              "MICOS complex",
+                              "mitochondrial proton-transporting ATP synthase complex  coupling factor F(o)",
+                              "mitochondrial respiratory chain complex III",
+                              "mitochondrial respiratory chain complex IV",
+                              "cellular respiration")
+
+term_DNArepairMetabolismBinding <- c("DNA binding",
+                                     "DNA damage response",
+                                     "DNA metabolic process",
+                                     "DNA recombination",
+                                     "DNA repair",
+                                     "DNA-binding transcription factor activity",
+                                     "DNA-templated transcription",
+                                     "telomere organization")
+
+term_transcription <- c("RNA polymerase II transcription regulator complex",
+                        "DNA-templated transcription",
+                        "transcription",
+                        "DNA-templated transcription elongation",
+                        "DNA-templated transcription termination",
+                        "RNA polymerase I complex",
+                        "RNA polymerase II core complex",
+                        "RNA polymerase III complex",
+                        "transcription by RNA polymerase I",
+                        "transcription by RNA polymerase II",
+                        "transcription by RNA polymerase III")
+
+term_translation <- c("translation",
+                      "cytoplasmic translation",
+                      "regulation of translation",
+                      "translational initiation",
+                      "translational elongation",
+                      "eukaryotic 48S preinitiation complex",
+                      "eukaryotic translation initiation factor 3 complex",
+                      "translation factor activity RNA binding")
+
+term_tRNA <- c("tRNA aminoacylation for protein translation",
+               "tRNA metabolic process",
+               "tRNA methyltransferase complex",
+               "tRNA processing")
+
+term_TF <- c("DNA-binding transcription factor activity",
+             "transcription factor binding",
+             "transcription regulator complex")
+
+term_chromatin <- c("chromatin",
+                    "chromatin binding",
+                    "chromatin organization",
+                    "NuA4 histone acetyltransferase complex",
+                    "histone acetyltransferase complex",
+                    "histone deacetylase complex",
+                    "rDNA heterochromatin")
+
+term_cellCycle <- c("chromosome segregation",
+                    "regulation of cell cycle")
+
+term_ubiquitin <- c("ubiquitin ligase complex",
+                    "ubiquitin-like protein binding")
+
+term_exoendocytosis <- c("endocytosis",
+                         "exocytosis",
+                         "SNARE complex",
+                         "endosomal transport",
+                         "endosome")
+
+term_endocytosis <- c("endocytosis",
+                      "endosomal transport",
+                      "endosome")
+
+term_membrane <- c("membrane",
+                   "membrane fusion",
+                   "membrane organization",
+                   "transmembrane transporter activity",
+                   "transmembrane transport")
+
+term_ribosome <- c("90S preribosome",
+                   "cytosolic large ribosomal subunit",
+                   "cytosolic small ribosomal subunit",
+                   "cytosolic ribosome",
+                   "large ribosomal subunit",
+                   "preribosome",
+                   "preribosome large subunit precursor",
+                   "ribonucleoprotein complex",
+                   "ribosome biogenesis",
+                   "ribosomal subunit export from nucleus",
+                   "rRNA processing",
+                   "protein-RNA complex assembly",
+                   "sno(s)RNA-containing ribonucleoprotein complex",
+                   "rRNA binding",
+                   "small ribosomal subunit",
+                   "structural constituent of ribosome",
+                   "preribosome small subunit precursor",
+                   "Pwp2p-containing subcomplex of 90S preribosome",
+                   "small-subunit processome",
+                   "t-UTP complex")
+
+term_mitochondrialTranslation <- c("mitochondrial large ribosomal subunit",
+                                   "mitochondrial small ribosomal subunit",
+                                   "mitochondrial translation")
+
+term_mitochondria <- c("mitochondrion",
+                       "mitochondrion organization")
+
+term_bioMoleculeSynthesis <- c("small molecule metabolic process",
+                               "nucleobase-containing small molecule metabolic process",
+                               "biosynthetic process",
+                               "amino acid metabolic process",
+                               "lipid metabolic process",
+                               "monocarboxylic acid metabolic process",
+                               "tRNA metabolic process")
+
+term_stress <- c("response to stress",
+                 "sporulation",
+                 "response to heat",
+                 "response to osmotic stress",
+                 "DNA damage response",
+                 "response to oxidative stress",
+                 "response to chemical")
+```
+
+Counting number of genes in each plasticity group that are associated with terms belong to the combined term (the combined term was decided by visually inspecting the Supplementary_Table2.xlsx full GOslim results):
+
+```{r combining-terms}
+# HAP4, 1-2, chaperone and transport
+term_genes <- getCombinedTermGenes(slimlist$HAP4_1, .term_vec = c(term_chaperone, term_transport))
+all_genes <- finaldf |> filter(experiment == "HAP4" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# HAP4, 2-1, DNA repair and golgi/vessicle transport
+term_genes <- getCombinedTermGenes(slimlist$HAP4_2, .term_vec = c(term_DNArepairMetabolismBinding, term_vacuoleGolgiTransport))
+all_genes <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# CC, 1-2, respiration and metabolism
+term_genes <- getCombinedTermGenes(slimlist$CC_1, .term_vec = c(term_cellularRespiration, term_metabolism))
+all_genes <- finaldf |> filter(experiment == "CC" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# CC, 2-1, ribosome and tRNA processing
+term_genes <- getCombinedTermGenes(slimlist$CC_2, .term_vec = c(term_ribosome, term_tRNA))
+all_genes <- finaldf |> filter(experiment == "CC" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# LowN, 1-2, protein folding and translation
+term_genes <- getCombinedTermGenes(slimlist$LowN_1, .term_vec = c(term_chaperone, term_translation))
+all_genes <- finaldf |> filter(experiment == "LowN" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# LowN, 2-1, lipid/amino acid/tRNA synthesis
+term_genes <- getCombinedTermGenes(slimlist$LowN_2, .term_vec = term_bioMoleculeSynthesis)
+all_genes <- finaldf |> filter(experiment == "LowN" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# LowPi, 1-2, stress and protein folding
+term_genes <- getCombinedTermGenes(slimlist$LowPi_1, .term_vec = c(term_stress, term_chaperone))
+all_genes <- finaldf |> filter(experiment == "LowPi" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# LowPi, 2-1, ribosome, tRNA, and small molecule biosynthesis
+term_genes <- getCombinedTermGenes(slimlist$LowPi_2, .term_vec = c(term_ribosome, term_tRNA, term_bioMoleculeSynthesis))
+term_genes_cc <- getCombinedTermGenes(slimlist$CC_2, .term_vec = c(term_ribosome, term_tRNA))
+length(intersect(term_genes, term_genes_cc)) # comparing to CC 2-1 which had the same term enrichment
+length(union(term_genes, term_genes_cc)) # some overlap
+all_genes <- finaldf |> filter(experiment == "LowPi" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# Heat, 1-2, translation, RNA processing, ribosome
+term_genes <- getCombinedTermGenes(slimlist$Heat_1, .term_vec = c(term_translation, term_RNAprocessing, term_ribosome))
+all_genes <- finaldf |> filter(experiment == "Heat" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# Heat, 2-1, transcription, small molecule synthesis
+term_genes <- getCombinedTermGenes(slimlist$Heat_2, .term_vec = c(term_transcription, term_tRNA, term_bioMoleculeSynthesis))
+all_genes <- finaldf |> filter(experiment == "Heat" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# Cold, 1-2, translation, ribosome, and cellular nitrogen compound metabolic process
+term_genes <- getCombinedTermGenes(slimlist$Cold_1, .term_vec = c(term_translation, term_RNAprocessing, term_ribosome, "cellular nitrogen compound metabolic process"))
+all_genes <- finaldf |> filter(experiment == "Cold" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+
+# Cold, 2-1, translation, transport
+term_genes <- getCombinedTermGenes(slimlist$Cold_2, .term_vec = c(term_translation, term_transport))
+all_genes <- finaldf |> filter(experiment == "Cold" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+sum(term_genes %in% all_genes)/length(term_genes)
+sum(term_genes %in% all_genes)
+length(all_genes)
+```
+
+

@@ -245,48 +245,78 @@ $(document).ready(function () {
         <li>
   <a href="index.html">Home</a>
 </li>
-<li>
-  <a href="clean_data.html">1. Import data and QC</a>
-</li>
-<li>
-  <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
-</li>
-<li>
-  <a href="functions_for_figure_scripts.html">3. Functions</a>
-</li>
-<li>
-  <a href="clustering.html">4. Clustering</a>
-</li>
-<li>
-  <a href="DESeq2.html">5. DESeq2</a>
-</li>
-<li>
-  <a href="data_for_figure_scripts.html">6. Final dataframe</a>
-</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    7. Single-environment
+    1-3. Data Cleaning
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="DiauxicShift.html">Diauxic Shift</a>
+      <a href="clean_data.html">1. Import data and QC</a>
     </li>
     <li>
-      <a href="HUShock.html">HU Shock</a>
+      <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
     </li>
     <li>
-      <a href="LowNitrogen.html">Low Nitrogen</a>
+      <a href="functions_for_figure_scripts.html">3. Functions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    4-6. Data Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clustering.html">4. Clustering</a>
     </li>
     <li>
-      <a href="LowPhosphate.html">Low Phosphate</a>
+      <a href="single_gene_models.html">5. Generalized linear models</a>
     </li>
     <li>
-      <a href="HeatStress.html">Heat Stress</a>
+      <a href="data_for_figure_scripts.html">6. Final dataframe</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    7. Single-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_DiauxicShift.html">Fig 5: Diauxic Shift</a>
     </li>
     <li>
-      <a href="ColdStress.html">Cold Stress</a>
+      <a href="Fig_HUShock.html">Fig S3: HU Shock</a>
+    </li>
+    <li>
+      <a href="Fig_LowNitrogen.html">Fig S3: Low Nitrogen</a>
+    </li>
+    <li>
+      <a href="Fig_LowPhosphate.html">Fig S3: Low Phosphate</a>
+    </li>
+    <li>
+      <a href="Fig_HeatStress.html">Fig S3: Heat Stress</a>
+    </li>
+    <li>
+      <a href="Fig_ColdStress.html">Fig S3: Cold Stress</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    8-10.: Multi-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_gene_ontology.html">8. Table 1: Gene Ontology</a>
     </li>
   </ul>
 </li>
@@ -466,6 +496,20 @@ table(finaldf$plasticity, finaldf$level, useNA = &quot;always&quot;) # checking 
 <pre><code>## experiment
 ##    CC  Cold  HAP4  Heat  LowN LowPi 
 ##  1532  1563  1238  1415  1657  1587</code></pre>
+<p>Tables of number of timepoints per experiment for paper figure:</p>
+<pre class="r"><code>sample_info |&gt; select(experiment, time_point_str) |&gt; 
+  unique() |&gt; 
+  group_by(experiment) |&gt; 
+  summarise(n = n())</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   experiment     n
+##   &lt;chr&gt;      &lt;int&gt;
+## 1 CC             8
+## 2 Cold           4
+## 3 HAP4          15
+## 4 Heat           4
+## 5 LowN           3
+## 6 LowPi         28</code></pre>
 <p>Calculating ortholog pair correlations for EnvironmentalPatterns
 figure</p>
 <pre class="r"><code># between hybrid alleles and for parent-hybrid allele of the same species (Hyc/Scer and Hyp/Spar)
@@ -490,76 +534,22 @@ finaldf$cor_hybrid &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelati
                            .cts1 = collapsed_allele$cer,
                            .cts2 = collapsed_allele$par,
                            .info1 = info_allele,
-                           .info2 = info_allele) |&gt; unlist()</code></pre>
-<pre><code>## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero</code></pre>
-<pre class="r"><code>finaldf$cor_parents &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
+                           .info2 = info_allele) |&gt; unlist()
+finaldf$cor_parents &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
                             .cts1 = collapsed$cer,
                             .cts2 = collapsed$par,
                             .info1 = info,
-                            .info2 = info) |&gt; unlist()</code></pre>
-<pre><code>## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero</code></pre>
-<pre class="r"><code>finaldf$cor_scer &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
+                            .info2 = info) |&gt; unlist()
+finaldf$cor_scer &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
                          .cts1 = collapsed_allele$cer,
                          .cts2 = collapsed$cer,
                          .info1 = info_allele,
-                         .info2 = info) |&gt; unlist()</code></pre>
-<pre><code>## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero</code></pre>
-<pre class="r"><code>finaldf$cor_spar &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
+                         .info2 = info) |&gt; unlist()
+finaldf$cor_spar &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
                          .cts1 = collapsed_allele$par,
                          .cts2 = collapsed$par,
                          .info1 = info_allele,
                          .info2 = info) |&gt; unlist()</code></pre>
-<pre><code>## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero
-## Warning in cor(as.numeric(.cts1[.gene_name, common_cols]), as.numeric(.cts2[.gene_name, : the
-## standard deviation is zero</code></pre>
 <p>Calculating the mean and var of each gene’s expression across both
 species, which is mainly relevant in a couple Supplemental/QC plots</p>
 <p>mean:</p>
@@ -644,19 +634,25 @@ round(p_none/sum(p_none), digits = 2)</code></pre>
 <pre class="r"><code># proportions are the same between the three groups</code></pre>
 <p>Numbers for the workflow figure:</p>
 <pre class="r"><code>### numbers for workflow figure
-nrow(finaldf)</code></pre>
+nrow(finaldf) # for workflow figure E</code></pre>
 <pre><code>## [1] 25256</code></pre>
+<pre class="r"><code>length(unique(finaldf$gene_name)) # total number of genes</code></pre>
+<pre><code>## [1] 4863</code></pre>
 <pre class="r"><code>n_per_experiment &lt;- table(finaldf$experiment)
-# min filtered out for low expression:
+n_per_experiment # number of genes used in each environment (number expressed &gt; 30cpm)</code></pre>
+<pre><code>## 
+##    CC  Cold  HAP4  Heat  LowN LowPi 
+##  3952  4051  4286  4172  4412  4383</code></pre>
+<pre class="r"><code># min filtered out for low expression:
 max(n_per_experiment)</code></pre>
 <pre><code>## [1] 4412</code></pre>
 <pre class="r"><code>(nrow(genedf) - max(n_per_experiment))/nrow(genedf)</code></pre>
-<pre><code>## [1] -71.32787</code></pre>
+<pre><code>## [1] 0.09274111</code></pre>
 <pre class="r"><code># max filtered out for low expression:
 min(n_per_experiment)</code></pre>
 <pre><code>## [1] 3952</code></pre>
 <pre class="r"><code>(nrow(genedf) - min(n_per_experiment))/nrow(genedf)</code></pre>
-<pre><code>## [1] -63.78689</code></pre>
+<pre><code>## [1] 0.1873329</code></pre>
 <pre class="r"><code># percent low variance per experiment:
 finaldf |&gt; group_by(experiment) |&gt; 
   summarise(n_cer_lowvar = sum(cer == 0),
@@ -805,10 +801,25 @@ class="section level2">
 <p>Renaming some column names and selecting specific finaldf columns for
 the supplementary table, so that it appears as close to the workflow
 figure as possible</p>
-<pre class="r"><code>supp_tab1 &lt;- finaldf |&gt; select(gene_name, experiment, effect_size_species, padj_species,
-                               cer, par, level, plasticity) |&gt; 
+<pre class="r"><code>supp_tab1 &lt;- finaldf |&gt; select(gene_name, experiment, effect_size_species, padj_species, cer, par, level, plasticity) |&gt;
   dplyr::rename(c(&quot;gene&quot;=&quot;gene_name&quot;, &quot;log2_fold_change&quot;=&quot;effect_size_species&quot;,
                   &quot;padj&quot;=&quot;padj_species&quot;, &quot;cluster_Scer&quot;=&quot;cer&quot;, &quot;cluster_Spar&quot;=&quot;par&quot;))
+# changing cluster names for clarity
+# 0 = &quot;static&quot;
+# 1 = &quot;increasing&quot;
+# 2 = &quot;decreasing&quot;
+supp_tab1$cluster_Scer &lt;-
+  if_else(supp_tab1$cluster_Scer == 0,
+          true = &quot;static&quot;,
+          false = if_else(supp_tab1$cluster_Scer == 1,
+                          true = &quot;increasing&quot;,
+                          false = &quot;decreasing&quot;))
+supp_tab1$cluster_Spar &lt;-
+  if_else(supp_tab1$cluster_Spar == 0,
+          true = &quot;static&quot;,
+          false = if_else(supp_tab1$cluster_Spar == 1,
+                          true = &quot;increasing&quot;,
+                          false = &quot;decreasing&quot;))
 write_delim(supp_tab1, delim = &quot;,&quot;, file = &quot;data_files/Supplementary_Table1.csv&quot;,
             col_names = TRUE)</code></pre>
 </div>

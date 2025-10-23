@@ -1,6 +1,8 @@
-sapply(c("dplyr", "purrr", "tidyr", "ggpubr", "readr",
+sapply(c("tidyr", "ggpubr", "readr",
          "data.table", "ggplot2", "data.table",
          "matrixStats", "ggpattern", "WGCNA"), require, character.only=TRUE)
+library(dplyr)
+library(purrr) # because their function names keep getting over-written
 
 #### Taking means across replicates ####
 # helper function that turns a counts and info pair into

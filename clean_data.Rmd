@@ -11,7 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 Working with RNAseq data published in Krieger et al. 2020 and Fay et al. 2023
 
 ```{r, echo=FALSE}
-sapply(c("dplyr", "readr", "tidyr", "purrr", "ggplot2", "ggpubr", "openxlsx", "matrixStats"), require, character.only=TRUE)
+sapply(c("readr", "tidyr", "purrr", "ggplot2", "ggpubr", "openxlsx", "matrixStats"), require, character.only=TRUE)
+library(dplyr) # dplyr functions keep being hidden so loading it last
 ```
 
 ## Reading in Krieger et al. 2020 and Lupo et al. 2021 tagseq data
@@ -155,7 +156,7 @@ filter(sampdf, (organism == "cerSample" & round(avg_pct_cer, digits = 1) < 0.8) 
   arrange(organism, desc(avg_pct_cer))
 biased_samples <- filter(sampdf, (organism == "cerSample" & round(avg_pct_cer, digits = 1) < 0.9) |
                            (organism == "parSample" & round(avg_pct_cer, digits = 1) > 0.1)) |> 
-  select(sample_name) |> pull()
+  dplyr::select(sample_name) |> pull()
 biased_samples
 # do these samples have small library sizes?
 bad_libsizes <- colSums(tagseq_cer[,biased_samples] + tagseq_par[,biased_samples])
@@ -174,7 +175,7 @@ hist(cer_genedf$avg_pct_cer, breaks = 50)
 abline(v = 0.9, col = "red")
 par_genedf <- plotdf |> filter(organism == "parSample" &
                                  !(sample_name %in% biased_samples)) |> 
-  group_by(gene) |> 
+  dplyr::group_by(gene) |> 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
 hist(par_genedf$avg_pct_cer, breaks = 50)
 abline(v = 0.1, col = "red")

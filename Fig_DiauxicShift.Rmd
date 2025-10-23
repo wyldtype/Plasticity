@@ -72,12 +72,12 @@ setdiff(unique(finaldf$gene_name), expdf$gene_name) |> length()
 expdf |> select(cer) |> table()
 expdf |> select(par) |> table()
 
-# Conserved genes:
+cat("Conserved genes:")
 expdf |> filter(plasticity != "diverged" & 
                   level != "diverged") |> 
   select(cer, par) |> table()
 
-# Diverged level:
+cat("Diverged level:")
 expdf |> filter(plasticity != "diverged" & 
                   level == "diverged") |> 
   mutate(direction = if_else(effect_size_species > 0,
@@ -85,7 +85,7 @@ expdf |> filter(plasticity != "diverged" &
                              false = "up in Spar")) |> 
   select(cer, par, direction) |> table()
 
-# Diverged plasticity:
+cat("Diverged plasticity:")
 expdf |> filter(plasticity == "diverged" & 
                   level != "diverged") |> 
   mutate(isZero = if_else(cer == 0 | par == 0,
@@ -95,7 +95,7 @@ expdf |> filter(plasticity == "diverged" &
                           false = "neither0")) |> 
   select(cer, par, isZero) |> table()
 
-# Diverged level and plasticity:
+cat("Diverged level and plasticity:")
 expdf |> filter(plasticity == "diverged" & 
                   level == "diverged") |> 
   mutate(direction = if_else(effect_size_species > 0,

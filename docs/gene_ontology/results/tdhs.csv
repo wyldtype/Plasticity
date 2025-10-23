@@ -1,0 +1,13 @@
+term,group_count,overall_count,exact_pval,sig,genes
+monocarboxylic acid metabolic process,3,105,9.804358528682235e-6,TRUE,YGR192C YJL052W YJR009C
+carbohydrate metabolic process,3,106,1.0089922369323485e-5,TRUE,YGR192C YJL052W YJR009C
+generation of precursor metabolites and energy,3,115,1.2913395617861363e-5,TRUE,YGR192C YJL052W YJR009C
+nucleobase-containing compound catabolic process,3,165,3.8448085379228564e-5,TRUE,YGR192C YJL052W YJR009C
+nucleobase-containing small molecule metabolic process,3,172,4.35845734358907e-5,TRUE,YGR192C YJL052W YJR009C
+cell death,2,23,6.407030088930875e-5,TRUE,YGR192C YJR009C
+small molecule metabolic process,3,556,0.001490173584541187,FALSE,YGR192C YJL052W YJR009C
+catabolic process,3,615,0.002017731075181931,FALSE,YGR192C YJL052W YJR009C
+biosynthetic process,3,973,0.008004932170789764,FALSE,YGR192C YJL052W YJR009C
+cellular nitrogen compound metabolic process,3,1386,0.023158392750931164,FALSE,YGR192C YJL052W YJR009C
+monoatomic ion transport,1,71,0.04318125170265663,FALSE,YGR192C
+transport,1,874,0.4482252345509723,FALSE,YGR192C

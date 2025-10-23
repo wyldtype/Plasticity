@@ -245,48 +245,78 @@ $(document).ready(function () {
         <li>
   <a href="index.html">Home</a>
 </li>
-<li>
-  <a href="clean_data.html">1. Import data and QC</a>
-</li>
-<li>
-  <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
-</li>
-<li>
-  <a href="functions_for_figure_scripts.html">3. Functions</a>
-</li>
-<li>
-  <a href="clustering.html">4. Clustering</a>
-</li>
-<li>
-  <a href="DESeq2.html">5. DESeq2</a>
-</li>
-<li>
-  <a href="data_for_figure_scripts.html">6. Final dataframe</a>
-</li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    7. Single-environment
+    1-3. Data Cleaning
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
     <li>
-      <a href="DiauxicShift.html">Diauxic Shift</a>
+      <a href="clean_data.html">1. Import data and QC</a>
     </li>
     <li>
-      <a href="HUShock.html">HU Shock</a>
+      <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
     </li>
     <li>
-      <a href="LowNitrogen.html">Low Nitrogen</a>
+      <a href="functions_for_figure_scripts.html">3. Functions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    4-6. Data Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clustering.html">4. Clustering</a>
     </li>
     <li>
-      <a href="LowPhosphate.html">Low Phosphate</a>
+      <a href="single_gene_models.html">5. Generalized linear models</a>
     </li>
     <li>
-      <a href="HeatStress.html">Heat Stress</a>
+      <a href="data_for_figure_scripts.html">6. Final dataframe</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    7. Single-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_DiauxicShift.html">Fig 5: Diauxic Shift</a>
     </li>
     <li>
-      <a href="ColdStress.html">Cold Stress</a>
+      <a href="Fig_HUShock.html">Fig S3: HU Shock</a>
+    </li>
+    <li>
+      <a href="Fig_LowNitrogen.html">Fig S3: Low Nitrogen</a>
+    </li>
+    <li>
+      <a href="Fig_LowPhosphate.html">Fig S3: Low Phosphate</a>
+    </li>
+    <li>
+      <a href="Fig_HeatStress.html">Fig S3: Heat Stress</a>
+    </li>
+    <li>
+      <a href="Fig_ColdStress.html">Fig S3: Cold Stress</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    8-10.: Multi-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_gene_ontology.html">8. Table 1: Gene Ontology</a>
     </li>
   </ul>
 </li>
@@ -314,10 +344,8 @@ class="section level1">
 metadata</h1>
 <p>Working with RNAseq data published in Krieger et al. 2020 and Fay et
 al. 2023</p>
-<pre><code>##       dplyr       readr       tidyr       purrr     ggplot2      ggpubr    openxlsx 
-##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
-## matrixStats 
-##        TRUE</code></pre>
+<pre><code>##       readr       tidyr       purrr     ggplot2      ggpubr    openxlsx matrixStats 
+##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE</code></pre>
 <div
 id="reading-in-krieger-et-al.-2020-and-lupo-et-al.-2021-tagseq-data"
 class="section level2">
@@ -392,16 +420,16 @@ test_cpm &lt;- countsPerMillionAllele(.cts_cer = tagseq_cer[,-1],
 ((test_count/(colSums(tagseq_cer[,-1], na.rm = TRUE) + 
                 colSums(tagseq_par[,-1], na.rm = TRUE))[test_colIdx])*1e6) %&gt;% 
   round() # what it should be</code></pre>
-<pre><code>##   WT_TP2_cer_WTs_D7_G6_GS2018
-## 1                           0</code></pre>
+<pre><code>##   WT_TP1_cer_WTs_D1_G6_GS2018
+## 1                         512</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   WT_TP2_cer_WTs_D7_G6_GS2018
+##   WT_TP1_cer_WTs_D1_G6_GS2018
 ##                         &lt;dbl&gt;
-## 1                           0</code></pre>
+## 1                         467</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## WT_TP2_cer_WTs_D7_G6_GS2018 
-##                           0</code></pre>
+<pre><code>## WT_TP1_cer_WTs_D1_G6_GS2018 
+##                         512</code></pre>
 <p>Now we can calculate percent reads mapping to each allele in parental
 samples</p>
 <pre class="r"><code># 1) normalize to counts per million based on total 
@@ -505,7 +533,7 @@ ggplot(filter(plotdf, gene %in% sample_genes),
 ## 3 WT_34_par_CellCycle_rep2 parSample       0.312</code></pre>
 <pre class="r"><code>biased_samples &lt;- filter(sampdf, (organism == &quot;cerSample&quot; &amp; round(avg_pct_cer, digits = 1) &lt; 0.9) |
                            (organism == &quot;parSample&quot; &amp; round(avg_pct_cer, digits = 1) &gt; 0.1)) |&gt; 
-  select(sample_name) |&gt; pull()
+  dplyr::select(sample_name) |&gt; pull()
 biased_samples</code></pre>
 <pre><code>## [1] &quot;WT_12_cer_CellCycle_rep1&quot; &quot;WT_15_par_HAP4andWTonYPD&quot; &quot;WT_28_cer_CellCycle_rep2&quot;
 ## [4] &quot;WT_34_par_CellCycle_rep2&quot; &quot;WT_39_cer_CellCycle_rep2&quot;</code></pre>
@@ -530,7 +558,7 @@ abline(v = 0.9, col = &quot;red&quot;)</code></pre>
 <p><img src="clean_data_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 <pre class="r"><code>par_genedf &lt;- plotdf |&gt; filter(organism == &quot;parSample&quot; &amp;
                                  !(sample_name %in% biased_samples)) |&gt; 
-  group_by(gene) |&gt; 
+  dplyr::group_by(gene) |&gt; 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
 hist(par_genedf$avg_pct_cer, breaks = 50)
 abline(v = 0.1, col = &quot;red&quot;)</code></pre>
@@ -1032,42 +1060,42 @@ random_gene &lt;- sample(c(1:nrow(fay_cer)), 1)
 # what it was
 fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S58_R1
+##   S32_R1
 ##    &lt;dbl&gt;
-## 1     23</code></pre>
+## 1     54</code></pre>
 <pre class="r"><code>fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S58_R2
+##   S32_R2
 ##    &lt;dbl&gt;
-## 1     29</code></pre>
+## 1     65</code></pre>
 <pre class="r"><code># what it should be
 (fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)] +
   fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)])/2</code></pre>
-<pre><code>##   S58_R1
-## 1     26</code></pre>
+<pre><code>##   S32_R1
+## 1   59.5</code></pre>
 <pre class="r"><code># what it is
 fay_cer[random_gene, random_Sample]</code></pre>
-<pre><code>## [1] 26</code></pre>
+<pre><code>## [1] 59.5</code></pre>
 <pre class="r"><code># par
 # what it was
 fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S58_R1
+##   S32_R1
 ##    &lt;dbl&gt;
-## 1    369</code></pre>
+## 1    747</code></pre>
 <pre class="r"><code>fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S58_R2
+##   S32_R2
 ##    &lt;dbl&gt;
-## 1    370</code></pre>
+## 1    779</code></pre>
 <pre class="r"><code># what it should be
 (fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)] +
     fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)])/2</code></pre>
-<pre><code>##   S58_R1
-## 1  369.5</code></pre>
+<pre><code>##   S32_R1
+## 1    763</code></pre>
 <pre class="r"><code># what it is
 fay_par[random_gene, random_Sample]</code></pre>
-<pre><code>## [1] 369.5</code></pre>
+<pre><code>## [1] 763</code></pre>
 <pre class="r"><code>rm(fay_cer_R1R2, fay_par_R1R2)
 
 # setting rownames to gene names for each count matrix
@@ -1776,14 +1804,14 @@ test_count &lt;- test_cts[test_rowIdx, test_colIdx]
 test_cpm &lt;- countsPerMillion(test_cts)
 test_cpm_cpm &lt;- countsPerMillion(test_cpm)
 ((test_count/colSums(test_cts, na.rm = TRUE)[test_colIdx])*1e6) %&gt;% round() # what it should be</code></pre>
-<pre><code>## WT_TP2_par_P5_B3_G6_GS13 
-##                        3</code></pre>
+<pre><code>## WT_TP2_par_P5_E2_G6_GS13 
+##                        9</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## [1] 2</code></pre>
+<pre><code>## [1] 1</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## [1] 3</code></pre>
+<pre><code>## [1] 9</code></pre>
 <pre class="r"><code>test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (should be the same as test_cpm)</code></pre>
-<pre><code>## [1] 3</code></pre>
+<pre><code>## [1] 9</code></pre>
 <pre class="r"><code># Example of how small libraries skew data, YIL134W in CC before normalizing:
 test_counts &lt;- counts[, (grepl(&quot;_hyc&quot;, colnames(counts)) | 
                            grepl(&quot;_hyp&quot;, colnames(counts))) &amp;
@@ -2004,11 +2032,11 @@ sum(gene_lens_scer$gene_name == rownames(test_cts))/nrow(test_cts) # should be 1
 <pre class="r"><code>test_cpm &lt;- countsPerMillionWithLength(test_cts, test_lens)
 # test_cpm_cpm &lt;- countsPerMillionWithLength(test_cpm, test_lens)
 round(((test_count/test_lens[test_rowIdx])/sum(test_cts[,test_colIdx]/test_lens))*10^6) # what it should be</code></pre>
-<pre><code>## [1] 6</code></pre>
+<pre><code>## [1] 105</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## [1] 1</code></pre>
+<pre><code>## [1] 100.5</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## [1] 6</code></pre>
+<pre><code>## [1] 105</code></pre>
 <pre class="r"><code># test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (unlike the TagSeq normalization, this cannot be run over and over again)
 
 counts_unnorm &lt;- counts
@@ -2060,28 +2088,28 @@ dim(counts)</code></pre>
 <pre><code>## [1] 360   9</code></pre>
 <pre class="r"><code>sample_info |&gt; select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
 <pre><code>##                    sample_name organism allele
-## 1     WT_TP1_cer_C1_F6_G12_GS1      cer    cer
-## 2                      S26_cer      cer    cer
-## 3     WT_02_cer_CellCycle_rep2      cer    cer
-## 4      WT_TP3_cer_C1_F3_G6_GS3      cer    cer
-## 5     WT_17_par_SCtoLowPi_rep2      par    par
-## 6  WT_TP2_cer_WTs_A7_G6_GS2018      cer    cer
-## 7     WT_TP2_par_P5_B3_G6_GS13      par    par
-## 8    WT_TP3_par_P5_B6_G12_GS14      par    par
-## 9      WT_TP1_cer_C3_H2_G6_GS7      cer    cer
-## 10    WT_TP2_cer_C3_C6_G12_GS8      cer    cer</code></pre>
+## 1    WT_TP2_par_P5_F5_G12_GS13      par    par
+## 2      WT_1_par_HAP4andWTonYPD      par    par
+## 3     WT_TP3_cer_C3_G6_G12_GS8      cer    cer
+## 4     WT_18_par_SCtoLowPi_rep1      par    par
+## 5     WT_TP1_cer_C3_A6_G12_GS7      cer    cer
+## 6     WT_TP1_par_P5_E3_G6_GS13      par    par
+## 7  WT_TP2_par_WTs_D8_G6_GS2018      par    par
+## 8     WT_11_cer_SCtoLowPi_rep1      cer    cer
+## 9      WT_6_cer_HAP4andWTonYPD      cer    cer
+## 10    WT_TP1_par_P5_C3_G6_GS13      par    par</code></pre>
 <pre class="r"><code>sample_info_allele |&gt; select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
 <pre><code>##                      sample_name organism allele
-## 1       WT_17_hyp_SCtoLowPi_rep2      hyb    par
-## 2      WT_TP3_hyc_H3_D5_G12_GS12      hyb    cer
-## 3   WT_TP1_hyc_WTs_G5_WT2_GS2018      hyb    cer
-## 4        WT_6_hyc_HAP4andWTonYPD      hyb    cer
-## 5       WT_13_hyp_SCtoLowPi_rep1      hyb    par
-## 6  WT_TP2_hyc_WTs_A10_G12_GS2018      hyb    cer
-## 7   WT_TP2_hyc_WTs_B9_G12_GS2018      hyb    cer
-## 8      WT_TP1_hyp_H3_C5_G12_GS12      hyb    par
-## 9   WT_TP3_hyp_WTs_B3_G12_GS2018      hyb    par
-## 10  WT_TP3_hyp_WTs_A3_G12_GS2018      hyb    par</code></pre>
+## 1       WT_14_hyc_SCtoLowPi_rep1      hyb    cer
+## 2                        S34_hyc      hyb    cer
+## 3  WT_TP2_hyc_WTs_D10_G12_GS2018      hyb    cer
+## 4   WT_TP3_hyc_WTs_F4_WT2_GS2018      hyb    cer
+## 5        WT_5_hyp_HAP4andWTonYPD      hyb    par
+## 6   WT_TP1_hyp_WTs_B5_G12_GS2018      hyb    par
+## 7       WT_15_hyc_HAP4andWTonYPD      hyb    cer
+## 8      WT_TP1_hyc_H3_B6_G12_GS12      hyb    cer
+## 9   WT_TP1_hyc_WTs_C6_G12_GS2018      hyb    cer
+## 10                        S8_hyp      hyb    par</code></pre>
 <pre class="r"><code># checking that every hybrid sample name has exactly one cer and one par row
 sample_info_allele |&gt; select(sample_name, organism, allele) |&gt; 
   group_by(sample_name) |&gt; 
