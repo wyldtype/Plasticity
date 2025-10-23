@@ -4,11 +4,12 @@
 *.Ruserdata
 *.ai
 /data_files
+/gene_ontology
 /paper_figures
 /docs/data_files
 /docs/paper_figures
 /clean_data_cache
-/DESeq2_cache
+/single_gene_models_cache
 /data_for_figure_scripts_cache
 /clustering_cache
 .DS_Store
