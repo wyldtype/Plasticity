@@ -247,7 +247,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    1-3. Data Cleaning
+    1-3: Data Cleaning
      
     <span class="caret"></span>
   </a>
@@ -265,7 +265,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    4-6. Data Analysis
+    4-6: Data Analysis
      
     <span class="caret"></span>
   </a>
@@ -283,7 +283,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    7. Single-environment figures
+    7: Single-environment figures
      
     <span class="caret"></span>
   </a>
@@ -310,7 +310,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    8-10.: Multi-environment figures
+    8-10: Multi-environment figures
      
     <span class="caret"></span>
   </a>
@@ -352,14 +352,18 @@ folder_name &lt;- &quot;DiauxicShift&quot;</code></pre>
 <pre class="r"><code># summary of groups in this experiment
 table(expdf$group) |&gt; sort(decreasing = TRUE)</code></pre>
 <pre><code>## 
-##         cons1         cons2         dyn01     levupcer1         cons0         dyn20 
-##          1218           616           359           284           250           213 
-##     levuppar1         dyn21         dyn10 levdynuppar01     levuppar2 levdynuppar21 
-##           194           188           155           122           117            65 
-##         dyn02     levuppar0 levdynupcer01     levupcer0     levupcer2 levdynupcer10 
-##            64            58            50            47            47            43 
-## levdynupcer20 levdynupcer21         dyn12 levdynuppar20 levdynuppar02 levdynuppar10 
-##            38            36            34            33            16            13 
+##         cons1         cons2         dyn01     levupcer1 
+##          1218           616           359           284 
+##         cons0         dyn20     levuppar1         dyn21 
+##           250           213           194           188 
+##         dyn10 levdynuppar01     levuppar2 levdynuppar21 
+##           155           122           117            65 
+##         dyn02     levuppar0 levdynupcer01     levupcer0 
+##            64            58            50            47 
+##     levupcer2 levdynupcer10 levdynupcer20 levdynupcer21 
+##            47            43            38            36 
+##         dyn12 levdynuppar20 levdynuppar02 levdynuppar10 
+##            34            33            16            13 
 ## levdynupcer12 levdynuppar12 levdynupcer02 
 ##            11            10             5</code></pre>
 <pre class="r"><code>sum(table(expdf$group))</code></pre>
@@ -537,24 +541,24 @@ for (clust in cluster_names) {
                                                        theme(plot.margin = unit(c(0,0.25,0,0), &quot;cm&quot;)),
                                                      top = paste0(length(gene_idxs), &quot; genes&quot;))
 }</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
@@ -585,8 +589,8 @@ griddf &lt;- expdf |&gt; filter(plasticity != &quot;diverged&quot; &amp;
   mutate(lfc_sign = sign(effect_size_species)) |&gt; 
   group_by(cer, par, lfc_sign) |&gt; summarise(n = n()) |&gt; 
   arrange(desc(n))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;, &#39;par&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;, &#39;par&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>plotlist &lt;- vector(mode = &quot;list&quot;, length = 0)
 for (i in c(1:nrow(griddf))) {
   clust &lt;- griddf$cer[i]
@@ -603,45 +607,45 @@ for (i in c(1:nrow(griddf))) {
                                                           theme(plot.margin = unit(c(0,0.25,0,0), &quot;cm&quot;)),
                                                         top = paste0(length(gene_idxs), &quot; genes&quot;))
 }</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
@@ -671,7 +675,8 @@ class="section level3">
   group_by(cer, par) |&gt; 
   summarise(n = n()) |&gt; 
   arrange(desc(n))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
 <pre class="r"><code>plotlist &lt;- vector(mode = &quot;list&quot;, length = 0)
 for (i in c(1:nrow(griddf))) {
   clust_cer &lt;- griddf$cer[i]
@@ -687,45 +692,45 @@ for (i in c(1:nrow(griddf))) {
                                                                 theme(plot.margin = unit(c(0,0.25,0,0), &quot;cm&quot;)),
                                                               top = paste0(length(gene_idxs), &quot; genes&quot;))
 }</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
@@ -757,8 +762,8 @@ griddf &lt;- expdf |&gt; filter(plasticity == &quot;diverged&quot; &amp;
   group_by(cer, par, lfc_sign) |&gt; 
   summarise(n = n()) |&gt; 
   arrange(desc(n))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;, &#39;par&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;, &#39;par&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>plotlist &lt;- vector(mode = &quot;list&quot;, length = 0)
 for (i in c(1:nrow(griddf))) {
   clust_cer &lt;- griddf$cer[i]
@@ -776,87 +781,87 @@ for (i in c(1:nrow(griddf))) {
                                                           theme(plot.margin = unit(c(0,0.25,0,0), &quot;cm&quot;)),
                                                         top = paste0(length(gene_idxs), &quot; genes&quot;))
 }</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
-## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
@@ -937,30 +942,32 @@ if (experiment_name == &quot;HAP4&quot;) {
   print(annotate_figure(p, top = &quot;YJR001W&quot;))
   dev.off()
 }</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
-<pre><code>## Warning in max(pull(select(plotlimdf, sd_expr)), na.rm = TRUE): no non-missing arguments to
-## max; returning -Inf</code></pre>
-<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning -Inf</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;, &#39;experiment&#39;. You can override
-## using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;. You can override using
-## the `.groups` argument.
+<pre><code>## Warning in max(pull(select(plotlimdf, sd_expr)), na.rm = TRUE): no
+## non-missing arguments to max; returning -Inf</code></pre>
+<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max;
+## returning -Inf
+## Warning in max(ids, na.rm = TRUE): no non-missing arguments to max;
+## returning -Inf</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`
 ## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
-<pre><code>## Warning in max(pull(select(plotlimdf, sd_expr)), na.rm = TRUE): no non-missing arguments to
-## max; returning -Inf
-## Warning in max(pull(select(plotlimdf, sd_expr)), na.rm = TRUE): no non-missing arguments to
-## max; returning -Inf
-## Warning in max(pull(select(plotlimdf, sd_expr)), na.rm = TRUE): no non-missing arguments to
-## max; returning -Inf</code></pre>
+<pre><code>## Warning in max(pull(select(plotlimdf, sd_expr)), na.rm = TRUE): no
+## non-missing arguments to max; returning -Inf
+## Warning in max(pull(select(plotlimdf, sd_expr)), na.rm = TRUE): no
+## non-missing arguments to max; returning -Inf
+## Warning in max(pull(select(plotlimdf, sd_expr)), na.rm = TRUE): no
+## non-missing arguments to max; returning -Inf</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 </div>

@@ -247,7 +247,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    1-3. Data Cleaning
+    1-3: Data Cleaning
      
     <span class="caret"></span>
   </a>
@@ -265,7 +265,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    4-6. Data Analysis
+    4-6: Data Analysis
      
     <span class="caret"></span>
   </a>
@@ -283,7 +283,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    7. Single-environment figures
+    7: Single-environment figures
      
     <span class="caret"></span>
   </a>
@@ -310,7 +310,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    8-10.: Multi-environment figures
+    8-10: Multi-environment figures
      
     <span class="caret"></span>
   </a>
@@ -347,10 +347,10 @@ DESeq2 to determine divergence in expression level</h1>
 sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;,
          &quot;matrixStats&quot;, &quot;ggpubr&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2 
-##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
-##  data.table matrixStats      ggpubr 
-##        TRUE        TRUE        TRUE</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
+##        TRUE        TRUE        TRUE        TRUE        TRUE 
+##  data.table     ggplot2  data.table matrixStats      ggpubr 
+##        TRUE        TRUE        TRUE        TRUE        TRUE</code></pre>
 <pre class="r"><code>library(MASS, include.only = &quot;glm.nb&quot;)
 source(&quot;functions_for_figure_scripts.R&quot;)
 load(&quot;data_files/GLM_Counts.RData&quot;)
@@ -383,43 +383,43 @@ spmod &lt;- fitSingleGeneModel(test_genedf, random_gene)
 summary(spmod)</code></pre>
 <pre><code>## 
 ## Call:
-## glm.nb(formula = form, data = .df, init.theta = 11.20083655, 
+## glm.nb(formula = form, data = .df, init.theta = 12.48893309, 
 ##     link = log)
 ## 
 ## Coefficients:
-##                  Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)     4.841e+00  3.552e-02 136.274   &lt;2e-16 ***
-## time_point_num  3.268e-05  5.211e-05   0.627    0.531    
-## allelecer      -5.308e-01  4.581e-02 -11.589   &lt;2e-16 ***
+##                 Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)     5.785063   0.138207  41.858   &lt;2e-16 ***
+## time_point_num  0.001985   0.003554   0.558    0.577    
+## allelecer      -0.084586   0.150217  -0.563    0.573    
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## (Dispersion parameter for Negative Binomial(11.2008) family taken to be 1)
+## (Dispersion parameter for Negative Binomial(12.4889) family taken to be 1)
 ## 
-##     Null deviance: 327.86  on 190  degrees of freedom
-## Residual deviance: 195.06  on 188  degrees of freedom
-## AIC: 1854.7
+##     Null deviance: 15.995  on 14  degrees of freedom
+## Residual deviance: 15.193  on 12  degrees of freedom
+## AIC: 186.23
 ## 
 ## Number of Fisher Scoring iterations: 1
 ## 
 ## 
-##               Theta:  11.20 
-##           Std. Err.:  1.28 
+##               Theta:  12.49 
+##           Std. Err.:  4.68 
 ## 
-##  2 x log-likelihood:  -1846.683</code></pre>
+##  2 x log-likelihood:  -178.23</code></pre>
 <pre class="r"><code># note that the default residuals from glm.nb are working residuals, less intuitive than response residuals (actual - fitted value)
 spmod$residuals[1]</code></pre>
 <pre><code>##         1 
-## 0.2739101</code></pre>
+## 0.4514568</code></pre>
 <pre class="r"><code>resid(spmod, type = &quot;working&quot;)[1]</code></pre>
 <pre><code>##         1 
-## 0.2739101</code></pre>
+## 0.4514568</code></pre>
 <pre class="r"><code>resid(spmod, type = &quot;response&quot;)[1]</code></pre>
 <pre><code>##        1 
-## 20.42645</code></pre>
+## 134.9901</code></pre>
 <pre class="r"><code>test_genedf$expr[1] - spmod$fitted.values[1]</code></pre>
-<pre><code>## WT_TP2_cer_C1_G6_G12_GS1 
-##                 20.42645</code></pre>
+<pre><code>##  S29_cer 
+## 134.9901</code></pre>
 <pre class="r"><code># given dataframe of all gene&#39;s counts, plots Scer expression vs Spar expression 
 # for average of replicates at each timepoint (or moving average for LowPi and HAP4)
 plotSingleGeneModelExample &lt;- function(.genedf, .gene_name, .fitted_vals = FALSE, .log2 = TRUE,
@@ -523,15 +523,15 @@ plotSingleGeneModelExample &lt;- function(.genedf, .gene_name, .fitted_vals = FA
 }
 plotSingleGeneModelExample(test_genedf, random_gene, 
                            .log2 = TRUE, .fitted_vals = TRUE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
-## argument.</code></pre>
-<pre><code>## min and max expression: 7.050024 5.991779</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre><code>## min and max expression: 8.813781 7.738092</code></pre>
 <p><img src="single_gene_models_files/figure-html/plotSingleGeneModelExample-1.png" width="672" /></p>
 <pre class="r"><code>plotSingleGeneModelExample(test_genedf, random_gene, 
                            .log2 = FALSE, .fitted_vals = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
-## argument.</code></pre>
-<pre><code>## min and max expression: 132.5161 63.63636</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre><code>## min and max expression: 450 213.5</code></pre>
 <p><img src="single_gene_models_files/figure-html/plotSingleGeneModelExample-2.png" width="672" /></p>
 </div>
 <div id="plotting-example-genes-for-figure-panel"
@@ -545,19 +545,19 @@ test_genedf &lt;- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
                          spinfo$HAP4)
 p &lt;- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
   theme(legend.position = &quot;none&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre><code>## no replicates for this experiment, getting moving average
 ## min and max expression: 2213 38.6</code></pre>
 <pre class="r"><code>p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
 <p><img src="single_gene_models_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/ExperimentOverview/level_lfc.pdf&quot;,
     width = 2.1, height = 2.5)
 p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -569,19 +569,19 @@ test_genedf &lt;- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
                          spinfo$HAP4)
 p &lt;- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
   theme(legend.position = &quot;none&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre><code>## no replicates for this experiment, getting moving average
 ## min and max expression: 163.6 45.33333</code></pre>
 <pre class="r"><code>p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
 <p><img src="single_gene_models_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/ExperimentOverview/dynamics_lfc.pdf&quot;,
     width = 2.1, height = 2.5)
 p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -599,59 +599,6 @@ p</code></pre>
 # test for fitDatasetModels (just taking the first 10 genes from a random dataset)
 random_dataset_idx &lt;- sample(c(1:length(ExperimentNames)), 1)
 test &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # if it runs, it passes this test</code></pre>
-<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace = control$trace &gt; :
-## iteration limit reached</code></pre>
-<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7): alternation limit reached</code></pre>
 <pre class="r"><code># convert one model into one row of a dataframe summarizing that model&#39;s output (gene name, name of coefficient, effect size of coefficient, pvalue for wald test of that coefficient)
 # also changes lfc to l2fc using change of base: log2(fc) = log(fc)/log(2)
 parseDfRowFromModel &lt;- function(.mod, .gene_name) {
@@ -668,10 +615,13 @@ random_dataset_idx &lt;- sample(c(1:length(ExperimentNames)), 1)
 random_modslist &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # same test from fitDatasetModels, we need the output for this test
 gene_idx &lt;- sample(c(1:10), 1)
 parseDfRowFromModel(random_modslist[[gene_idx]], gene_idx)</code></pre>
-<pre><code>## # A tibble: 1 × 4
-##   gene_name coefficient effect_size   pvalue
-##       &lt;int&gt; &lt;chr&gt;             &lt;dbl&gt;    &lt;dbl&gt;
-## 1         5 cer                3.67 6.93e-20</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:parseDfRowFromModel">
+<col><col><col><col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">coefficient</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">effect_size</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">pvalue</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">6</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.139</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.109</td></tr>
+</table>
+
 <pre class="r"><code>parseDfFromModslist &lt;- function(.modslist) {
   good_idxs &lt;- which(!is.na(.modslist))
   result &lt;- map2(.modslist[good_idxs], names(.modslist)[good_idxs], function(mod, gname) {
@@ -685,19 +635,31 @@ random_modslist &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinf
 names(random_modslist) &lt;- c(1:10)
 test &lt;- parseDfFromModslist(random_modslist)
 test</code></pre>
-<pre><code>## # A tibble: 10 × 4
-##    gene_name coefficient effect_size    pvalue
-##    &lt;chr&gt;     &lt;chr&gt;             &lt;dbl&gt;     &lt;dbl&gt;
-##  1 1         cer               1.26  4.98e-  2
-##  2 2         cer               0.223 2.57e-  1
-##  3 3         cer               0.386 3.64e-  1
-##  4 4         cer               1.56  9.81e- 12
-##  5 5         cer               3.67  6.93e- 20
-##  6 6         cer               1.36  2.18e- 10
-##  7 7         cer               0.370 1.02e-  2
-##  8 8         cer               1.22  4.66e-  7
-##  9 9         cer               1.67  9.53e- 38
-## 10 10        cer               2.86  1.93e-137</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:parseDfFromModslist">
+<col><col><col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">coefficient</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">effect_size</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">pvalue</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">-1.9&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2.56e-12</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-1.18&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">5.34e-10</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">3</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.57&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4.55e-15</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.367&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.000471</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">5</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">-0.204&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.106&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">6</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.139&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.109&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">7</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.51&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2.24e-42</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">8</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.551&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3.24e-07</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">9</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">-0.00319</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.962&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">10</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.364&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">6.44e-06</td></tr>
+</table>
+
 </div>
 <div id="full-model-fitting" class="section level2">
 <h2>Full model fitting</h2>
@@ -826,13 +788,19 @@ tibble(organism = c(&quot;cer&quot;, &quot;par&quot;, &quot;hyc&quot;, &quot;hyp
        variance = map_dbl(list(cer_expr, par_expr, hyc_expr, hyp_expr), var, na.rm = TRUE),
        mean = map_dbl(list(cer_expr, par_expr, hyc_expr, hyp_expr), mean, na.rm = TRUE),
        median = map_dbl(list(cer_expr, par_expr, hyc_expr, hyp_expr), median, na.rm = TRUE))</code></pre>
-<pre><code>## # A tibble: 4 × 4
-##   organism  variance   mean median
-##   &lt;chr&gt;        &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;
-## 1 cer      59405463. 21340. 20301 
-## 2 par       4025556.  4122.  4012.
-## 3 hyc      57690419. 18575. 17785 
-## 4 hyp       2652928.  4705.  4655</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:QC">
+<col><col><col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">organism</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">variance</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">mean</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">median</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">5.94e+07</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2.13e+04</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2.03e+04</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.03e+06</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.12e+03</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.01e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">hyc</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">5.77e+07</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.86e+04</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.78e+04</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">hyp</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.65e+06</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.71e+03</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.66e+03</td></tr>
+</table>
+
 <pre class="r"><code>getGeneDf &lt;- function(.gene_name, .mode = c(&quot;parents&quot;, &quot;hybrid&quot;), 
                       .experiment = c(&quot;LowN&quot;, &quot;CC&quot;, &quot;HAP4&quot;, &quot;LowPi&quot;)) {
   if (.mode == &quot;parents&quot;) {
@@ -871,21 +839,35 @@ ggplot(test, aes(x = cer, y = par)) + geom_point(aes(color = experiment)) + ggti
 ggplot(test, aes(x = cer, y = par)) + geom_point(aes(color = experiment)) + ggtitle(gene_idx) + geom_abline(color = &quot;gold&quot;)</code></pre>
 <p><img src="single_gene_models_files/figure-html/QC-2.png" width="672" /></p>
 <pre class="r"><code>spaldf %&gt;% filter(gene_name == gene_idx)</code></pre>
-<pre><code>## # A tibble: 12 × 5
-##    gene_name coefficient effect_size   pvalue experiment
-##    &lt;chr&gt;     &lt;chr&gt;             &lt;dbl&gt;    &lt;dbl&gt; &lt;chr&gt;     
-##  1 YGL161C   allele            0.216 1.15e- 2 LowN      
-##  2 YGL161C   allele            0.481 3.51e- 2 CC        
-##  3 YGL161C   allele            0.403 1.17e- 1 HAP4      
-##  4 YGL161C   allele            0.692 1.67e- 8 LowPi     
-##  5 YGL161C   allele            0.378 1.51e- 1 Heat      
-##  6 YGL161C   allele            0.451 6.69e- 3 Cold      
-##  7 YGL161C   species           0.598 1.72e-12 LowN      
-##  8 YGL161C   species           0.457 1.43e- 4 CC        
-##  9 YGL161C   species           0.273 3.25e- 1 HAP4      
-## 10 YGL161C   species           0.923 2.16e- 6 LowPi     
-## 11 YGL161C   species           0.615 7.56e- 5 Heat      
-## 12 YGL161C   species           0.846 6.58e- 8 Cold</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:QC">
+<col><col><col><col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">coefficient</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">effect_size</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">pvalue</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">experiment</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.216</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.0115&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">LowN</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.481</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.0351&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">CC</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.403</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.117&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">HAP4</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.692</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.67e-08</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">LowPi</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.378</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.151&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Heat</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.451</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.00669&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.598</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.72e-12</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">LowN</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.457</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.000143</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">CC</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.273</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.325&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">HAP4</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.923</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.16e-06</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">LowPi</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.615</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">7.56e-05</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Heat</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YGL161C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.846</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">6.58e-08</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold</td></tr>
+</table>
+
 <pre class="r"><code># Visualizing expression variability and divergence in...
 # A) boxplots (divergence readily apparent, variability hardly apparent) 
 # B) scatterplots (variability more apparent, divergence also apparent, so might just stick to scatterplots alone)
@@ -956,8 +938,10 @@ ggMarginal(ggplot(spaldf, aes(x = effect_size, y = -log(pvalue))) +
   geom_point(aes(color = pvalue &lt; p_thresh)) +
   theme(legend.position = &quot;none&quot;) + geom_vline(xintercept = c(-1, 1), color = &quot;gold&quot;),
   margins = &quot;both&quot;, groupColour = TRUE, groupFill = TRUE)</code></pre>
-<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range (`stat_density()`).
-## Removed 10 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 10 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
 <p><img src="single_gene_models_files/figure-html/QC-8.png" width="672" /></p>
 </div>
 

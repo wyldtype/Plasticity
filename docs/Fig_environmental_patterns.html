@@ -1,0 +1,1789 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Level and plasticity divergence patterns across all 6 environments</title>
+
+<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Plasticity</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    1-3: Data Cleaning
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clean_data.html">1. Import data and QC</a>
+    </li>
+    <li>
+      <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
+    </li>
+    <li>
+      <a href="functions_for_figure_scripts.html">3. Functions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    4-6: Data Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clustering.html">4. Clustering</a>
+    </li>
+    <li>
+      <a href="single_gene_models.html">5. Generalized linear models</a>
+    </li>
+    <li>
+      <a href="data_for_figure_scripts.html">6. Final dataframe</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    7: Single-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_DiauxicShift.html">Fig 5: Diauxic Shift</a>
+    </li>
+    <li>
+      <a href="Fig_HUShock.html">Fig S3: HU Shock</a>
+    </li>
+    <li>
+      <a href="Fig_LowNitrogen.html">Fig S3: Low Nitrogen</a>
+    </li>
+    <li>
+      <a href="Fig_LowPhosphate.html">Fig S3: Low Phosphate</a>
+    </li>
+    <li>
+      <a href="Fig_HeatStress.html">Fig S3: Heat Stress</a>
+    </li>
+    <li>
+      <a href="Fig_ColdStress.html">Fig S3: Cold Stress</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    8-10: Multi-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_gene_ontology.html">8. Table 1: Gene Ontology</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Level and plasticity divergence patterns
+across all 6 environments</h1>
+
+</div>
+
+
+<pre class="r"><code>sapply(c(&quot;stringr&quot;, &quot;RColorBrewer&quot;, &quot;circlize&quot;, &quot;ggridges&quot;,
+         &quot;ComplexHeatmap&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>##        stringr   RColorBrewer       circlize       ggridges 
+##           TRUE           TRUE           TRUE           TRUE 
+## ComplexHeatmap 
+##           TRUE</code></pre>
+<pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
+load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
+load(&quot;data_files/Cleaned_Counts.RData&quot;)
+load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
+load(&quot;data_files/CorrelationClustering3Disp.RData&quot;)
+load(file = &quot;data_files/GO_Slim.RData&quot;)</code></pre>
+<p>Plotting a number-line of sampling timepoints proportional to time
+ellapsed (min) for the Experimental Design figure</p>
+<pre class="r"><code># following bgoldst suggestion on stackoverflow: https://stackoverflow.com/questions/32051890/r-plotting-points-with-labels-on-a-single-horizontal-numberline
+plotSamplingTimepoints &lt;- function(.timepoints, .labels = FALSE,
+                                   .label_height = 20) {
+  max_tp &lt;- max(.timepoints)
+  min_tp &lt;- min(.timepoints)
+  xlim &lt;- c(min_tp, max_tp)
+  ylim &lt;- c(min_tp, max_tp)
+  px &lt;- .timepoints
+  py &lt;- rep(0, times = length(.timepoints))
+  lx.buf &lt;- 5
+  lx &lt;- seq(xlim[1] + lx.buf,
+            xlim[2] - lx.buf, 
+            len = length(px))
+  ly &lt;- .label_height
+  xlim &lt;- c(xlim[1] - 10,
+            xlim[2] + 30)
+  ## create basic plot outline
+  par(xaxs = &#39;i&#39;, yaxs = &#39;i&#39;, mar = c(5, 1, 1, 1))# mar = c(b, l, t, r)
+  plot(NA, xlim = xlim, ylim = ylim, axes = FALSE, ann = FALSE)
+  #axis(1)
+  
+  ## plot elements
+  points(px, py, pch = 16, xpd = NA)
+  if (.labels) {
+    segments(px, py, lx, ly)
+    text(lx, ly, px, pos = 3)
+  }
+}
+# tests for plotSamplingTimepoints
+test_tps &lt;- info[info$experiment == &quot;LowPi&quot;,]$time_point_num |&gt; unique()
+plotSamplingTimepoints(.timepoints = test_tps)
+plotSamplingTimepoints(.timepoints = test_tps, .labels = TRUE)</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/plotSamplingTimepoints-1.png" width="672" /></p>
+<pre class="r"><code>plotSamplingTimepoints(.timepoints = test_tps, .label_height = 100, .labels = TRUE)</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/plotSamplingTimepoints-2.png" width="672" /></p>
+<pre class="r"><code>label_lookup &lt;- tibble(experiment = ExperimentNames,
+                       label_height = c(150, 10, 40, 20, 5, 5))</code></pre>
+<pre class="r"><code># generating plots
+for (e in ExperimentNames) {
+  e_tps &lt;- info[info$experiment == e,]$time_point_num |&gt; unique()
+  labh &lt;- label_lookup[label_lookup$experiment == e,]$label_height |&gt; as.numeric()
+  pdf(file = paste0(&quot;paper_figures/ExperimentOverview/timepoints_&quot;,
+                    e, &quot;.pdf&quot;), width = 5, height = 2)
+  print(plotSamplingTimepoints(.timepoints = e_tps, .label_height = labh))
+  dev.off()
+}</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<p>Visualizing cluster average expression for all environments:</p>
+<pre class="r"><code>display.brewer.all()</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/brewer-pallets-1.png" width="672" />
+Color palettes we’ll use for the 6 environments:</p>
+<pre class="r"><code>palettedf &lt;- tibble(experiment = ExperimentNames,
+                    palette = c(&quot;Greys&quot;, &quot;YlGn&quot;, &quot;Greens&quot;, &quot;Purples&quot;, &quot;YlOrBr&quot;, &quot;BuPu&quot;),
+                    long_name = LongExperimentNames)</code></pre>
+<p>Wrapping cluster plots into a function so we don’t have to repeatedly
+make the same plot</p>
+<pre class="r"><code>plotClusterPatternByExperiment &lt;- function(.df, .experiment, .title = NULL) {
+  plotdf &lt;- summarise(group_by(.df, time_point_num, label),
+                      mean_expr = mean(expr, na.rm = TRUE))
+  plotdf$label &lt;- as.factor(plotdf$label)
+  color_plt &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; select(palette) |&gt; pull()
+  if (is.null(.title)) {
+    .title &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; select(long_name) |&gt; pull()
+  }
+  ggplot(plotdf, aes(x = time_point_num, y = log2(mean_expr + 1))) +
+    geom_line(aes(group = label, color = label), linewidth = 4) +
+    geom_point(color = &quot;black&quot;, alpha = 0.4) +
+    xlab(&quot;timepoint (min)&quot;) +
+    ylab(&quot;expression (log2)&quot;) +
+    scale_color_brewer(palette = color_plt, name = &quot;cluster&quot;,
+                       direction = -1) +
+    theme_classic() +
+    theme(legend.position = &quot;right&quot;) +
+    ggtitle(.title)
+}</code></pre>
+<pre class="r"><code>p_blank &lt;- ggplot() + theme_void()
+pdf(&quot;paper_figures/ExperimentOverview/cluster_ref.pdf&quot;,
+    width = 8, height = 8)
+ggarrange(plotClusterPatternByExperiment(clusterdf_list$HAP4_2$df, .experiment = &quot;HAP4&quot;),
+          p_blank,
+          plotClusterPatternByExperiment(clusterdf_list$CC_2$df, .experiment = &quot;CC&quot;),
+          plotClusterPatternByExperiment(clusterdf_list$LowN_2$df, .experiment = &quot;LowN&quot;),
+          p_blank,
+          plotClusterPatternByExperiment(clusterdf_list$LowPi_2$df, .experiment = &quot;LowPi&quot;),
+          plotClusterPatternByExperiment(clusterdf_list$Heat_2$df, .experiment = &quot;Heat&quot;),
+          p_blank,
+          plotClusterPatternByExperiment(clusterdf_list$Cold_2$df, .experiment = &quot;Cold&quot;),
+          nrow = 3, ncol = 3, common.legend = FALSE, widths = c(2, 0.5, 2))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<div id="similar-proportions-of-genes-are-diverging-in-each-environment"
+class="section level2">
+<h2>Similar proportions of genes are diverging in each environment</h2>
+<p>Stacked bars of 4 divergence categories in each environment:</p>
+<pre class="r"><code>plotdf &lt;- finaldf |&gt; select(gene_name, experiment, group4) |&gt; 
+  pivot_wider(id_cols = c(&quot;gene_name&quot;), names_from = &quot;experiment&quot;,
+              values_from = &quot;group4&quot;) |&gt; 
+  pivot_longer(cols = ExperimentNames, names_to = &quot;experiment&quot;,
+               values_to = &quot;group5&quot;) # to add NA values for low expression
+plotdf$group5 &lt;- if_else(is.na(plotdf$group5), true = &quot;lowly expressed&quot;,
+                         false = plotdf$group5) |&gt; 
+  factor(levels = c(&quot;conserved level and plasticity&quot;,
+                    &quot;conserved level, diverged plasticity&quot;,
+                    &quot;diverged level, conserved plasticity&quot;,
+                    &quot;diverged level and plasticity&quot;,
+                    &quot;lowly expressed&quot;))
+plotdf$experiment &lt;- factor(plotdf$experiment, levels = ExperimentNames)
+p &lt;- ggplot(plotdf, aes(x = experiment)) + 
+  geom_bar_pattern(aes(fill = group5, pattern = group5), pattern_fill = &quot;black&quot;) +
+  scale_fill_discrete(type = colordf[colordf$scheme == &quot;group4&quot;,]$type,
+                      limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits) +
+  scale_pattern_discrete(choices = colordf[colordf$scheme == &quot;group4&quot;,]$pattern,
+                         limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits) +
+  scale_x_discrete(limits = ExperimentNames, labels = LongExperimentNames) +
+  theme_classic() +
+  theme(legend.title = element_blank(),
+        axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1),
+        legend.position = &quot;bottom&quot;) +
+  ylab(&quot;number of genes&quot;) +
+  xlab(&quot;&quot;) +
+  guides(fill = guide_legend(nrow = 3))
+pdf(&quot;paper_figures/EnvironmentalPatterns/stacked_bars.pdf&quot;,
+    width = 5, height = 6)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Ridgeline plot of log2 fold changes in each environment:</p>
+<pre class="r"><code>plotdf &lt;- filter(finaldf, level == &quot;diverged&quot;)
+filter(finaldf, plasticity == &quot;conserved&quot; &amp; level == &quot;conserved&quot;) |&gt; group_by(experiment) |&gt; 
+  summarise(n = n())</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:proportions-ridgeline">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">experiment</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">n</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">CC</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1329</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1416</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">HAP4</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2018</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Heat</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1586</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">LowN</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1920</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">LowPi</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1658</td></tr>
+</table>
+
+<pre class="r"><code># accompanying percentages of upScer and upSpar genes
+pctdf &lt;- plotdf |&gt; group_by(experiment) |&gt; 
+  summarise(pct_upcer = round(sum(effect_size_species &gt; 0)/length(effect_size_species), digits = 2)*100,
+            pct_uppar = round(sum(effect_size_species &lt; 0)/length(effect_size_species), digits = 2)*100,
+            n = length(effect_size_species)) |&gt; 
+  pivot_longer(cols = c(&quot;pct_upcer&quot;, &quot;pct_uppar&quot;),
+               names_to = &quot;direction&quot;, values_to = &quot;pct&quot;) |&gt; 
+  mutate(x_pos = if_else(direction == &quot;pct_upcer&quot;,
+                         true = 5, false = -5))
+pctdf$y_pos &lt;- sapply(pctdf$experiment, \(e) which(ExperimentNames == e) + 0.5)
+p &lt;- ggplot(data = plotdf, aes(x = effect_size_species, y = experiment, fill = experiment)) +
+  geom_density_ridges(data = plotdf) +
+  geom_text(data = pctdf, aes(x = x_pos, y = y_pos, label = paste0(pct, &quot;%&quot;))) +
+  theme_classic() +
+  theme(legend.position = &quot;none&quot;) +
+  ylab(&quot;&quot;) +
+  xlab(&quot;log2 fold change&quot;) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == &quot;experiment&quot;,]$limits,
+                      type = colordf[colordf$scheme == &quot;experiment&quot;,]$type) +
+  scale_y_discrete(limits = ExperimentNames, labels = LongExperimentNames)
+pdf(&quot;../paper_figures/EnvironmentalPatterns/ridgeline.pdf&quot;,
+    width = 4, height = 3)
+p</code></pre>
+<pre><code>## Picking joint bandwidth of 0.265</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Heatmap of species-specific and reversals of expression
+plasticity</p>
+<pre class="r"><code>plotdf &lt;- finaldf |&gt; # filter(plasticity == &quot;diverged&quot;) |&gt; 
+  group_by(experiment, cer, par) |&gt; 
+  summarise(n = n())</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;, &#39;cer&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>plotdf$long_experiment &lt;- map(plotdf$experiment, \(e) {
+  LongExperimentNames[which(ExperimentNames == e)]
+}) |&gt; factor(levels = LongExperimentNames)
+plotdf$cer &lt;- factor(plotdf$cer, levels = c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;))
+plotdf$par &lt;- factor(plotdf$par, levels = c(&quot;2&quot;, &quot;1&quot;, &quot;0&quot;))
+plotdf$type &lt;- map2(plotdf$cer, plotdf$par, \(x, y) {
+  if (x == y) {
+    if (x == 0 &amp; y == 0) {
+      return(&quot;conserved static&quot;)
+    }
+    return(&quot;conserved plastic&quot;)
+  }
+  if (x == 0) {
+    return(&quot;Spar-unique&quot;)
+  }
+  if (y == 0) {
+    return(&quot;Scer-unique&quot;)
+  }
+  else {
+    return(&quot;reversal&quot;)
+  }
+}) |&gt; unlist()
+p &lt;- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
+  geom_tile() +
+  geom_text(aes(label = n,
+                color = grepl(pattern = &quot;conserved&quot;, x = type))) +
+  scale_color_discrete(limits = c(TRUE, FALSE),
+                       type = c(&quot;grey40&quot;, &quot;white&quot;)) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == &quot;plasticity&quot;,]$limits,
+                      type = colordf[colordf$scheme == &quot;plasticity&quot;,]$type) +
+   facet_wrap(~long_experiment) +
+  theme_classic() +
+  xlab(&quot;Scer plasticity cluster&quot;) +
+  ylab(&quot;Spar plasticity cluster&quot;) +
+  guides(fill=guide_legend(title=&quot;number of genes&quot;)) +
+  theme(legend.position = &quot;none&quot;)
+pdf(&quot;paper_figures/EnvironmentalPatterns/plasticity_counts_heatmap.pdf&quot;,
+    width = 4, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div
+id="divergence-category-in-one-environment-is-a-poor-predictor-of-other-environments"
+class="section level2">
+<h2>Divergence category in one environment is a poor predictor of other
+environments</h2>
+<pre class="r"><code>plotdf &lt;- finaldf |&gt; select(gene_name, experiment, group4) |&gt; 
+  # pivoting wider and longer again to add the genes that have been removed for low expression
+  pivot_wider(id_cols = &quot;gene_name&quot;, values_from = &quot;group4&quot;, names_from = &quot;experiment&quot;) |&gt; 
+  pivot_longer(cols = all_of(ExperimentNames),
+               names_to = &quot;experiment&quot;, values_to = &quot;group4&quot;)
+plotdf$group4[is.na(plotdf$group4)] &lt;- &quot;lowly expressed&quot;
+plot_mat &lt;- plotdf |&gt; 
+  pivot_wider(id_cols = &quot;gene_name&quot;,
+              names_from = &quot;experiment&quot;, 
+              values_from = &quot;group4&quot;)
+colnames_plotmat &lt;- plot_mat$gene_name
+rownames_plotmat &lt;- colnames(plot_mat)
+plot_mat &lt;- data.frame(plot_mat) |&gt; t()
+colnames(plot_mat) &lt;- colnames_plotmat
+rownames(plot_mat) &lt;- rownames_plotmat
+plot_mat &lt;- plot_mat[rownames(plot_mat) != &quot;gene_name&quot;,]
+plot_mat &lt;- plot_mat |&gt; as.matrix()
+clrs &lt;- structure(colordf[colordf$scheme == &quot;group4&quot;,]$type, 
+                  names = colordf[colordf$scheme == &quot;group4&quot;,]$limits)
+majority_NA &lt;- apply(plot_mat, 2, \(x) {return(sum(is.na(x)) &gt; 2)})
+sum(majority_NA)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>plot_mat &lt;- plot_mat[,!majority_NA]
+# sorting cols by HAP4&#39;s order
+col_order_vec &lt;- order(factor(plot_mat[&quot;HAP4&quot;,], levels = colordf[colordf$scheme == &quot;group4&quot;,]$limits))
+
+# # tests for OrderGenesByGroup (moved to function script b/c we use it in multiple scripts now)
+# # subset of plotmat
+# orderGenesByGroup(.mat = plot_mat[, 1:100]) |&gt; dim()
+
+# ordering full plotmat
+ordered_plot_mat &lt;- orderGenesByGroup(.mat = plot_mat[ExperimentNames,])
+rownames(ordered_plot_mat) &lt;- LongExperimentNames
+plotdf &lt;- map(LongExperimentNames, \(e) {
+  idx &lt;- which(LongExperimentNames == e)
+  return(tibble(gene_name = colnames(ordered_plot_mat),
+                environment = e,
+                group4 = ordered_plot_mat[idx,],
+                x = c(1:ncol(ordered_plot_mat)),
+                y = c(length(LongExperimentNames):1)[idx])) # descending from top
+}) |&gt; purrr::reduce(.f = bind_rows)
+p &lt;- ggplot(plotdf, aes(x = x, y = y, fill = group4)) +
+  geom_tile_pattern(aes(fill = group4, pattern = group4), pattern_fill = &quot;black&quot;,
+                    pattern_density = 0.05, pattern_size = 0.05) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                      type = colordf[colordf$scheme == &quot;group4&quot;,]$type) +
+  scale_pattern_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                         choices = colordf[colordf$scheme == &quot;group4&quot;,]$pattern) +
+  theme_void()
+p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/discrete-heatmap-1.png" width="672" /></p>
+<pre class="r"><code># plotting
+pdf(&quot;paper_figures/EnvironmentalPatterns/discrete_heatmapLines.pdf&quot;,
+    width = 14, height = 2)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<div
+id="level-divergence-is-consistent-across-environments-and-mostly-between-strains"
+class="section level3">
+<h3>Level divergence is consistent across environments and mostly
+between strains</h3>
+<p>Genes with higher Log2 fold change in Scer:</p>
+<pre class="r"><code>plot_mat &lt;- matrix(nrow = length(ExperimentNames),
+                   ncol = length(ExperimentNames))
+# up in Scer
+for (e_row in ExperimentNames) {
+  for (e_col in ExperimentNames) {
+    e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
+                                       level == &quot;diverged&quot; &amp;
+                                       sign(effect_size_species) == 1) |&gt; 
+      select(gene_name) |&gt; pull()
+    avg_lfc &lt;- finaldf |&gt; filter(experiment == e_col &amp; 
+                                   gene_name %in% e_gene_idxs) |&gt; 
+      select(effect_size_species) |&gt; pull() |&gt; mean()
+    plot_mat[which(ExperimentNames == e_row),
+             which(ExperimentNames == e_col)] &lt;- avg_lfc
+  }
+}
+colnames(plot_mat) &lt;- LongExperimentNames
+rownames(plot_mat) &lt;- LongExperimentNames
+
+col_fun = colorRamp2(c(-1, 0, 1), c(&quot;blue2&quot;, &quot;white&quot;, &quot;orange1&quot;))
+p &lt;- Heatmap(plot_mat, col = col_fun,
+        row_order = LongExperimentNames, column_order = LongExperimentNames,
+        row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
+        cell_fun = function(j, i, x, y, width, height, fill) {
+          grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
+        })
+p
+pdf(&quot;paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_scer.pdf&quot;,
+    width = 5, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Genes with higher Log2 fold change in Spar:</p>
+<pre class="r"><code>plot_mat &lt;- matrix(nrow = length(ExperimentNames),
+                   ncol = length(ExperimentNames))
+for (e_row in ExperimentNames) {
+  for (e_col in ExperimentNames) {
+    e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
+                                       level == &quot;diverged&quot; &amp; 
+                                       sign(effect_size_species) == -1) |&gt; 
+      select(gene_name) |&gt; pull()
+    avg_lfc &lt;- finaldf |&gt; filter(experiment == e_col &amp; 
+                                   gene_name %in% e_gene_idxs) |&gt; 
+      select(effect_size_species) |&gt; pull() |&gt; mean()
+    plot_mat[which(ExperimentNames == e_row),
+             which(ExperimentNames == e_col)] &lt;- avg_lfc
+  }
+}
+colnames(plot_mat) &lt;- LongExperimentNames
+rownames(plot_mat) &lt;- LongExperimentNames
+
+col_fun = colorRamp2(c(-1, 0, 1), c(&quot;blue2&quot;, &quot;white&quot;, &quot;orange1&quot;))
+p &lt;- Heatmap(plot_mat, col = col_fun,
+        row_order = LongExperimentNames, column_order = LongExperimentNames,
+        row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
+        cell_fun = function(j, i, x, y, width, height, fill) {
+          grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
+        })
+p
+pdf(&quot;paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_spar.pdf&quot;,
+    width = 5, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div id="plasticity-divergence-is-unique-to-each-environment"
+class="section level3">
+<h3>Plasticity divergence is unique to each environment</h3>
+<p>Y axis: environment those 2-1 or 1-2 divergers were ID’d in X axis:
+how their plasticity divergence looks in other environments How do we
+measure plasticity divergence? Correlation of avg expr between
+species</p>
+<pre class="r"><code># Given gene idxs and experiment, 
+# returns between-species correlation
+# of average expression across timepoints
+getplasticityCorr &lt;- function(.gene_idxs, .experiment_name) {
+  condition_vec &lt;- info |&gt; filter(experiment == .experiment_name) |&gt; 
+    select(condition) |&gt; pull()
+  cer_vec &lt;- collapsed$cer[.gene_idxs, condition_vec] |&gt; 
+    colMeans(na.rm = TRUE)
+  par_vec &lt;- collapsed$par[.gene_idxs, condition_vec] |&gt; 
+    colMeans(na.rm = TRUE)
+  return(cor(cer_vec, par_vec))
+}
+# tests for getplasticity Corr
+# HAP4 2-1, should be very uncorrelated in Sat Growth
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
+                                 cer == 2 &amp; par == 1) |&gt; 
+  select(gene_name) |&gt; pull()
+getplasticityCorr(gene_idxs, .experiment_name = &quot;HAP4&quot;)</code></pre>
+<pre><code>## [1] -0.9359643</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowN&quot;)</code></pre>
+<pre><code>## [1] 0.906296</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
+<pre><code>## [1] 0.9128942</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;CC&quot;)</code></pre>
+<pre><code>## [1] 0.6486633</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Heat&quot;)</code></pre>
+<pre><code>## [1] 0.9786642</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Cold&quot;)</code></pre>
+<pre><code>## [1] -0.4895706</code></pre>
+<p>Heatmap of species correlations for genes increasing in Spar and
+decreasing in Scer:</p>
+<pre class="r"><code># 2-1 divergers
+plot_mat &lt;- matrix(nrow = length(ExperimentNames),
+                   ncol = length(ExperimentNames))
+for (e_row in ExperimentNames) {
+  for (e_col in ExperimentNames) {
+    e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
+                                       cer == 2 &amp; par == 1) |&gt; 
+      select(gene_name) |&gt; pull()
+    e_cor &lt;- getplasticityCorr(e_gene_idxs, .experiment_name = e_col)
+    plot_mat[which(ExperimentNames == e_row),
+             which(ExperimentNames == e_col)] &lt;- e_cor
+  }
+}
+colnames(plot_mat) &lt;- LongExperimentNames
+rownames(plot_mat) &lt;- LongExperimentNames
+
+# plotting
+col_fun = colorRamp2(c(-1, 0, 1), c(&quot;red2&quot;, &quot;white&quot;, &quot;skyblue&quot;))
+p &lt;- Heatmap(plot_mat, col = col_fun,
+        row_order = LongExperimentNames, column_order = LongExperimentNames,
+        row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
+        cell_fun = function(j, i, x, y, width, height, fill) {
+          grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
+        })
+p
+pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_21.pdf&quot;,
+    width = 5, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Heatmap of species correlations for genes decreasing in Spar and
+increasing in Scer:</p>
+<pre class="r"><code># 1-2 divergers
+plot_mat &lt;- matrix(nrow = length(ExperimentNames),
+                   ncol = length(ExperimentNames))
+for (e_row in ExperimentNames) {
+  for (e_col in ExperimentNames) {
+    e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
+                                       cer == 1 &amp; par == 2) |&gt; 
+      select(gene_name) |&gt; pull()
+    e_cor &lt;- getplasticityCorr(e_gene_idxs, .experiment_name = e_col)
+    plot_mat[which(ExperimentNames == e_row),
+             which(ExperimentNames == e_col)] &lt;- e_cor
+  }
+}
+colnames(plot_mat) &lt;- LongExperimentNames
+rownames(plot_mat) &lt;- LongExperimentNames
+
+# plotting
+col_fun = colorRamp2(c(-1, 0, 1), c(&quot;red2&quot;, &quot;white&quot;, &quot;skyblue&quot;))
+p &lt;- Heatmap(plot_mat, col = col_fun,
+        row_order = LongExperimentNames, column_order = LongExperimentNames,
+        row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
+        cell_fun = function(j, i, x, y, width, height, fill) {
+          grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
+        })
+p
+pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_12.pdf&quot;,
+    width = 5, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>All plasticity-divergers grouped together:</p>
+<pre class="r"><code>getplasticityCorrAllClusters &lt;- function(.gene_idxs, .experiment_name) {
+  condition_vec &lt;- info |&gt; filter(experiment == .experiment_name) |&gt; 
+    select(condition) |&gt; pull()
+  
+  clust_pairs &lt;- finaldf |&gt; filter(gene_name %in% .gene_idxs &amp;
+                                     experiment == .experiment_name) |&gt; 
+    group_by(cer, par) |&gt; summarise(n = n()) |&gt; ungroup()
+  cors &lt;- map2(clust_pairs$cer, clust_pairs$par, \(x, y) {
+    clust_idxs &lt;- finaldf |&gt; filter(gene_name %in% .gene_idxs &amp;
+                                      experiment == .experiment_name &amp;
+                                      cer == x &amp; par == y) |&gt; 
+      select(gene_name) |&gt; pull()
+    cer_vec &lt;- collapsed$cer[clust_idxs, condition_vec, drop = FALSE] |&gt; 
+      colMeans(na.rm = TRUE)
+    par_vec &lt;- collapsed$par[clust_idxs, condition_vec, drop = FALSE] |&gt; 
+      colMeans(na.rm = TRUE)
+    return(cor(cer_vec, par_vec))
+  }) |&gt; unlist()
+  return(as.numeric(sum(cors*clust_pairs$n)/sum(clust_pairs$n))) # weighted average
+}
+
+# tests for getplasticityCorrBoth
+# LowPi 1-2 alone:
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
+                                 plasticity == &quot;diverged&quot; &amp;
+                                 cer == 1 &amp; par == 2) |&gt; 
+  select(gene_name) |&gt; pull()
+testcor12 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre class="r"><code>testcor12</code></pre>
+<pre><code>## [1] -0.9021212</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
+<pre><code>## [1] -0.9021212</code></pre>
+<pre class="r"><code># LowPi 2-1 alone:
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
+                                 plasticity == &quot;diverged&quot; &amp;
+                                 cer == 2 &amp; par == 1) |&gt; 
+  select(gene_name) |&gt; pull()
+testcor21 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre class="r"><code>testcor21</code></pre>
+<pre><code>## [1] -0.9543984</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
+<pre><code>## [1] -0.9543984</code></pre>
+<pre class="r"><code># weights
+finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
+                    plasticity == &quot;diverged&quot; &amp;
+                    cer != 0 &amp; par != 0) |&gt; 
+  select(cer, par) |&gt; table()</code></pre>
+<pre><code>##    par
+## cer   1   2
+##   1   0 375
+##   2 803   0</code></pre>
+<pre class="r"><code># what both should be:
+sum(testcor12*372, testcor21*795)/(372 + 795) # with weighted average</code></pre>
+<pre><code>## [1] -0.9377342</code></pre>
+<pre class="r"><code>mean(c(testcor12, testcor21)) # without weighted average</code></pre>
+<pre><code>## [1] -0.9282598</code></pre>
+<pre class="r"><code># Both 1-2 and 2-1:
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
+                                 plasticity == &quot;diverged&quot; &amp;
+                                 cer != 0 &amp; par != 0) |&gt; 
+  select(gene_name) |&gt; pull()
+getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same as manual calculation</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## [1] -0.9377567</code></pre>
+<pre class="r"><code># test2: HAP4/CC failed until we added drop = FALSE
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
+                                 plasticity == &quot;diverged&quot; &amp;
+                                 cer != 0 &amp; par != 0) |&gt; 
+  select(gene_name) |&gt; pull()
+finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; gene_name %in% gene_idxs) |&gt; 
+  select(cer, par) |&gt; table() # b/c there&#39;s only one 1-0 gene</code></pre>
+<pre><code>##    par
+## cer   0   1   2
+##   0   6  12   5
+##   1  31 148  32
+##   2   9  42  50</code></pre>
+<pre class="r"><code>getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;CC&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## [1] 0.5749308</code></pre>
+<pre class="r"><code># plotting
+plot_mat &lt;- matrix(nrow = length(ExperimentNames),
+                   ncol = length(ExperimentNames))
+for (e_row in ExperimentNames) {
+  for (e_col in ExperimentNames) {
+    cat(e_row, e_col, &quot;\n&quot;)
+    e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
+                                         cer != 0 &amp; par != 0 &amp;
+                                       plasticity == &quot;diverged&quot;) |&gt; 
+      select(gene_name) |&gt; pull()
+    e_cor &lt;- getplasticityCorrAllClusters(.gene_idxs = e_gene_idxs,
+                                        .experiment_name = e_col)
+    plot_mat[which(ExperimentNames == e_row),
+             which(ExperimentNames == e_col)] &lt;- e_cor
+  }
+}</code></pre>
+<pre><code>## HAP4 HAP4</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## HAP4 CC</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## HAP4 LowN</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## HAP4 LowPi</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## HAP4 Heat</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## HAP4 Cold</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## CC HAP4</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## CC CC</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## CC LowN</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## CC LowPi</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## CC Heat</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## CC Cold</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowN HAP4</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowN CC</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowN LowN</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowN LowPi</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowN Heat</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowN Cold</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowPi HAP4</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowPi CC</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowPi LowN</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowPi LowPi</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowPi Heat</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## LowPi Cold</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Heat HAP4</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Heat CC</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Heat LowN</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Heat LowPi</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Heat Heat</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Heat Cold</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Cold HAP4</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Cold CC</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Cold LowN</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Cold LowPi</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Cold Heat</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre><code>## Cold Cold</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using
+## the `.groups` argument.</code></pre>
+<pre class="r"><code>colnames(plot_mat) &lt;- LongExperimentNames
+rownames(plot_mat) &lt;- LongExperimentNames
+
+# plotting
+col_fun = colorRamp2(c(-1, 0, 1), c(&quot;red&quot;, &quot;white&quot;, &quot;skyblue&quot;))
+p &lt;- Heatmap(plot_mat, col = col_fun,
+        row_order = LongExperimentNames, column_order = LongExperimentNames,
+        row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
+        cell_fun = function(j, i, x, y, width, height, fill) {
+          grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
+        })
+p
+pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_plasticity_all_clusters.pdf&quot;,
+    width = 5, height = 4)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div id="example-expression-profiles-for-figure" class="section level3">
+<h3>Example expression profiles for figure</h3>
+<p>Genes increasing in Scer, decreasing in Spar, identified in Low
+Phosphate:</p>
+<pre class="r"><code>gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; cer == 1 &amp; par == 2) |&gt; 
+  select(gene_name) |&gt; pull()
+p &lt;- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+                          .cts2 = collapsed$par[gene_idxs,],
+                          .info1 = info,
+                          .info2 = info,,
+                          .method = &quot;line&quot;,
+                          .show_points = FALSE,
+                          .show_confidence_intervals = TRUE,
+                          .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/LowPi-1-2-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;../../aligning_the_molecular_phenotype/paper_figures/EnvironmentalPatterns/LowPi12.pdf&quot;,
+    width = 12, height = 2)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Genes with higher expression in Scer, identified in the Low Nitrogen
+environment:</p>
+<pre class="r"><code>gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; level == &quot;diverged&quot; &amp;
+                                 sign(effect_size_species) == 1) |&gt; 
+  select(gene_name) |&gt; pull()
+p &lt;- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+                          .cts2 = collapsed$par[gene_idxs,],
+                          .info1 = info,
+                          .info2 = info,,
+                          .method = &quot;line&quot;,
+                          .show_points = FALSE,
+                          .show_confidence_intervals = TRUE,
+                          .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/LowN_upcer.pdf&quot;,
+    width = 12, height = 2)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div id="following-up-on-additional-examples-flagged-in-heatmap"
+class="section level3">
+<h3>Following up on additional examples flagged in heatmap</h3>
+<pre class="r"><code># following up on additional examples from heatmap
+# Low Nitrogen 1-2, plasticity divergers have strongest negative correlation in Cold? -.97?
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; cer == 1 &amp; par == 2) |&gt; 
+  select(gene_name) |&gt; pull()
+plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+                          .cts2 = collapsed$par[gene_idxs,],
+                          .info1 = info,
+                          .info2 = info,,
+                          .method = &quot;line&quot;,
+                          .show_points = FALSE,
+                          .show_confidence_intervals = TRUE,
+                          .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/LowN-1-2-1.png" width="672" /></p>
+<pre class="r"><code>length(gene_idxs) # yes, but LowN has the fewest reversals</code></pre>
+<pre><code>## [1] 52</code></pre>
+<pre class="r"><code># following up on additional examples from heatmap
+# Diauxic Shift 2-1, plasticity divergers also have strongest negative correlation in Cold?
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; par == 1) |&gt; 
+  select(gene_name) |&gt; pull()
+plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+                          .cts2 = collapsed$par[gene_idxs,],
+                          .info1 = info,
+                          .info2 = info,,
+                          .method = &quot;line&quot;,
+                          .show_points = FALSE,
+                          .show_confidence_intervals = TRUE,
+                          .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/HAP4-2-1-1.png" width="672" /></p>
+<pre class="r"><code>length(gene_idxs)</code></pre>
+<pre><code>## [1] 289</code></pre>
+<pre class="r"><code># following up on additional examples from heatmap
+# HUShock 2-1, plasticity divergers also have strongest negative correlation in LowPi?
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; cer == 2 &amp; par == 1) |&gt; 
+  select(gene_name) |&gt; pull()
+plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+                          .cts2 = collapsed$par[gene_idxs,],
+                          .info1 = info,
+                          .info2 = info,,
+                          .method = &quot;line&quot;,
+                          .show_points = FALSE,
+                          .show_confidence_intervals = TRUE,
+                          .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/CC-2-1-1.png" width="672" /></p>
+<pre class="r"><code>length(gene_idxs)</code></pre>
+<pre><code>## [1] 567</code></pre>
+<p>Finally as a contrast, a pair with high correlation:</p>
+<pre class="r"><code># following up on additional examples from heatmap
+# HAP4 1-2, plasticity divergers have strong positive correlation Low Nitrogen.
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; par == 2) |&gt; 
+  select(gene_name) |&gt; pull()
+plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+                          .cts2 = collapsed$par[gene_idxs,],
+                          .info1 = info,
+                          .info2 = info,,
+                          .method = &quot;line&quot;,
+                          .show_points = FALSE,
+                          .show_confidence_intervals = TRUE,
+                          .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/HAP4-1-2-1.png" width="672" /></p>
+<pre class="r"><code>length(gene_idxs)</code></pre>
+<pre><code>## [1] 55</code></pre>
+</div>
+</div>
+<div id="supplemental-figures" class="section level1">
+<h1>Supplemental figures</h1>
+<div
+id="exploration-diagonal-is-still-the-most-uncorrelated-when-taking-average-cor-of-each-ortholog-pair"
+class="section level3">
+<h3>Exploration: Diagonal is still the most uncorrelated when taking
+average cor of each ortholog pair</h3>
+<pre class="r"><code># (as opposed to one cor of average expr of all divergent genes)
+# But now the correlations are much weaker magnitude b/c most single genes are weakly correlated moving the average towards 0
+getplasticityCorrPerGene &lt;- function(.gene_idxs, .experiment_name) {
+  # filter for genes expressed high enough in this environment
+  good_expr_genes &lt;- finaldf |&gt; filter(experiment == .experiment_name) |&gt; 
+    select(gene_name) |&gt; pull()
+  .gene_idxs &lt;- .gene_idxs[.gene_idxs %in% good_expr_genes]
+  # calculating correlation of each gene btwn parental orthologs
+  condition_vec &lt;- info |&gt; filter(experiment == .experiment_name) |&gt; 
+    select(condition) |&gt; pull()
+  cer_mat &lt;- collapsed$cer[.gene_idxs, condition_vec]
+  par_mat &lt;- collapsed$par[.gene_idxs, condition_vec]
+  cor_vec &lt;- map(.gene_idxs, \(g) {
+    return(cor(cer_mat[g,], par_mat[g,]))
+  }) |&gt; unlist()
+  return(mean(cor_vec, na.rm = TRUE)) # NAs can arise from one species&#39; counts being all 0s
+}
+# tests for getplasticityCorrPerGene
+# HAP4 all diverged plasticity
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
+                                 plasticity == &quot;diverged&quot; &amp; 
+                                 cer != 0 &amp; par != 0) |&gt; 
+  select(gene_name) |&gt; pull()
+getplasticityCorrPerGene(gene_idxs, .experiment_name = &quot;HAP4&quot;)</code></pre>
+<pre><code>## [1] -0.4089101</code></pre>
+<pre class="r"><code>getplasticityCorrPerGene(gene_idxs, .experiment_name = &quot;LowN&quot;)</code></pre>
+<pre><code>## [1] 0.3788549</code></pre>
+<pre class="r"><code>getplasticityCorrPerGene(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
+<pre><code>## [1] 0.2569421</code></pre>
+<pre class="r"><code>getplasticityCorrPerGene(gene_idxs, .experiment_name = &quot;CC&quot;)</code></pre>
+<pre><code>## [1] 0.3012489</code></pre>
+<pre class="r"><code>getplasticityCorrPerGene(gene_idxs, .experiment_name = &quot;Heat&quot;)</code></pre>
+<pre><code>## [1] 0.3936355</code></pre>
+<pre class="r"><code>getplasticityCorrPerGene(gene_idxs, .experiment_name = &quot;Cold&quot;)</code></pre>
+<pre><code>## [1] 0.3931001</code></pre>
+<pre class="r"><code># all plasticity divergers
+plot_mat &lt;- matrix(nrow = length(ExperimentNames),
+                   ncol = length(ExperimentNames))
+for (e_row in ExperimentNames) {
+  for (e_col in ExperimentNames) {
+    e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
+                                       plasticity == &quot;diverged&quot; &amp; 
+                                       cer != 0 &amp; par != 0) |&gt; 
+      select(gene_name) |&gt; pull()
+    e_cor &lt;- getplasticityCorrPerGene(e_gene_idxs, .experiment_name = e_col)
+    plot_mat[which(ExperimentNames == e_row),
+             which(ExperimentNames == e_col)] &lt;- e_cor
+  }
+}
+colnames(plot_mat) &lt;- LongExperimentNames
+rownames(plot_mat) &lt;- LongExperimentNames
+
+# plotting
+col_fun = colorRamp2(c(0, 0.25, 0.5), c(&quot;red2&quot;, &quot;white&quot;, &quot;skyblue&quot;))
+Heatmap(plot_mat, col = col_fun,
+        row_order = LongExperimentNames, column_order = LongExperimentNames,
+        row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
+        cell_fun = function(j, i, x, y, width, height, fill) {
+          grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
+        })</code></pre>
+</div>
+<div
+id="do-genes-that-are-diverging-in-plasticity-but-not-level-tend-to-criss-cross-their-expression-i.e.-begin-higher-in-one-species-and-end-higher-in-the-other"
+class="section level3">
+<h3>Do genes that are diverging in plasticity but not level tend to
+criss-cross their expression? I.e. begin higher in one species and end
+higher in the other?</h3>
+<pre class="r"><code># example gene first, 2-1 HAP4
+gene_idx &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; 
+                                level == &quot;conserved&quot; &amp;
+                                cer == 2 &amp; par == 1) |&gt; 
+  select(gene_name) |&gt; pull() |&gt; sample(1)
+# plotEnvironments(.gene_idxs = &quot;YMR221C&quot;) # first example we found, strong CC level divergence
+plotEnvironments(.gene_idxs = gene_idx)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
+## &#39;experiment&#39;. You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
+## You can override using the `.groups` argument.
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`
+## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/example-criss-cross-1.png" width="672" /></p>
+<pre class="r"><code># Figure: plasticity-diverging genes have higher expression at TP0 in decreasing species
+
+# ...in environment they were diverging in plasticity in:
+getTP0AvgExpr &lt;- function(.gene_name, .experiment, .organism,
+                          .first_or_last = &quot;first&quot;) {
+  if (.organism == &quot;cer&quot;) {
+    cts_mat &lt;- collapsed$cer
+    info_df &lt;- info
+  }
+  if (.organism == &quot;par&quot;) {
+    cts_mat &lt;- collapsed$par
+    info_df &lt;- info
+  }
+  if (.first_or_last == &quot;first&quot;) {
+    tp0_condition &lt;- info_df |&gt; filter(experiment %in% .experiment) |&gt; 
+      filter(time_point_num == min(time_point_num)) |&gt; 
+      select(condition) |&gt; pull()
+    mean_expr &lt;- cts_mat[.gene_name, tp0_condition] |&gt; mean()
+    return(mean_expr)
+  }
+  if (.first_or_last == &quot;last&quot;) {
+    tpLast_condition &lt;- info_df |&gt; filter(experiment == .experiment) |&gt; 
+      filter(time_point_num == max(time_point_num)) |&gt; 
+      select(condition) |&gt; pull()
+    mean_expr &lt;- cts_mat[.gene_name, tpLast_condition] |&gt; mean()
+    return(mean_expr)
+  }
+}
+# tests for getTP0AvgExpr
+getTP0AvgExpr(.gene_name = &quot;YGR192C&quot;, .experiment = &quot;HAP4&quot;,
+              .organism = &quot;cer&quot;)</code></pre>
+<pre><code>## [1] 19578.67</code></pre>
+<pre class="r"><code>getTP0AvgExpr(.gene_name = &quot;YGR192C&quot;, .experiment = &quot;HAP4&quot;,
+              .organism = &quot;par&quot;)</code></pre>
+<pre><code>## [1] 4457</code></pre>
+<pre class="r"><code>getTP0AvgExpr(.gene_name = &quot;YGR192C&quot;, .experiment = setdiff(ExperimentNames, &quot;HAP4&quot;),
+              .organism = &quot;cer&quot;)</code></pre>
+<pre><code>## [1] 18328.67</code></pre>
+<pre class="r"><code>getTP0AvgExpr(.gene_name = &quot;YGR192C&quot;, .experiment = setdiff(ExperimentNames, &quot;HAP4&quot;),
+              .organism = &quot;par&quot;)</code></pre>
+<pre><code>## [1] 3913</code></pre>
+<pre class="r"><code>getTP0AvgExpr(.gene_name = &quot;YGR192C&quot;, .experiment = &quot;HAP4&quot;,
+              .organism = &quot;cer&quot;, .first_or_last = &quot;last&quot;)</code></pre>
+<pre><code>## [1] 8529.5</code></pre>
+<pre class="r"><code>getTP0AvgExpr(.gene_name = &quot;YGR192C&quot;, .experiment = &quot;HAP4&quot;,
+              .organism = &quot;par&quot;, .first_or_last = &quot;last&quot;)</code></pre>
+<pre><code>## [1] 623</code></pre>
+<p>Getting average expression of each plasticity-diverging gene in the
+environment they were detected in:</p>
+<pre class="r"><code>plotdf &lt;- finaldf |&gt; filter(plasticity == &quot;diverged&quot; &amp; level == &quot;conserved&quot;)
+plotdf$tp0_cer &lt;- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
+  getTP0AvgExpr(.gene_name = plotdf$gene_name[i],
+                .experiment = plotdf$experiment[i],
+                .organism = &quot;cer&quot;,
+                .first_or_last = &quot;first&quot;)
+}) |&gt; unlist()
+plotdf$tp0_par &lt;- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
+  getTP0AvgExpr(.gene_name = plotdf$gene_name[i],
+                .experiment = plotdf$experiment[i],
+                .organism = &quot;par&quot;,
+                .first_or_last = &quot;first&quot;)
+}) |&gt; unlist()
+plotdf$tplast_cer &lt;- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
+  getTP0AvgExpr(.gene_name = plotdf$gene_name[i],
+                .experiment = plotdf$experiment[i],
+                .organism = &quot;cer&quot;,
+                .first_or_last = &quot;last&quot;)
+}) |&gt; unlist()
+plotdf$tplast_par &lt;- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
+  getTP0AvgExpr(.gene_name = plotdf$gene_name[i],
+                .experiment = plotdf$experiment[i],
+                .organism = &quot;par&quot;,
+                .first_or_last = &quot;last&quot;)
+}) |&gt; unlist()</code></pre>
+<p>Calling which species was expressed higher at tp0:</p>
+<pre class="r"><code>plotdf$higher_tp0 &lt;- if_else(plotdf$tp0_cer &gt; plotdf$tp0_par,
+                             true = plotdf$tp0_cer, 
+                             false = plotdf$tp0_par)
+plotdf$lower_tp0 &lt;- if_else(plotdf$tp0_cer &gt; plotdf$tp0_par,
+                             true = plotdf$tp0_par, 
+                             false = plotdf$tp0_cer)
+# NOTE: we&#39;re still calling higher or lower relative to tp0
+plotdf$higher_tplast &lt;- if_else(plotdf$tp0_cer &gt; plotdf$tp0_par,
+                             true = plotdf$tplast_cer, 
+                             false = plotdf$tplast_par)
+plotdf$lower_tplast &lt;- if_else(plotdf$tp0_cer &gt; plotdf$tp0_par,
+                             true = plotdf$tplast_par, 
+                             false = plotdf$tplast_cer)
+plotdf_full &lt;- left_join(x = pivot_longer(select(plotdf, gene_name, experiment, 
+                                                 higher_tp0, lower_tp0,
+                                                 higher_tplast, lower_tplast), 
+                                          cols = c(&quot;higher_tp0&quot;, &quot;lower_tp0&quot;),
+                                          names_to = &quot;higher_or_lower&quot;,
+                                          values_to = &quot;tp0&quot;) |&gt; 
+                           mutate(higher_or_lower = gsub(&quot;_tp0&quot;, &quot;&quot;, higher_or_lower)),
+                         y = pivot_longer(select(plotdf, gene_name, experiment, 
+                                                 higher_tp0, lower_tp0,
+                                                 higher_tplast, lower_tplast), 
+                                          cols = c(&quot;higher_tplast&quot;, &quot;lower_tplast&quot;),
+                                          names_to = &quot;higher_or_lower&quot;,
+                                          values_to = &quot;tplast&quot;) |&gt; 
+                           mutate(higher_or_lower = gsub(&quot;_tplast&quot;, &quot;&quot;, higher_or_lower)),
+                         by = c(&quot;gene_name&quot;, &quot;experiment&quot;, &quot;higher_or_lower&quot;)) |&gt; 
+  select(gene_name, experiment, higher_or_lower, tp0, tplast) |&gt; 
+  mutate(scaled_tp0 = scale(tp0),
+         scaled_tplast = scale(tplast)) |&gt; 
+  pivot_longer(cols = c(&quot;scaled_tp0&quot;, &quot;scaled_tplast&quot;),
+               names_to = &quot;timepoint&quot;,
+               values_to = &quot;scaled_expr&quot;) |&gt; 
+  mutate(timepoint = gsub(&quot;scaled_&quot;, &quot;&quot;, timepoint))</code></pre>
+<p>Plotting</p>
+<pre class="r"><code>plotdf_means &lt;- group_by(plotdf_full, timepoint, higher_or_lower) |&gt;
+  summarise(mean_scaled_expr = mean(scaled_expr))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<pre class="r"><code>p_home &lt;- ggplot(plotdf_means, aes(x = factor(timepoint,
+                                              levels = c(&quot;tp0&quot;, &quot;tplast&quot;),
+                                              labels = c(&quot;first&quot;, &quot;last&quot;)),
+                                   y = mean_scaled_expr)) +
+  #geom_boxplot(aes(color = higher_or_lower), position = &quot;identity&quot;) +
+  geom_line(aes(color = higher_or_lower, group = higher_or_lower)) +
+  geom_point(aes(color = higher_or_lower)) +
+  scale_color_manual(values = c(&quot;red&quot;, &quot;black&quot;),
+                     limits = c(&quot;higher&quot;, &quot;lower&quot;),
+                     name = &quot;Species had [higher or lower]\nexpression at first timepoint&quot;) +
+  ylab(&quot;Expression (centered and scaled)&quot;) +
+  xlab(&quot;timepoint&quot;) +
+  theme_classic() +
+  ggtitle(&quot;Home environment&quot;)
+p_home</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/tp0-home-plotting-1.png" width="672" /></p>
+<p>Repeating for non-home environment</p>
+<pre class="r"><code>gene_env_list &lt;- finaldf |&gt; filter(plasticity == &quot;diverged&quot; &amp; level == &quot;conserved&quot;) |&gt; 
+  select(gene_name, experiment)
+plotdf &lt;- purrr::map2(gene_env_list$gene_name, gene_env_list$experiment, \(g, e) {
+  finaldf |&gt; filter(gene_name == g &amp; experiment != e)
+}) |&gt; purrr::reduce(.f = bind_rows)
+plotdf$tp0_cer &lt;- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
+  getTP0AvgExpr(.gene_name = plotdf$gene_name[i],
+                .experiment = plotdf$experiment[i],
+                .organism = &quot;cer&quot;,
+                .first_or_last = &quot;first&quot;)
+}) |&gt; unlist()
+plotdf$tp0_par &lt;- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
+  getTP0AvgExpr(.gene_name = plotdf$gene_name[i],
+                .experiment = plotdf$experiment[i],
+                .organism = &quot;par&quot;,
+                .first_or_last = &quot;first&quot;)
+}) |&gt; unlist()
+plotdf$tplast_cer &lt;- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
+  getTP0AvgExpr(.gene_name = plotdf$gene_name[i],
+                .experiment = plotdf$experiment[i],
+                .organism = &quot;cer&quot;,
+                .first_or_last = &quot;last&quot;)
+}) |&gt; unlist()
+plotdf$tplast_par &lt;- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
+  getTP0AvgExpr(.gene_name = plotdf$gene_name[i],
+                .experiment = plotdf$experiment[i],
+                .organism = &quot;par&quot;,
+                .first_or_last = &quot;last&quot;)
+}) |&gt; unlist()</code></pre>
+<p>Calling which species was expressed higher at tp0:</p>
+<pre class="r"><code>plotdf$higher_tp0 &lt;- if_else(plotdf$tp0_cer &gt; plotdf$tp0_par,
+                             true = plotdf$tp0_cer, 
+                             false = plotdf$tp0_par)
+plotdf$lower_tp0 &lt;- if_else(plotdf$tp0_cer &gt; plotdf$tp0_par,
+                             true = plotdf$tp0_par, 
+                             false = plotdf$tp0_cer)
+# NOTE: we&#39;re still calling higher or lower relative to tp0
+plotdf$higher_tplast &lt;- if_else(plotdf$tp0_cer &gt; plotdf$tp0_par,
+                             true = plotdf$tplast_cer, 
+                             false = plotdf$tplast_par)
+plotdf$lower_tplast &lt;- if_else(plotdf$tp0_cer &gt; plotdf$tp0_par,
+                             true = plotdf$tplast_par, 
+                             false = plotdf$tplast_cer)
+plotdf_full &lt;- left_join(x = pivot_longer(select(plotdf, gene_name, experiment, 
+                                                 higher_tp0, lower_tp0,
+                                                 higher_tplast, lower_tplast), 
+                                          cols = c(&quot;higher_tp0&quot;, &quot;lower_tp0&quot;),
+                                          names_to = &quot;higher_or_lower&quot;,
+                                          values_to = &quot;tp0&quot;) |&gt; 
+                           mutate(higher_or_lower = gsub(&quot;_tp0&quot;, &quot;&quot;, higher_or_lower)),
+                         y = pivot_longer(select(plotdf, gene_name, experiment, 
+                                                 higher_tp0, lower_tp0,
+                                                 higher_tplast, lower_tplast), 
+                                          cols = c(&quot;higher_tplast&quot;, &quot;lower_tplast&quot;),
+                                          names_to = &quot;higher_or_lower&quot;,
+                                          values_to = &quot;tplast&quot;) |&gt; 
+                           mutate(higher_or_lower = gsub(&quot;_tplast&quot;, &quot;&quot;, higher_or_lower)),
+                         by = c(&quot;gene_name&quot;, &quot;experiment&quot;, &quot;higher_or_lower&quot;),
+                         relationship = &quot;many-to-many&quot;) |&gt; 
+  select(gene_name, experiment, higher_or_lower, tp0, tplast) |&gt; 
+  mutate(scaled_tp0 = scale(tp0),
+         scaled_tplast = scale(tplast)) |&gt; 
+  pivot_longer(cols = c(&quot;scaled_tp0&quot;, &quot;scaled_tplast&quot;),
+               names_to = &quot;timepoint&quot;,
+               values_to = &quot;scaled_expr&quot;) |&gt; 
+  mutate(timepoint = gsub(&quot;scaled_&quot;, &quot;&quot;, timepoint)) |&gt; 
+  unique()</code></pre>
+<p>Plotting</p>
+<pre class="r"><code>plotdf_means &lt;- group_by(plotdf_full, timepoint, higher_or_lower) |&gt;
+  summarise(mean_scaled_expr = mean(scaled_expr))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<pre class="r"><code>p_other &lt;- ggplot(plotdf_means, aes(x = factor(timepoint,
+                                               levels = c(&quot;tp0&quot;, &quot;tplast&quot;),
+                                               labels = c(&quot;first&quot;, &quot;last&quot;)),
+                                    y = mean_scaled_expr)) +
+  #geom_boxplot(aes(color = higher_or_lower), position = &quot;identity&quot;) +
+  geom_line(aes(color = higher_or_lower, group = higher_or_lower)) +
+  geom_point(aes(color = higher_or_lower)) +
+  scale_color_manual(values = c(&quot;red&quot;, &quot;black&quot;),
+                     limits = c(&quot;higher&quot;, &quot;lower&quot;),
+                     name = &quot;Species had [higher or lower]\nexpression at first timepoint&quot;) +
+  ylab(&quot;Expression (centered and scaled)&quot;) +
+  xlab(&quot;timepoint&quot;) +
+  theme_classic() +
+  ggtitle(&quot;Other 5 environments&quot;)
+p_other</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/tp0-non-home-plotting-1.png" width="672" />
+Outputting plots</p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/tp0_lines.pdf&quot;,
+    width = 6, height = 3)
+ggarrange(p_home, p_other, nrow = 1, ncol = 2, common.legend = TRUE)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Now comparing this to random samples of genes</p>
+<pre class="r"><code>getTP0NormDifference &lt;- function(.gene_name, .experiment, .decreasing_species) {
+  avg_expr_decreasing &lt;- getTP0AvgExpr(.gene_name = .gene_name, 
+                                       .experiment = .experiment,
+                                       .organism = .decreasing_species)
+  avg_expr_increasing &lt;- getTP0AvgExpr(.gene_name = .gene_name, 
+                                       .experiment = .experiment,
+                                       .organism = setdiff(c(&quot;cer&quot;, &quot;par&quot;), .decreasing_species))
+  return((avg_expr_decreasing-avg_expr_increasing)/
+           (avg_expr_decreasing + avg_expr_increasing))
+}
+# tests for getTP0AvgExpr
+getTP0NormDifference(.gene_name = &quot;YGR192C&quot;, .experiment = &quot;HAP4&quot;,
+                     .decreasing_species = &quot;cer&quot;)</code></pre>
+<pre><code>## [1] 0.6291345</code></pre>
+<pre class="r"><code># avg Normdiff for groups of genes
+getTP0NormDifferenceAverage &lt;- function(.gene_vec, .experiment_vec, .decreasing_species_vec,
+                                        .home_experiment = TRUE) {
+  stopifnot(all.equal(length(.gene_vec),
+                      length(.experiment_vec),
+                      length(.decreasing_species_vec)))
+  if (.home_experiment) {
+    output &lt;- map(c(1:length(.gene_vec)), .f = \(i) {
+      getTP0NormDifference(.gene_name = .gene_vec[i],
+                           .experiment = .experiment_vec[i],
+                           .decreasing_species = .decreasing_species_vec[i])
+    }) |&gt; unlist() |&gt; mean(na.rm = TRUE)
+  }
+  if (!.home_experiment) {
+    output &lt;- map(c(1:length(.gene_vec)), .f = \(i) {
+      getTP0NormDifference(.gene_name = .gene_vec[i],
+                           .experiment = setdiff(ExperimentNames, .experiment_vec[i]),
+                           .decreasing_species = .decreasing_species_vec[i])
+    }) |&gt; unlist() |&gt; mean(na.rm = TRUE)
+  }
+  return(output)
+}
+# tests for getTP0NormDifferenceAverage
+getTP0NormDifferenceAverage(.gene_vec = sample(finaldf$gene_name, 3),
+                            .experiment_vec = sample(finaldf$experiment, 3),
+                            .decreasing_species_vec = sample(c(&quot;cer&quot;, &quot;par&quot;), replace = TRUE, 3))</code></pre>
+<pre><code>## [1] -0.2220307</code></pre>
+<p>Random simulation with 100 iterations:</p>
+<pre class="r"><code>tp0df &lt;- finaldf |&gt; filter(plasticity == &quot;diverged&quot; &amp;
+                             level == &quot;conserved&quot; &amp;
+                             cer %in% c(1, 2) &amp;
+                             par %in% c(1, 2)) |&gt;
+  mutate(&quot;decreasing_species&quot; = if_else(cer == 1,
+                                        true = &quot;par&quot;,
+                                        false = &quot;cer&quot;)) |&gt;
+  select(gene_name, experiment, cer, par, decreasing_species)
+
+# observed avg norm diff for home environment
+obs_home &lt;- getTP0NormDifferenceAverage(.gene_vec = tp0df$gene_name,
+                                        .experiment_vec = tp0df$experiment,
+                                        .decreasing_species_vec = tp0df$decreasing_species)
+
+# observed avg norm diff for other environments
+obs_other &lt;- getTP0NormDifferenceAverage(.gene_vec = tp0df$gene_name,
+                                         .experiment_vec = tp0df$experiment,
+                                         .decreasing_species_vec = tp0df$decreasing_species,
+                                         .home_experiment = FALSE)
+
+# random gene samples (with replacement) in home or other environment
+nIter &lt;- 100
+randomdf &lt;- map(1:nIter, \(iter) {
+  cat(iter, &quot;/&quot;, nIter, &quot;\n&quot;)
+  random_genes &lt;- map(tp0df$experiment, \(e) {
+    finaldf |&gt; filter(experiment == e) |&gt; select(gene_name) |&gt; pull() |&gt; sample(1)
+  }) |&gt; unlist()
+  random_org &lt;- sample(c(&quot;cer&quot;, &quot;par&quot;), length(random_genes), replace = TRUE)
+  home &lt;- getTP0NormDifferenceAverage(.gene_vec = random_genes,
+                                      .experiment_vec = tp0df$experiment,
+                                      .decreasing_species_vec = random_org)
+  other &lt;- getTP0NormDifferenceAverage(.gene_vec = random_genes,
+                                       .experiment_vec = tp0df$experiment,
+                                       .decreasing_species_vec = random_org,
+                                       .home_experiment = FALSE)
+  return(list(home = home, other = other))
+}) |&gt; purrr::reduce(.f = bind_rows)</code></pre>
+<pre><code>## 1 / 100 
+## 2 / 100 
+## 3 / 100 
+## 4 / 100 
+## 5 / 100 
+## 6 / 100 
+## 7 / 100 
+## 8 / 100 
+## 9 / 100 
+## 10 / 100 
+## 11 / 100 
+## 12 / 100 
+## 13 / 100 
+## 14 / 100 
+## 15 / 100 
+## 16 / 100 
+## 17 / 100 
+## 18 / 100 
+## 19 / 100 
+## 20 / 100 
+## 21 / 100 
+## 22 / 100 
+## 23 / 100 
+## 24 / 100 
+## 25 / 100 
+## 26 / 100 
+## 27 / 100 
+## 28 / 100 
+## 29 / 100 
+## 30 / 100 
+## 31 / 100 
+## 32 / 100 
+## 33 / 100 
+## 34 / 100 
+## 35 / 100 
+## 36 / 100 
+## 37 / 100 
+## 38 / 100 
+## 39 / 100 
+## 40 / 100 
+## 41 / 100 
+## 42 / 100 
+## 43 / 100 
+## 44 / 100 
+## 45 / 100 
+## 46 / 100 
+## 47 / 100 
+## 48 / 100 
+## 49 / 100 
+## 50 / 100 
+## 51 / 100 
+## 52 / 100 
+## 53 / 100 
+## 54 / 100 
+## 55 / 100 
+## 56 / 100 
+## 57 / 100 
+## 58 / 100 
+## 59 / 100 
+## 60 / 100 
+## 61 / 100 
+## 62 / 100 
+## 63 / 100 
+## 64 / 100 
+## 65 / 100 
+## 66 / 100 
+## 67 / 100 
+## 68 / 100 
+## 69 / 100 
+## 70 / 100 
+## 71 / 100 
+## 72 / 100 
+## 73 / 100 
+## 74 / 100 
+## 75 / 100 
+## 76 / 100 
+## 77 / 100 
+## 78 / 100 
+## 79 / 100 
+## 80 / 100 
+## 81 / 100 
+## 82 / 100 
+## 83 / 100 
+## 84 / 100 
+## 85 / 100 
+## 86 / 100 
+## 87 / 100 
+## 88 / 100 
+## 89 / 100 
+## 90 / 100 
+## 91 / 100 
+## 92 / 100 
+## 93 / 100 
+## 94 / 100 
+## 95 / 100 
+## 96 / 100 
+## 97 / 100 
+## 98 / 100 
+## 99 / 100 
+## 100 / 100</code></pre>
+<pre class="r"><code># plotting
+plotdf &lt;- randomdf |&gt; pivot_longer(cols = c(&quot;home&quot;, &quot;other&quot;),
+                                            names_to = &quot;environment&quot;,
+                                            values_to = &quot;norm_diff&quot;)
+obsdf &lt;- tibble(environment = c(&quot;home&quot;, &quot;other&quot;),
+                norm_diff = c(obs_home, obs_other))
+p &lt;- ggplot(plotdf, aes(x = norm_diff)) +
+  geom_density(fill = &quot;grey&quot;) +
+  facet_wrap(~factor(environment, levels = c(&quot;home&quot;, &quot;other&quot;),
+                     labels = c(&quot;home environment&quot;, &quot;all 5 other environments&quot;))) +
+  geom_vline(data = obsdf, color = &quot;red&quot;,
+             aes(xintercept = norm_diff)) +
+  xlab(&quot;decreasing expression at tp0 - increasing expression at tp0,\nnormalized by expression level, averaged across all genes&quot;) +
+  theme_classic()
+p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/tp0-simulations-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/tp0-simulations.pdf&quot;,
+    width = 5, height = 2)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># nRandoms with greater norm_diff than observed
+# home
+sum(randomdf$home &gt; obs_home)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code># other
+sum(randomdf$home &gt; obs_other)</code></pre>
+<pre><code>## [1] 0</code></pre>
+</div>
+</div>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

@@ -4,7 +4,7 @@ navbar:
   left:
     - text: "Home"
       href: index.html
-    - text: "1-3. Data Cleaning"
+    - text: "1-3: Data Cleaning"
       menu:
       - text: "1. Import data and QC"
         href: clean_data.html
@@ -12,7 +12,7 @@ navbar:
         href: data_for_analysis_scripts.html
       - text: "3. Functions"
         href: functions_for_figure_scripts.html
-    - text: "4-6. Data Analysis"
+    - text: "4-6: Data Analysis"
       menu:
       - text: "4. Clustering"
         href: clustering.html
@@ -20,7 +20,7 @@ navbar:
         href: single_gene_models.html
       - text: "6. Final dataframe"
         href: data_for_figure_scripts.html
-    - text: "7. Single-environment figures"
+    - text: "7: Single-environment figures"
       menu:
       - text: "Fig 5: Diauxic Shift"
         href: Fig_DiauxicShift.html
@@ -34,7 +34,7 @@ navbar:
         href: Fig_HeatStress.html
       - text: "Fig S3: Cold Stress"
         href: Fig_ColdStress.html
-    - text: "8-10.: Multi-environment figures"
+    - text: "8-10: Multi-environment figures"
       menu:
       - text: "8. Table 1: Gene Ontology"
         href: Fig_gene_ontology.html
