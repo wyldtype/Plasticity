@@ -38,4 +38,6 @@ navbar:
       menu:
       - text: "8. Table 1: Gene Ontology"
         href: Fig_gene_ontology.html
+      - text: "9. Figs 4, 6, 7: Environmental Patterns"
+        href: Fig_environmental_patterns.html
 output_dir: docs
