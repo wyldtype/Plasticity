@@ -40,4 +40,6 @@ navbar:
         href: Fig_gene_ontology.html
       - text: "9. Figs 4, 6, 7: Environmental Patterns"
         href: Fig_environmental_patterns.html
+      - text: "10. Figs 8: F1 Hybrid"
+        href: Fig_cis_trans.html
 output_dir: docs

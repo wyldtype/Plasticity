@@ -321,6 +321,9 @@ $(document).ready(function () {
     <li>
       <a href="Fig_environmental_patterns.html">9. Figs 4, 6, 7: Environmental Patterns</a>
     </li>
+    <li>
+      <a href="Fig_cis_trans.html">10. Figs 8: F1 Hybrid</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -341,8 +344,119 @@ DESeq2 to determine divergence in expression level</h1>
 </div>
 
 
-<pre class="r"><code>library(DESeq2) # DESeq2 depends on IRanges, GenomicRanges,
-# and S4Vectors, which include their own functions
+<pre class="r"><code>library(DESeq2) # DESeq2 depends on IRanges, GenomicRanges,</code></pre>
+<pre><code>## Loading required package: S4Vectors</code></pre>
+<pre><code>## Loading required package: stats4</code></pre>
+<pre><code>## Loading required package: BiocGenerics</code></pre>
+<pre><code>## Loading required package: generics</code></pre>
+<pre><code>## 
+## Attaching package: &#39;generics&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     explain</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.difftime, as.factor, as.ordered, intersect,
+##     is.element, setdiff, setequal, union</code></pre>
+<pre><code>## 
+## Attaching package: &#39;BiocGenerics&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:huxtable&#39;:
+## 
+##     width, width&lt;-</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     combine</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     IQR, mad, sd, var, xtabs</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     anyDuplicated, aperm, append, as.data.frame, basename,
+##     cbind, colnames, dirname, do.call, duplicated, eval,
+##     evalq, Filter, Find, get, grep, grepl, is.unsorted,
+##     lapply, Map, mapply, match, mget, order, paste, pmax,
+##     pmax.int, pmin, pmin.int, Position, rank, rbind, Reduce,
+##     rownames, sapply, saveRDS, table, tapply, unique,
+##     unsplit, which.max, which.min</code></pre>
+<pre><code>## 
+## Attaching package: &#39;S4Vectors&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:data.table&#39;:
+## 
+##     first, second</code></pre>
+<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     first, rename</code></pre>
+<pre><code>## The following object is masked from &#39;package:tidyr&#39;:
+## 
+##     expand</code></pre>
+<pre><code>## The following object is masked from &#39;package:utils&#39;:
+## 
+##     findMatches</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     expand.grid, I, unname</code></pre>
+<pre><code>## Loading required package: IRanges</code></pre>
+<pre><code>## 
+## Attaching package: &#39;IRanges&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:data.table&#39;:
+## 
+##     shift</code></pre>
+<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     collapse, desc, slice</code></pre>
+<pre><code>## The following object is masked from &#39;package:purrr&#39;:
+## 
+##     reduce</code></pre>
+<pre><code>## Loading required package: GenomicRanges</code></pre>
+<pre><code>## Loading required package: GenomeInfoDb</code></pre>
+<pre><code>## Loading required package: SummarizedExperiment</code></pre>
+<pre><code>## Loading required package: MatrixGenerics</code></pre>
+<pre><code>## 
+## Attaching package: &#39;MatrixGenerics&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
+## 
+##     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet,
+##     colCollapse, colCounts, colCummaxs, colCummins,
+##     colCumprods, colCumsums, colDiffs, colIQRDiffs, colIQRs,
+##     colLogSumExps, colMadDiffs, colMads, colMaxs, colMeans2,
+##     colMedians, colMins, colOrderStats, colProds,
+##     colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
+##     colSums2, colTabulates, colVarDiffs, colVars,
+##     colWeightedMads, colWeightedMeans, colWeightedMedians,
+##     colWeightedSds, colWeightedVars, rowAlls, rowAnyNAs,
+##     rowAnys, rowAvgsPerColSet, rowCollapse, rowCounts,
+##     rowCummaxs, rowCummins, rowCumprods, rowCumsums,
+##     rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
+##     rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians,
+##     rowMins, rowOrderStats, rowProds, rowQuantiles,
+##     rowRanges, rowRanks, rowSdDiffs, rowSds, rowSums2,
+##     rowTabulates, rowVarDiffs, rowVars, rowWeightedMads,
+##     rowWeightedMeans, rowWeightedMedians, rowWeightedSds,
+##     rowWeightedVars</code></pre>
+<pre><code>## Loading required package: Biobase</code></pre>
+<pre><code>## Welcome to Bioconductor
+## 
+##     Vignettes contain introductory material; view with
+##     &#39;browseVignettes()&#39;. To cite Bioconductor, see
+##     &#39;citation(&quot;Biobase&quot;)&#39;, and for packages
+##     &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Biobase&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:MatrixGenerics&#39;:
+## 
+##     rowMedians</code></pre>
+<pre><code>## The following object is masked from &#39;package:huxtable&#39;:
+## 
+##     contents</code></pre>
+<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
+## 
+##     anyMissing, rowMedians</code></pre>
+<pre><code>## 
+## Attaching package: &#39;DESeq2&#39;</code></pre>
+<pre><code>## The following object is masked _by_ &#39;.GlobalEnv&#39;:
+## 
+##     collapseReplicates</code></pre>
+<pre class="r"><code># and S4Vectors, which include their own functions
 # that share names with common tidyverse functions
 # such as reduce and rename (which causes me problems)
 # So loading it before tidyverse packages so that

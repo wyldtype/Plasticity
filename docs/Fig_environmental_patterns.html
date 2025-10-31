@@ -321,6 +321,9 @@ $(document).ready(function () {
     <li>
       <a href="Fig_environmental_patterns.html">9. Figs 4, 6, 7: Environmental Patterns</a>
     </li>
+    <li>
+      <a href="Fig_cis_trans.html">10. Figs 8: F1 Hybrid</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -343,6 +346,43 @@ across all 6 environments</h1>
 
 <pre class="r"><code>sapply(c(&quot;stringr&quot;, &quot;RColorBrewer&quot;, &quot;circlize&quot;, &quot;ggridges&quot;,
          &quot;ComplexHeatmap&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>## Loading required package: stringr</code></pre>
+<pre><code>## Loading required package: RColorBrewer</code></pre>
+<pre><code>## Loading required package: circlize</code></pre>
+<pre><code>## ========================================
+## circlize version 0.4.16
+## CRAN page: https://cran.r-project.org/package=circlize
+## Github page: https://github.com/jokergoo/circlize
+## Documentation: https://jokergoo.github.io/circlize_book/book/
+## 
+## If you use it in published research, please cite:
+## Gu, Z. circlize implements and enhances circular visualization
+##   in R. Bioinformatics 2014.
+## 
+## This message can be suppressed by:
+##   suppressPackageStartupMessages(library(circlize))
+## ========================================</code></pre>
+<pre><code>## Loading required package: ggridges</code></pre>
+<pre><code>## Loading required package: ComplexHeatmap</code></pre>
+<pre><code>## Loading required package: grid</code></pre>
+<pre><code>## ========================================
+## ComplexHeatmap version 2.24.0
+## Bioconductor page: http://bioconductor.org/packages/ComplexHeatmap/
+## Github page: https://github.com/jokergoo/ComplexHeatmap
+## Documentation: http://jokergoo.github.io/ComplexHeatmap-reference
+## 
+## If you use it in published research, please cite either one:
+## - Gu, Z. Complex Heatmap Visualization. iMeta 2022.
+## - Gu, Z. Complex heatmaps reveal patterns and correlations in multidimensional 
+##     genomic data. Bioinformatics 2016.
+## 
+## 
+## The new InteractiveComplexHeatmap package can directly export static 
+## complex heatmaps into an interactive Shiny app with zero effort. Have a try!
+## 
+## This message can be suppressed by:
+##   suppressPackageStartupMessages(library(ComplexHeatmap))
+## ========================================</code></pre>
 <pre><code>##        stringr   RColorBrewer       circlize       ggridges 
 ##           TRUE           TRUE           TRUE           TRUE 
 ## ComplexHeatmap 
@@ -471,8 +511,22 @@ class="section level2">
   pivot_wider(id_cols = c(&quot;gene_name&quot;), names_from = &quot;experiment&quot;,
               values_from = &quot;group4&quot;) |&gt; 
   pivot_longer(cols = ExperimentNames, names_to = &quot;experiment&quot;,
-               values_to = &quot;group5&quot;) # to add NA values for low expression
-plotdf$group5 &lt;- if_else(is.na(plotdf$group5), true = &quot;lowly expressed&quot;,
+               values_to = &quot;group5&quot;) # to add NA values for low expression</code></pre>
+<pre><code>## Warning: Using an external vector in selections was deprecated in tidyselect
+## 1.1.0.
+## ℹ Please use `all_of()` or `any_of()` instead.
+##   # Was:
+##   data %&gt;% select(ExperimentNames)
+## 
+##   # Now:
+##   data %&gt;% select(all_of(ExperimentNames))
+## 
+## See
+## &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this
+## warning was generated.</code></pre>
+<pre class="r"><code>plotdf$group5 &lt;- if_else(is.na(plotdf$group5), true = &quot;lowly expressed&quot;,
                          false = plotdf$group5) |&gt; 
   factor(levels = c(&quot;conserved level and plasticity&quot;,
                     &quot;conserved level, diverged plasticity&quot;,
@@ -504,23 +558,15 @@ dev.off()</code></pre>
 <pre class="r"><code>plotdf &lt;- filter(finaldf, level == &quot;diverged&quot;)
 filter(finaldf, plasticity == &quot;conserved&quot; &amp; level == &quot;conserved&quot;) |&gt; group_by(experiment) |&gt; 
   summarise(n = n())</code></pre>
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:proportions-ridgeline">
-<col><col><tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">experiment</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">n</th></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">CC</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1329</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1416</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">HAP4</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2018</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Heat</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1586</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">LowN</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1920</td></tr>
-<tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">LowPi</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1658</td></tr>
-</table>
-
+<pre><code>## # A tibble: 6 × 2
+##   experiment     n
+##   &lt;chr&gt;      &lt;int&gt;
+## 1 CC          1329
+## 2 Cold        1416
+## 3 HAP4        2018
+## 4 Heat        1586
+## 5 LowN        1920
+## 6 LowPi       1658</code></pre>
 <pre class="r"><code># accompanying percentages of upScer and upSpar genes
 pctdf &lt;- plotdf |&gt; group_by(experiment) |&gt; 
   summarise(pct_upcer = round(sum(effect_size_species &gt; 0)/length(effect_size_species), digits = 2)*100,
@@ -693,8 +739,9 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
         })
-p
-pdf(&quot;paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_scer.pdf&quot;,
+p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/heatmap-upScer-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_scer.pdf&quot;,
     width = 5, height = 3)
 p
 dev.off()</code></pre>
@@ -726,8 +773,9 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
         })
-p
-pdf(&quot;paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_spar.pdf&quot;,
+p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/heatmap-upPar-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_spar.pdf&quot;,
     width = 5, height = 3)
 p
 dev.off()</code></pre>
@@ -759,17 +807,23 @@ gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
                                  cer == 2 &amp; par == 1) |&gt; 
   select(gene_name) |&gt; pull()
 getplasticityCorr(gene_idxs, .experiment_name = &quot;HAP4&quot;)</code></pre>
-<pre><code>## [1] -0.9359643</code></pre>
+<pre><code>##            [,1]
+## [1,] -0.9359643</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowN&quot;)</code></pre>
-<pre><code>## [1] 0.906296</code></pre>
+<pre><code>##          [,1]
+## [1,] 0.906296</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
-<pre><code>## [1] 0.9128942</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.9128942</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;CC&quot;)</code></pre>
-<pre><code>## [1] 0.6486633</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.6486633</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Heat&quot;)</code></pre>
-<pre><code>## [1] 0.9786642</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.9786642</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Cold&quot;)</code></pre>
-<pre><code>## [1] -0.4895706</code></pre>
+<pre><code>##            [,1]
+## [1,] -0.4895706</code></pre>
 <p>Heatmap of species correlations for genes increasing in Spar and
 decreasing in Scer:</p>
 <pre class="r"><code># 2-1 divergers
@@ -796,8 +850,9 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
         })
-p
-pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_21.pdf&quot;,
+p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/2-1-heatmap-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_21.pdf&quot;,
     width = 5, height = 3)
 p
 dev.off()</code></pre>
@@ -829,8 +884,9 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
         })
-p
-pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_12.pdf&quot;,
+p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/1-2-heatmap-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_12.pdf&quot;,
     width = 5, height = 3)
 p
 dev.off()</code></pre>
@@ -870,7 +926,8 @@ testcor12 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot
 <pre class="r"><code>testcor12</code></pre>
 <pre><code>## [1] -0.9021212</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
-<pre><code>## [1] -0.9021212</code></pre>
+<pre><code>##            [,1]
+## [1,] -0.9021212</code></pre>
 <pre class="r"><code># LowPi 2-1 alone:
 gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
                                  plasticity == &quot;diverged&quot; &amp;
@@ -882,7 +939,8 @@ testcor21 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot
 <pre class="r"><code>testcor21</code></pre>
 <pre><code>## [1] -0.9543984</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
-<pre><code>## [1] -0.9543984</code></pre>
+<pre><code>##            [,1]
+## [1,] -0.9543984</code></pre>
 <pre class="r"><code># weights
 finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
                     plasticity == &quot;diverged&quot; &amp;
@@ -1057,8 +1115,9 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
         })
-p
-pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_plasticity_all_clusters.pdf&quot;,
+p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/all-plasticity-cor-heatmap-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_plasticity_all_clusters.pdf&quot;,
     width = 5, height = 4)
 p
 dev.off()</code></pre>
@@ -1282,6 +1341,7 @@ Heatmap(plot_mat, col = col_fun,
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
         })</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/getplasticityCorrPerGene-1.png" width="672" /></p>
 </div>
 <div
 id="do-genes-that-are-diverging-in-plasticity-but-not-level-tend-to-criss-cross-their-expression-i.e.-begin-higher-in-one-species-and-end-higher-in-the-other"

@@ -321,6 +321,9 @@ $(document).ready(function () {
     <li>
       <a href="Fig_environmental_patterns.html">9. Figs 4, 6, 7: Environmental Patterns</a>
     </li>
+    <li>
+      <a href="Fig_cis_trans.html">10. Figs 8: F1 Hybrid</a>
+    </li>
   </ul>
 </li>
       </ul>
@@ -341,199 +344,269 @@ $(document).ready(function () {
 
 
 <p>TODO: 1) Make this not just one chunk 2) repeat for dispersion</p>
-<pre class="r"><code># sapply(c(&quot;dplyr&quot;, &quot;tidyr&quot;, &quot;purrr&quot;, &quot;WGCNA&quot;, &quot;stringr&quot;, &quot;ggplot2&quot;, &quot;RColorBrewer&quot;, &quot;ggpubr&quot;, &quot;grid&quot;, &quot;ComplexHeatmap&quot;, &quot;circlize&quot;, &quot;huxtable&quot;), require, character.only=TRUE)
-# setwd(&quot;/Users/annar/Documents/Wittkopp_Lab/networks/aligning_the_molecular_phenotype/Redhuis2025/&quot;)
-# source(&quot;functions_for_figure_scripts.R&quot;)
-# 
-# # Script to compare how number of clusters changes which genes are called
-# # as diverging in plasticity
-# load(&quot;data_files/QC_CorrelationClustering3Disp.RData&quot;)
-# load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
-# clusterdf_list2 &lt;- clusterdf_list
-# rm(clusterdf_list)
-# # dataframe of nClust = 2, 3, and 4 clustering results
-# clustdf &lt;- select(finaldf, gene_name, experiment, level, cer, par) |&gt; 
-#   rename(c(&quot;cer2&quot;=&quot;cer&quot;, &quot;par2&quot;=&quot;par&quot;, &quot;gene_ID&quot;=&quot;gene_name&quot;)) |&gt; 
-#   left_join(rename(clusterdf3, c(&quot;cer3&quot;=&quot;cer&quot;, &quot;par3&quot;=&quot;par&quot;)),
-#             by = c(&quot;gene_ID&quot;, &quot;experiment&quot;)) |&gt; 
-#   left_join(rename(clusterdf4, c(&quot;cer4&quot;=&quot;cer&quot;, &quot;par4&quot;=&quot;par&quot;)),
-#             by = c(&quot;gene_ID&quot;, &quot;experiment&quot;))
-# 
-# #### Visualize cluster expression patterns in each experiment ####
-# display.brewer.all()
-# # color palettes we&#39;ll use for the 6 environments
-# palettedf &lt;- tibble(experiment = ExperimentNames,
-#                     palette = c(&quot;Greys&quot;, &quot;YlGn&quot;, &quot;Greens&quot;, &quot;Purples&quot;, &quot;YlOrBr&quot;, &quot;BuPu&quot;),
-#                     long_name = LongExperimentNames)
-# 
-# plotClusterPatternByExperiment &lt;- function(.df, .experiment, .title = NULL) {
-#   plotdf &lt;- summarise(group_by(.df, time_point_num, label),
-#                       mean_expr = mean(expr, na.rm = TRUE))
-#   plotdf$label &lt;- as.factor(plotdf$label)
-#   color_plt &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; select(palette) |&gt; pull()
-#   if (is.null(.title)) {
-#     .title &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; select(long_name) |&gt; pull()
-#   }
-#   ggplot(plotdf, aes(x = time_point_num, y = log2(mean_expr + 1))) +
-#     geom_line(aes(group = label, color = label), linewidth = 4) +
-#     geom_point(color = &quot;black&quot;, alpha = 0.4) +
-#     xlab(&quot;timepoint (min)&quot;) +
-#     ylab(&quot;expression (log2)&quot;) +
-#     scale_color_brewer(palette = color_plt, name = &quot;cluster&quot;,
-#                        direction = -1) +
-#     theme_classic() +
-#     theme(legend.position = &quot;right&quot;) +
-#     ggtitle(.title)
-# }
-# 
-# # 2 clusters
-# pdf(&quot;../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_2.pdf&quot;,
-#     width = 8, height = 4)
-# ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .experiment = &quot;HAP4&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list2$CC_2$df, .experiment = &quot;CC&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list2$LowN_2$df, .experiment = &quot;LowN&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list2$LowPi_2$df, .experiment = &quot;LowPi&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list2$Heat_2$df, .experiment = &quot;Heat&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list2$Cold_2$df, .experiment = &quot;Cold&quot;),
-#           nrow = 2, ncol = 3, common.legend = FALSE)
-# dev.off()
-# 
-# # 3 clusters
-# pdf(&quot;../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_3.pdf&quot;,
-#     width = 8, height = 4)
-# ggarrange(plotClusterPatternByExperiment(clusterdf_list3$HAP4_3$df, .experiment = &quot;HAP4&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list3$CC_3$df, .experiment = &quot;CC&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list3$LowN_3$df, .experiment = &quot;LowN&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list3$LowPi_3$df, .experiment = &quot;LowPi&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list3$Heat_3$df, .experiment = &quot;Heat&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list3$Cold_3$df, .experiment = &quot;Cold&quot;),
-#           nrow = 2, ncol = 3, common.legend = FALSE)
-# dev.off()
-# 
-# # 4 clusters
-# pdf(&quot;../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_4.pdf&quot;,
-#     width = 8, height = 4)
-# ggarrange(plotClusterPatternByExperiment(clusterdf_list4$HAP4_4$df, .experiment = &quot;HAP4&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list4$CC_4$df, .experiment = &quot;CC&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list4$LowN_4$df, .experiment = &quot;LowN&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list4$LowPi_4$df, .experiment = &quot;LowPi&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list4$Heat_4$df, .experiment = &quot;Heat&quot;),
-#           plotClusterPatternByExperiment(clusterdf_list4$Cold_4$df, .experiment = &quot;Cold&quot;),
-#           nrow = 2, ncol = 3, common.legend = FALSE)
-# dev.off()
-# 
-# #### How does numbers of clusters affect which divergence group genes are in? ####
-# # given an experiment name, extracts the full matrix of nClust=2,3,4 x nGenes
-# # where each cell is the 4-group expression divergence category
-# getClusterQCHeatmap &lt;- function(.e) {
-#   plot_cer &lt;- clustdf |&gt; filter(experiment == .e) |&gt; 
-#     pivot_longer(cols = c(&quot;cer2&quot;, &quot;cer3&quot;, &quot;cer4&quot;),
-#                  names_to = &quot;nclust&quot;, values_to = &quot;cer&quot;) |&gt; 
-#     select(gene_ID, level, nclust, cer)
-#   plot_cer$nclust &lt;- gsub(&quot;cer&quot;, &quot;&quot;, plot_cer$nclust)
-#   plot_par &lt;- clustdf |&gt; filter(experiment == .e) |&gt; 
-#     pivot_longer(cols = c(&quot;par2&quot;, &quot;par3&quot;, &quot;par4&quot;),
-#                  names_to = &quot;nclust&quot;, values_to = &quot;par&quot;) |&gt; 
-#     select(gene_ID, level, nclust, par)
-#   plot_par$nclust &lt;- gsub(&quot;par&quot;, &quot;&quot;, plot_par$nclust)
-#   
-#   plotdf &lt;- full_join(plot_cer, plot_par, 
-#                       by = c(&quot;gene_ID&quot;, &quot;level&quot;, &quot;nclust&quot;)) |&gt; 
-#     mutate(plasticity = if_else(cer == par,
-#                               true = &quot;conserved&quot;,
-#                               false = &quot;diverged&quot;))
-#   plotdf$group4 &lt;- map2(plotdf$level, plotdf$plasticity, \(l, d) {
-#     if (l != &quot;diverged&quot; &amp; d == &quot;conserved&quot;) {
-#       return(&quot;conserved level and plasticity&quot;)
-#     }
-#     if (l != &quot;diverged&quot; &amp; d == &quot;diverged&quot;) {
-#       return(&quot;conserved level, diverged plasticity&quot;)
-#     }
-#     if (l == &quot;diverged&quot; &amp; d == &quot;conserved&quot;) {
-#       return(&quot;diverged level, conserved plasticity&quot;)
-#     }
-#     if (l == &quot;diverged&quot; &amp; d == &quot;diverged&quot;) {
-#       return(&quot;diverged level and plasticity&quot;)
-#     }
-#   }) |&gt; unlist()
-#   
-#   plot_mat_e &lt;- plotdf |&gt; select(gene_ID, nclust, group4) |&gt; 
-#     pivot_wider(id_cols = gene_ID, names_from = nclust,
-#                 values_from = group4) |&gt; t()
-#   colnames(plot_mat_e) &lt;- plot_mat_e[1,]
-#   plot_mat_e &lt;- plot_mat_e[-1,]
-#   ordered_plot_mat &lt;- orderGenesByGroup(.mat = plot_mat_e)
-#   clrs &lt;- structure(colordf[colordf$scheme == &quot;group4&quot;,]$type, 
-#                     names = colordf[colordf$scheme == &quot;group4&quot;,]$limits)
-#   return(ordered_plot_mat)
-# }
-# # tests for getClusterQCHeatmap
-# test &lt;- getClusterQCHeatmap(.e = &quot;HAP4&quot;)
-# dim(test)
-# table(test[1,])
-# test0 &lt;- test[, c(1:20, 2087:2107, 3092:3112, 3844:3864)]
-# 
-# # plots the 4-group expression divergence matrix as a heatmap
-# plotClusterQCHeatmap &lt;- function(.mat, .legend = FALSE) {
-#   .df &lt;- bind_rows(tibble(gene_name = colnames(.mat),
-#                              nclust = 2,
-#                              group4 = .mat[1,],
-#                              x = c(1:ncol(.mat)),
-#                              y = 3),
-#                       tibble(gene_name = colnames(.mat),
-#                              nclust = 3,
-#                              group4 = .mat[2,],
-#                              x = c(1:ncol(.mat)),
-#                              y = 2),
-#                       tibble(gene_name = colnames(.mat),
-#                              nclust = 4,
-#                              group4 = .mat[3,],
-#                              x = c(1:ncol(.mat)),
-#                              y = 1))
-#   p &lt;- ggplot(.df, aes(x = x, y = y, fill = group4)) +
-#     geom_tile_pattern(aes(fill = group4, pattern = group4), pattern_fill = &quot;black&quot;) +
-#     scale_fill_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
-#                         type = colordf[colordf$scheme == &quot;group4&quot;,]$type) +
-#     scale_pattern_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
-#                            choices = colordf[colordf$scheme == &quot;group4&quot;,]$pattern) +
-#     theme_void()
-#   if (!.legend) {
-#     p &lt;- p + theme(legend.position = &quot;none&quot;)
-#   }
-#   if (.legend) {
-#     p &lt;- p + theme(legend.position = &quot;right&quot;)
-#   }
-#   return(p)
-# }
-# # tests for plotClusterQCHeatmap
-# plotClusterQCHeatmap(.mat = test0, .legend = TRUE)
-# 
-# # discrete heatmaps
-# for (e in c(&quot;Heat&quot;, &quot;Cold&quot;)) {
-#   cat(&quot;working on&quot;, e, &quot;\n&quot;)
-#   plot_mat_e &lt;- getClusterQCHeatmap(.e = e)
-#   pdf(file = paste0(&quot;../../aligning_the_molecular_phenotype/paper_figures/Supplement/nclust_heatmap_&quot;, e, &quot;UGH.pdf&quot;),
-#       width = 9, height = 1)
-#   print(plotClusterQCHeatmap(plot_mat_e))
-#   dev.off()
-# }
-# 
-# ### Percents of nClust=2 plasticity-divergers also labeled as plasticity-divergers
-# # in nClust=3
-# sum((clustdf$cer2 != clustdf$par2) &amp; (clustdf$cer3 != clustdf$par3))/sum(clustdf$cer2 != clustdf$par2)
-# # in nClust=4
-# sum((clustdf$cer2 != clustdf$par2) &amp; (clustdf$cer4 != clustdf$par4))/sum(clustdf$cer2 != clustdf$par2)
-# 
-# # The reverse: percents of nClust=3 or 4 plasticity-divergers
-# # also labeled as plasticity-divergers in nClust=2
-# # nClust=3
-# sum((clustdf$cer3 != clustdf$par3) &amp; (clustdf$cer2 != clustdf$par2))/sum(clustdf$cer3 != clustdf$par3)
-# # nClust=4
-# sum((clustdf$cer4 != clustdf$par4) &amp; (clustdf$cer2 != clustdf$par2))/sum(clustdf$cer4 != clustdf$par4)
-# 
-# # conclusion: nClust=2 is most conservative, a near perfect subset of nClust=3/4
-# 
-# #### Comparing different low variance thresholds (min dispersion) ####</code></pre>
+<pre class="r"><code>sapply(c(&quot;WGCNA&quot;, &quot;stringr&quot;, &quot;ggplot2&quot;, &quot;RColorBrewer&quot;, &quot;ggpubr&quot;, &quot;grid&quot;, &quot;ComplexHeatmap&quot;, &quot;circlize&quot;, &quot;huxtable&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>## Loading required package: huxtable</code></pre>
+<pre><code>## 
+## Attaching package: &#39;huxtable&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
+## 
+##     add_rownames</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggpubr&#39;:
+## 
+##     font</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     theme_grey</code></pre>
+<pre><code>##          WGCNA        stringr        ggplot2   RColorBrewer 
+##           TRUE           TRUE           TRUE           TRUE 
+##         ggpubr           grid ComplexHeatmap       circlize 
+##           TRUE           TRUE           TRUE           TRUE 
+##       huxtable 
+##           TRUE</code></pre>
+<pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
+
+# Script to compare how number of clusters changes which genes are called
+# as diverging in plasticity
+load(&quot;data_files/QC_CorrelationClustering.RData&quot;)
+load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
+clusterdf_list2 &lt;- clusterdf_list
+rm(clusterdf_list)
+# dataframe of nClust = 2, 3, and 4 clustering results
+clustdf &lt;- select(finaldf, gene_name, experiment, level, cer, par) |&gt;
+  dplyr::rename(c(&quot;cer2&quot;=&quot;cer&quot;, &quot;par2&quot;=&quot;par&quot;, &quot;gene_ID&quot;=&quot;gene_name&quot;)) |&gt;
+  left_join(rename(clusterdf3, c(&quot;cer3&quot;=&quot;cer&quot;, &quot;par3&quot;=&quot;par&quot;)),
+            by = c(&quot;gene_ID&quot;, &quot;experiment&quot;)) |&gt;
+  left_join(rename(clusterdf4, c(&quot;cer4&quot;=&quot;cer&quot;, &quot;par4&quot;=&quot;par&quot;)),
+            by = c(&quot;gene_ID&quot;, &quot;experiment&quot;))
+
+#### Visualize cluster expression patterns in each experiment ####
+display.brewer.all()</code></pre>
+<p><img src="QC_clustering_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre class="r"><code># color palettes we&#39;ll use for the 6 environments
+palettedf &lt;- tibble(experiment = ExperimentNames,
+                    palette = c(&quot;Greys&quot;, &quot;YlGn&quot;, &quot;Greens&quot;, &quot;Purples&quot;, &quot;YlOrBr&quot;, &quot;BuPu&quot;),
+                    long_name = LongExperimentNames)
+
+plotClusterPatternByExperiment &lt;- function(.df, .experiment, .title = NULL) {
+  plotdf &lt;- summarise(group_by(.df, time_point_num, label),
+                      mean_expr = mean(expr, na.rm = TRUE))
+  plotdf$label &lt;- as.factor(plotdf$label)
+  color_plt &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; select(palette) |&gt; pull()
+  if (is.null(.title)) {
+    .title &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; select(long_name) |&gt; pull()
+  }
+  ggplot(plotdf, aes(x = time_point_num, y = log2(mean_expr + 1))) +
+    geom_line(aes(group = label, color = label), linewidth = 4) +
+    geom_point(color = &quot;black&quot;, alpha = 0.4) +
+    xlab(&quot;timepoint (min)&quot;) +
+    ylab(&quot;expression (log2)&quot;) +
+    scale_color_brewer(palette = color_plt, name = &quot;cluster&quot;,
+                       direction = -1) +
+    theme_classic() +
+    theme(legend.position = &quot;right&quot;) +
+    ggtitle(.title)
+}
+
+# 2 clusters
+pdf(&quot;../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_2.pdf&quot;,
+    width = 8, height = 4)
+ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .experiment = &quot;HAP4&quot;),
+          plotClusterPatternByExperiment(clusterdf_list2$CC_2$df, .experiment = &quot;CC&quot;),
+          plotClusterPatternByExperiment(clusterdf_list2$LowN_2$df, .experiment = &quot;LowN&quot;),
+          plotClusterPatternByExperiment(clusterdf_list2$LowPi_2$df, .experiment = &quot;LowPi&quot;),
+          plotClusterPatternByExperiment(clusterdf_list2$Heat_2$df, .experiment = &quot;Heat&quot;),
+          plotClusterPatternByExperiment(clusterdf_list2$Cold_2$df, .experiment = &quot;Cold&quot;),
+          nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># 3 clusters
+pdf(&quot;../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_3.pdf&quot;,
+    width = 8, height = 4)
+ggarrange(plotClusterPatternByExperiment(clusterdf_list3$HAP4_3$df, .experiment = &quot;HAP4&quot;),
+          plotClusterPatternByExperiment(clusterdf_list3$CC_3$df, .experiment = &quot;CC&quot;),
+          plotClusterPatternByExperiment(clusterdf_list3$LowN_3$df, .experiment = &quot;LowN&quot;),
+          plotClusterPatternByExperiment(clusterdf_list3$LowPi_3$df, .experiment = &quot;LowPi&quot;),
+          plotClusterPatternByExperiment(clusterdf_list3$Heat_3$df, .experiment = &quot;Heat&quot;),
+          plotClusterPatternByExperiment(clusterdf_list3$Cold_3$df, .experiment = &quot;Cold&quot;),
+          nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># 4 clusters
+pdf(&quot;../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_4.pdf&quot;,
+    width = 8, height = 4)
+ggarrange(plotClusterPatternByExperiment(clusterdf_list4$HAP4_4$df, .experiment = &quot;HAP4&quot;),
+          plotClusterPatternByExperiment(clusterdf_list4$CC_4$df, .experiment = &quot;CC&quot;),
+          plotClusterPatternByExperiment(clusterdf_list4$LowN_4$df, .experiment = &quot;LowN&quot;),
+          plotClusterPatternByExperiment(clusterdf_list4$LowPi_4$df, .experiment = &quot;LowPi&quot;),
+          plotClusterPatternByExperiment(clusterdf_list4$Heat_4$df, .experiment = &quot;Heat&quot;),
+          plotClusterPatternByExperiment(clusterdf_list4$Cold_4$df, .experiment = &quot;Cold&quot;),
+          nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code>#### How does numbers of clusters affect which divergence group genes are in? ####
+# given an experiment name, extracts the full matrix of nClust=2,3,4 x nGenes
+# where each cell is the 4-group expression divergence category
+getClusterQCHeatmap &lt;- function(.e) {
+  plot_cer &lt;- clustdf |&gt; filter(experiment == .e) |&gt;
+    pivot_longer(cols = c(&quot;cer2&quot;, &quot;cer3&quot;, &quot;cer4&quot;),
+                 names_to = &quot;nclust&quot;, values_to = &quot;cer&quot;) |&gt;
+    select(gene_ID, level, nclust, cer)
+  plot_cer$nclust &lt;- gsub(&quot;cer&quot;, &quot;&quot;, plot_cer$nclust)
+  plot_par &lt;- clustdf |&gt; filter(experiment == .e) |&gt;
+    pivot_longer(cols = c(&quot;par2&quot;, &quot;par3&quot;, &quot;par4&quot;),
+                 names_to = &quot;nclust&quot;, values_to = &quot;par&quot;) |&gt;
+    select(gene_ID, level, nclust, par)
+  plot_par$nclust &lt;- gsub(&quot;par&quot;, &quot;&quot;, plot_par$nclust)
+
+  plotdf &lt;- full_join(plot_cer, plot_par,
+                      by = c(&quot;gene_ID&quot;, &quot;level&quot;, &quot;nclust&quot;)) |&gt;
+    mutate(plasticity = if_else(cer == par,
+                              true = &quot;conserved&quot;,
+                              false = &quot;diverged&quot;))
+  plotdf$group4 &lt;- map2(plotdf$level, plotdf$plasticity, \(l, d) {
+    if (l != &quot;diverged&quot; &amp; d == &quot;conserved&quot;) {
+      return(&quot;conserved level and plasticity&quot;)
+    }
+    if (l != &quot;diverged&quot; &amp; d == &quot;diverged&quot;) {
+      return(&quot;conserved level, diverged plasticity&quot;)
+    }
+    if (l == &quot;diverged&quot; &amp; d == &quot;conserved&quot;) {
+      return(&quot;diverged level, conserved plasticity&quot;)
+    }
+    if (l == &quot;diverged&quot; &amp; d == &quot;diverged&quot;) {
+      return(&quot;diverged level and plasticity&quot;)
+    }
+  }) |&gt; unlist()
+
+  plot_mat_e &lt;- plotdf |&gt; select(gene_ID, nclust, group4) |&gt;
+    pivot_wider(id_cols = gene_ID, names_from = nclust,
+                values_from = group4) |&gt; t()
+  colnames(plot_mat_e) &lt;- plot_mat_e[1,]
+  plot_mat_e &lt;- plot_mat_e[-1,]
+  ordered_plot_mat &lt;- orderGenesByGroup(.mat = plot_mat_e)
+  clrs &lt;- structure(colordf[colordf$scheme == &quot;group4&quot;,]$type,
+                    names = colordf[colordf$scheme == &quot;group4&quot;,]$limits)
+  return(ordered_plot_mat)
+}
+# tests for getClusterQCHeatmap
+test &lt;- getClusterQCHeatmap(.e = &quot;HAP4&quot;)
+dim(test)</code></pre>
+<pre><code>## [1]    3 4286</code></pre>
+<pre class="r"><code>table(test[1,])</code></pre>
+<pre><code>## 
+##       conserved level and plasticity 
+##                                 2084 
+## conserved level, diverged plasticity 
+##                                 1013 
+##        diverged level and plasticity 
+##                                  442 
+## diverged level, conserved plasticity 
+##                                  747</code></pre>
+<pre class="r"><code>test0 &lt;- test[, c(1:20, 2087:2107, 3092:3112, 3844:3864)]
+
+# plots the 4-group expression divergence matrix as a heatmap
+plotClusterQCHeatmap &lt;- function(.mat, .legend = FALSE) {
+  .df &lt;- bind_rows(tibble(gene_name = colnames(.mat),
+                             nclust = 2,
+                             group4 = .mat[1,],
+                             x = c(1:ncol(.mat)),
+                             y = 3),
+                      tibble(gene_name = colnames(.mat),
+                             nclust = 3,
+                             group4 = .mat[2,],
+                             x = c(1:ncol(.mat)),
+                             y = 2),
+                      tibble(gene_name = colnames(.mat),
+                             nclust = 4,
+                             group4 = .mat[3,],
+                             x = c(1:ncol(.mat)),
+                             y = 1))
+  p &lt;- ggplot(.df, aes(x = x, y = y, fill = group4)) +
+    geom_tile_pattern(aes(fill = group4, pattern = group4), pattern_fill = &quot;black&quot;) +
+    scale_fill_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                        type = colordf[colordf$scheme == &quot;group4&quot;,]$type) +
+    scale_pattern_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                           choices = colordf[colordf$scheme == &quot;group4&quot;,]$pattern) +
+    theme_void()
+  if (!.legend) {
+    p &lt;- p + theme(legend.position = &quot;none&quot;)
+  }
+  if (.legend) {
+    p &lt;- p + theme(legend.position = &quot;right&quot;)
+  }
+  return(p)
+}
+# tests for plotClusterQCHeatmap
+plotClusterQCHeatmap(.mat = test0, .legend = TRUE)</code></pre>
+<p><img src="QC_clustering_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
+<pre class="r"><code># discrete heatmaps
+for (e in c(&quot;Heat&quot;, &quot;Cold&quot;)) {
+  cat(&quot;working on&quot;, e, &quot;\n&quot;)
+  plot_mat_e &lt;- getClusterQCHeatmap(.e = e)
+  pdf(file = paste0(&quot;../../aligning_the_molecular_phenotype/paper_figures/Supplement/nclust_heatmap_&quot;, e, &quot;UGH.pdf&quot;),
+      width = 9, height = 1)
+  print(plotClusterQCHeatmap(plot_mat_e))
+  dev.off()
+}</code></pre>
+<pre><code>## working on Heat</code></pre>
+<pre><code>## working on Cold</code></pre>
+<pre class="r"><code>### Percents of nClust=2 plasticity-divergers also labeled as plasticity-divergers
+# in nClust=3
+sum((clustdf$cer2 != clustdf$par2) &amp; (clustdf$cer3 != clustdf$par3))/sum(clustdf$cer2 != clustdf$par2)</code></pre>
+<pre><code>## [1] 0.9735714</code></pre>
+<pre class="r"><code># in nClust=4
+sum((clustdf$cer2 != clustdf$par2) &amp; (clustdf$cer4 != clustdf$par4))/sum(clustdf$cer2 != clustdf$par2)</code></pre>
+<pre><code>## [1] 0.9763265</code></pre>
+<pre class="r"><code># The reverse: percents of nClust=3 or 4 plasticity-divergers
+# also labeled as plasticity-divergers in nClust=2
+# nClust=3
+sum((clustdf$cer3 != clustdf$par3) &amp; (clustdf$cer2 != clustdf$par2))/sum(clustdf$cer3 != clustdf$par3)</code></pre>
+<pre><code>## [1] 0.8300853</code></pre>
+<pre class="r"><code># nClust=4
+sum((clustdf$cer4 != clustdf$par4) &amp; (clustdf$cer2 != clustdf$par2))/sum(clustdf$cer4 != clustdf$par4)</code></pre>
+<pre><code>## [1] 0.8004685</code></pre>
+<pre class="r"><code># conclusion: nClust=2 is most conservative, a near perfect subset of nClust=3/4
+
+#### Comparing different low variance thresholds (min dispersion) ####</code></pre>
 
 
 
