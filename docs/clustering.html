@@ -310,7 +310,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    8-10: Multi-environment figures
+    8-11: Multi-environment figures
      
     <span class="caret"></span>
   </a>
@@ -322,7 +322,10 @@ $(document).ready(function () {
       <a href="Fig_environmental_patterns.html">9. Figs 4, 6, 7: Environmental Patterns</a>
     </li>
     <li>
-      <a href="Fig_cis_trans.html">10. Figs 8: F1 Hybrid</a>
+      <a href="Fig_cis_trans.html">10. Fig 8: F1 Hybrid</a>
+    </li>
+    <li>
+      <a href="Fig_yeastract.html">11. Fig 9: Example Regulons</a>
     </li>
   </ul>
 </li>
@@ -350,43 +353,8 @@ experiment-specific clustering and combined-experiment clustering is to
 describe each gene by its combination of expression “shapes” in each
 experiment</p>
 <pre class="r"><code>options(stringsAsFactors = FALSE)
-source(&quot;functions_for_figure_scripts.R&quot;)</code></pre>
-<pre><code>## Loading required package: data.table</code></pre>
-<pre><code>## data.table 1.17.4 using 1 threads (see ?getDTthreads).  Latest news: r-datatable.com
-## **********
-## This installation of data.table has not detected OpenMP support. It should still work but in single-threaded mode.
-## This is a Mac. Please read https://mac.r-project.org/openmp/. Please engage with Apple and ask them for support. Check r-datatable.com for updates, and our Mac instructions here: https://github.com/Rdatatable/data.table/wiki/Installation. After several years of many reports of installation problems on Mac, it&#39;s time to gingerly point out that there have been no similar problems on Windows or Linux.
-## **********
-## 
-## Attaching package: &#39;data.table&#39;
-## 
-## The following objects are masked from &#39;package:dplyr&#39;:
-## 
-##     between, first, last
-## 
-## The following object is masked from &#39;package:purrr&#39;:
-## 
-##     transpose
-## 
-## Loading required package: ggpattern
-## Loading required package: WGCNA
-## Loading required package: dynamicTreeCut
-## Loading required package: fastcluster
-## 
-## Attaching package: &#39;fastcluster&#39;
-## 
-## The following object is masked from &#39;package:stats&#39;:
-## 
-##     hclust
-## 
-## 
-## 
-## Attaching package: &#39;WGCNA&#39;
-## 
-## The following object is masked from &#39;package:stats&#39;:
-## 
-##     cor</code></pre>
-<pre class="r"><code>load(&quot;data_files/Clustering_Counts.RData&quot;)
+source(&quot;functions_for_figure_scripts.R&quot;)
+load(&quot;data_files/Clustering_Counts.RData&quot;)
 set.seed(23)
 
 # Method:
@@ -550,13 +518,13 @@ test_labels &lt;- corCluster(toy_mat, .nClust = 4, .min_var = 2,
           .by = &quot;gene_name&quot;) |&gt; 
   mutate(scaled_expr = (expr - mean_expr)/sd_expr) |&gt; 
   left_join(y = test_labels, by = &quot;gene_name&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;gene_name&#39;. You can override
-## using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;gene_name&#39;. You
+## can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>ggplot(plotdf, aes(x = time_point_str, y = scaled_expr)) + 
   geom_line(aes(group = gene_name)) +
   facet_wrap(~label)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing missing values or values
+## outside the scale range (`geom_line()`).</code></pre>
 <p><img src="clustering_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
 <p>Wrapper function for corCluster, repeatedly clusters list of
 environmental datasets</p>
@@ -618,9 +586,10 @@ testout &lt;- clusterCountsList(list(&quot;cer_LowN&quot; = counts_list$cer_LowN
 ## 2683 low variance genes, assigned to 0 label
 ## finished iterations, nGenes x nIter: 6531 10</code></pre>
 <pre class="r"><code>testout$gene_name[1:10]</code></pre>
-<pre><code>##  [1] &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL062W&quot;
-##  [5] &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot;
-##  [9] &quot;cer_YAL061W&quot; &quot;cer_YAL060W&quot;</code></pre>
+<pre><code>##  [1] &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot;
+##  [4] &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot;
+##  [7] &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot;
+## [10] &quot;cer_YAL060W&quot;</code></pre>
 <p>Visualize clustering</p>
 <pre class="r"><code># given a dataframe with labels for each gene, returns a facet plot
 # showing expression of each gene in each cluster (usually randomly 

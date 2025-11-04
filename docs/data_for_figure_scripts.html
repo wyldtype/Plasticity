@@ -310,7 +310,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    8-10: Multi-environment figures
+    8-11: Multi-environment figures
      
     <span class="caret"></span>
   </a>
@@ -322,7 +322,10 @@ $(document).ready(function () {
       <a href="Fig_environmental_patterns.html">9. Figs 4, 6, 7: Environmental Patterns</a>
     </li>
     <li>
-      <a href="Fig_cis_trans.html">10. Figs 8: F1 Hybrid</a>
+      <a href="Fig_cis_trans.html">10. Fig 8: F1 Hybrid</a>
+    </li>
+    <li>
+      <a href="Fig_yeastract.html">11. Fig 9: Example Regulons</a>
     </li>
   </ul>
 </li>
@@ -350,10 +353,12 @@ scripts (also as Supplementary Table 1)</p>
 <pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, 
          &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
-##        TRUE        TRUE        TRUE        TRUE        TRUE 
-##  data.table     ggplot2  data.table matrixStats 
-##        TRUE        TRUE        TRUE        TRUE</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr 
+##        TRUE        TRUE        TRUE        TRUE 
+##       readr  data.table     ggplot2  data.table 
+##        TRUE        TRUE        TRUE        TRUE 
+## matrixStats 
+##        TRUE</code></pre>
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)</code></pre>
 <p>Defining our color schemes and category names to be used throughout
 the paper figures</p>
@@ -425,18 +430,19 @@ omit_list &lt;- c(&quot;YLR078C&quot;, &quot;YLR077W&quot;, &quot;YLR074C&quot;,
                &quot;YNL247W&quot;, &quot;YNL244C&quot;)
 finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; gene_name %in% omit_list)</code></pre>
 <pre><code>## # A tibble: 8 × 8
-##   gene_name experiment effect_size_allele effect_size_species
-##   &lt;chr&gt;     &lt;chr&gt;                   &lt;dbl&gt;               &lt;dbl&gt;
-## 1 YLR072W   CC                       8.76             -0.0546
-## 2 YLR073C   CC                       9.16              0.424 
-## 3 YLR074C   CC                       9.85             -0.0309
-## 4 YLR075W   CC                       8.26             -0.469 
-## 5 YLR077W   CC                      42.4               0.930 
-## 6 YLR078C   CC                      42.9               0.469 
-## 7 YNL247W   CC                      12.0               0.429 
-## 8 YNL244C   CC                       8.70             -0.717 
-## # ℹ 4 more variables: padj_allele &lt;dbl&gt;, padj_species &lt;dbl&gt;,
-## #   cer &lt;dbl&gt;, par &lt;dbl&gt;</code></pre>
+##   gene_name experiment effect_size_allele
+##   &lt;chr&gt;     &lt;chr&gt;                   &lt;dbl&gt;
+## 1 YLR072W   CC                       8.76
+## 2 YLR073C   CC                       9.16
+## 3 YLR074C   CC                       9.85
+## 4 YLR075W   CC                       8.26
+## 5 YLR077W   CC                      42.4 
+## 6 YLR078C   CC                      42.9 
+## 7 YNL247W   CC                      12.0 
+## 8 YNL244C   CC                       8.70
+## # ℹ 5 more variables: effect_size_species &lt;dbl&gt;,
+## #   padj_allele &lt;dbl&gt;, padj_species &lt;dbl&gt;, cer &lt;dbl&gt;,
+## #   par &lt;dbl&gt;</code></pre>
 <pre class="r"><code>dim(finaldf)</code></pre>
 <pre><code>## [1] 25264     8</code></pre>
 <pre class="r"><code>finaldf &lt;- finaldf |&gt; filter(!(experiment == &quot;CC&quot; &amp; gene_name %in% omit_list))
@@ -667,14 +673,15 @@ finaldf |&gt; group_by(experiment) |&gt;
             n_genes = n()*2) |&gt; 
   mutate(pct_low_var = (n_cer_lowvar + n_par_lowvar)/n_genes)</code></pre>
 <pre><code>## # A tibble: 6 × 5
-##   experiment n_cer_lowvar n_par_lowvar n_genes pct_low_var
-##   &lt;chr&gt;             &lt;int&gt;        &lt;int&gt;   &lt;dbl&gt;       &lt;dbl&gt;
-## 1 CC                  315          617    7904      0.118 
-## 2 Cold               1585         2148    8102      0.461 
-## 3 HAP4                971          850    8572      0.212 
-## 4 Heat                833         1207    8344      0.244 
-## 5 LowN               1300         1196    8824      0.283 
-## 6 LowPi               372          253    8766      0.0713</code></pre>
+##   experiment n_cer_lowvar n_par_lowvar n_genes
+##   &lt;chr&gt;             &lt;int&gt;        &lt;int&gt;   &lt;dbl&gt;
+## 1 CC                  315          617    7904
+## 2 Cold               1585         2148    8102
+## 3 HAP4                971          850    8572
+## 4 Heat                833         1207    8344
+## 5 LowN               1300         1196    8824
+## 6 LowPi               372          253    8766
+## # ℹ 1 more variable: pct_low_var &lt;dbl&gt;</code></pre>
 <div
 id="how-the-choice-of-effect-size-threshold-influence-level-divergence"
 class="section level3">

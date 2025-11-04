@@ -310,7 +310,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    8-10: Multi-environment figures
+    8-11: Multi-environment figures
      
     <span class="caret"></span>
   </a>
@@ -322,7 +322,10 @@ $(document).ready(function () {
       <a href="Fig_environmental_patterns.html">9. Figs 4, 6, 7: Environmental Patterns</a>
     </li>
     <li>
-      <a href="Fig_cis_trans.html">10. Figs 8: F1 Hybrid</a>
+      <a href="Fig_cis_trans.html">10. Fig 8: F1 Hybrid</a>
+    </li>
+    <li>
+      <a href="Fig_yeastract.html">11. Fig 9: Example Regulons</a>
     </li>
   </ul>
 </li>
@@ -357,12 +360,12 @@ $(document).ready(function () {
 <pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
 ## 
 ##     theme_grey</code></pre>
-<pre><code>##          WGCNA        stringr        ggplot2   RColorBrewer 
-##           TRUE           TRUE           TRUE           TRUE 
-##         ggpubr           grid ComplexHeatmap       circlize 
-##           TRUE           TRUE           TRUE           TRUE 
-##       huxtable 
-##           TRUE</code></pre>
+<pre><code>##          WGCNA        stringr        ggplot2 
+##           TRUE           TRUE           TRUE 
+##   RColorBrewer         ggpubr           grid 
+##           TRUE           TRUE           TRUE 
+## ComplexHeatmap       circlize       huxtable 
+##           TRUE           TRUE           TRUE</code></pre>
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
 
 # Script to compare how number of clusters changes which genes are called
@@ -417,18 +420,18 @@ ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .experiment 
           plotClusterPatternByExperiment(clusterdf_list2$Heat_2$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list2$Cold_2$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -442,18 +445,18 @@ ggarrange(plotClusterPatternByExperiment(clusterdf_list3$HAP4_3$df, .experiment 
           plotClusterPatternByExperiment(clusterdf_list3$Heat_3$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list3$Cold_3$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -467,18 +470,18 @@ ggarrange(plotClusterPatternByExperiment(clusterdf_list4$HAP4_4$df, .experiment 
           plotClusterPatternByExperiment(clusterdf_list4$Heat_4$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list4$Cold_4$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;.
+## You can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>

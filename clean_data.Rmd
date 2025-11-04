@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Working with RNAseq data published in Krieger et al. 2020 and Fay et al. 2023
 
-```{r, echo=FALSE}
+```{r package-loading, echo=FALSE}
 sapply(c("readr", "tidyr", "purrr", "ggplot2", "ggpubr", "openxlsx", "matrixStats"), require, character.only=TRUE)
 library(dplyr) # dplyr functions keep being hidden so loading it last
 ```

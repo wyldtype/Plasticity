@@ -34,12 +34,17 @@ navbar:
         href: Fig_HeatStress.html
       - text: "Fig S3: Cold Stress"
         href: Fig_ColdStress.html
-    - text: "8-10: Multi-environment figures"
+    - text: "8-11: Multi-environment figures"
       menu:
       - text: "8. Table 1: Gene Ontology"
         href: Fig_gene_ontology.html
       - text: "9. Figs 4, 6, 7: Environmental Patterns"
         href: Fig_environmental_patterns.html
-      - text: "10. Figs 8: F1 Hybrid"
+      - text: "10. Fig 8: F1 Hybrid"
         href: Fig_cis_trans.html
+      - text: "11. Fig 9: Example Regulons"
+        href: Fig_yeastract.html
 output_dir: docs
+output:
+  html_document:
+    new_session: true

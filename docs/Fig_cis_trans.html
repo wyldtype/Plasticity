@@ -310,7 +310,7 @@ $(document).ready(function () {
 </li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    8-10: Multi-environment figures
+    8-11: Multi-environment figures
      
     <span class="caret"></span>
   </a>
@@ -322,7 +322,10 @@ $(document).ready(function () {
       <a href="Fig_environmental_patterns.html">9. Figs 4, 6, 7: Environmental Patterns</a>
     </li>
     <li>
-      <a href="Fig_cis_trans.html">10. Figs 8: F1 Hybrid</a>
+      <a href="Fig_cis_trans.html">10. Fig 8: F1 Hybrid</a>
+    </li>
+    <li>
+      <a href="Fig_yeastract.html">11. Fig 9: Example Regulons</a>
     </li>
   </ul>
 </li>
@@ -372,11 +375,15 @@ summary(mod_full)</code></pre>
 ## -18.053  -0.288   0.002   0.289  36.082 
 ## 
 ## Coefficients:
-##                      Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)         -0.085010   0.005148  -16.51   &lt;2e-16 ***
-## effect_size_species  0.618360   0.004284  144.33   &lt;2e-16 ***
+##                      Estimate Std. Error t value
+## (Intercept)         -0.085010   0.005148  -16.51
+## effect_size_species  0.618360   0.004284  144.33
+##                     Pr(&gt;|t|)    
+## (Intercept)           &lt;2e-16 ***
+## effect_size_species   &lt;2e-16 ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 0.816 on 25254 degrees of freedom
 ## Multiple R-squared:  0.452,  Adjusted R-squared:  0.452 
@@ -399,11 +406,15 @@ summary(mod) # more correlated for genes with the most consistent level divergen
 ## -2.7550 -0.5028  0.0341  0.4596  3.8635 
 ## 
 ## Coefficients:
-##                     Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)          -0.2588     0.1270  -2.038   0.0453 *  
-## effect_size_species   0.5236     0.0440  11.899   &lt;2e-16 ***
+##                     Estimate Std. Error t value
+## (Intercept)          -0.2588     0.1270  -2.038
+## effect_size_species   0.5236     0.0440  11.899
+##                     Pr(&gt;|t|)    
+## (Intercept)           0.0453 *  
+## effect_size_species   &lt;2e-16 ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 1.075 on 70 degrees of freedom
 ## Multiple R-squared:  0.6692, Adjusted R-squared:  0.6645 
@@ -435,30 +446,30 @@ for (e in ExperimentNames) {
                theme(legend.position = &quot;none&quot;),
              groupColour = TRUE, groupFill = TRUE)
 }</code></pre>
-<pre><code>## Warning: Removed 8 rows containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 8 rows containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 4 rows containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 4 rows containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 3 rows containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 1 row containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 10 rows containing missing values or values outside the
-## scale range (`geom_point()`).
-## Removed 10 rows containing missing values or values outside the
-## scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 12 rows containing missing values or values outside the
-## scale range (`geom_point()`).
-## Removed 12 rows containing missing values or values outside the
-## scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 8 rows containing missing values or values
+## outside the scale range (`geom_point()`).
+## Removed 8 rows containing missing values or values
+## outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 4 rows containing missing values or values
+## outside the scale range (`geom_point()`).
+## Removed 4 rows containing missing values or values
+## outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing missing values or values
+## outside the scale range (`geom_point()`).
+## Removed 3 rows containing missing values or values
+## outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values
+## outside the scale range (`geom_point()`).
+## Removed 1 row containing missing values or values
+## outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 10 rows containing missing values or values
+## outside the scale range (`geom_point()`).
+## Removed 10 rows containing missing values or values
+## outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 12 rows containing missing values or values
+## outside the scale range (`geom_point()`).
+## Removed 12 rows containing missing values or values
+## outside the scale range (`geom_point()`).</code></pre>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/l2fc_eachEnvironment.pdf&quot;,
     width = 5, height = 8)
 ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)
@@ -503,56 +514,56 @@ pdf(&quot;paper_figures/CisTrans/cor_eachEnvironment.pdf&quot;,
 ggarrange(plotlist[[1]], plotlist[[2]],
           p_null, p_null, plotlist[[3]], plotlist[[4]],
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the
+## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the
+## scale range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the
+## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code>ggarrange(plotlist[[1]], plotlist[[2]],
           p_null, p_null, plotlist[[3]], plotlist[[4]],
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the
+## scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the
+## scale range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the
+## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-cor-1.png" width="672" /></p>
 </div>
 <div id="level-divergence-tends-to-be-in-cis" class="section level2">
@@ -636,12 +647,16 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = &quot;HAP4&quot;), 
                      top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
-## &#39;experiment&#39;. You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
-## You can override using the `.groups` argument.
-## Adding missing grouping variables: `time_point_num`, `experiment`
-## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
+## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;,
+## &#39;experiment&#39;. You can override using the `.groups`
+## argument.
+## Adding missing grouping variables: `time_point_num`,
+## `experiment`
+## Adding missing grouping variables: `time_point_num`,
+## `experiment`</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/level-avg-expr-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_trans_HAP411_upcer.pdf&quot;, width = 3, height = 3)
@@ -657,12 +672,16 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = &quot;HAP4&quot;), 
                      top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
-## &#39;experiment&#39;. You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
-## You can override using the `.groups` argument.
-## Adding missing grouping variables: `time_point_num`, `experiment`
-## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
+## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;,
+## &#39;experiment&#39;. You can override using the `.groups`
+## argument.
+## Adding missing grouping variables: `time_point_num`,
+## `experiment`
+## Adding missing grouping variables: `time_point_num`,
+## `experiment`</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/level-avg-expr-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_cis_HAP411_upcer.pdf&quot;, width = 3, height = 3)
@@ -738,12 +757,16 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
-## &#39;experiment&#39;. You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
-## You can override using the `.groups` argument.
-## Adding missing grouping variables: `time_point_num`, `experiment`
-## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
+## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;,
+## &#39;experiment&#39;. You can override using the `.groups`
+## argument.
+## Adding missing grouping variables: `time_point_num`,
+## `experiment`
+## Adding missing grouping variables: `time_point_num`,
+## `experiment`</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_cis_HAP421.pdf&quot;,
@@ -759,12 +782,16 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;gene_name&#39;,
-## &#39;experiment&#39;. You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;, &#39;experiment&#39;.
-## You can override using the `.groups` argument.
-## Adding missing grouping variables: `time_point_num`, `experiment`
-## Adding missing grouping variables: `time_point_num`, `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
+## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;,
+## &#39;experiment&#39;. You can override using the `.groups`
+## argument.
+## Adding missing grouping variables: `time_point_num`,
+## `experiment`
+## Adding missing grouping variables: `time_point_num`,
+## `experiment`</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_trans_HAP421.pdf&quot;,

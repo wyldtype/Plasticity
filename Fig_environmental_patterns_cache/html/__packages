@@ -1,10 +1,3 @@
-base
-methods
-datasets
-utils
-grDevices
-graphics
-stats
 dplyr
 purrr
 tidyr
@@ -18,7 +11,6 @@ dynamicTreeCut
 fastcluster
 WGCNA
 openxlsx
-stats4
 generics
 BiocGenerics
 S4Vectors
@@ -33,7 +25,6 @@ MASS
 ggExtra
 stringr
 RColorBrewer
-grid
 circlize
 huxtable
 ggridges
