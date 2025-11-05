@@ -352,11 +352,39 @@ load(&quot;data_files/Cleaned_Count_Data.RData&quot;)
 load(&quot;data_files/Cleaned_Counts.RData&quot;)
 load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
 sapply(c(&quot;Matrix&quot;, &quot;stringr&quot;, &quot;ComplexHeatmap&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, pack, unpack</code></pre>
 <pre><code>##         Matrix        stringr ComplexHeatmap 
 ##           TRUE           TRUE           TRUE</code></pre>
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
 library(dplyr)
 library(igraph)</code></pre>
+<pre><code>## Warning: package &#39;igraph&#39; was built under R version
+## 4.5.1</code></pre>
+<pre><code>## 
+## Attaching package: &#39;igraph&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:circlize&#39;:
+## 
+##     degree</code></pre>
+<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     as_data_frame, groups, union</code></pre>
+<pre><code>## The following objects are masked from &#39;package:purrr&#39;:
+## 
+##     compose, simplify</code></pre>
+<pre><code>## The following object is masked from &#39;package:tidyr&#39;:
+## 
+##     crossing</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     decompose, spectrum</code></pre>
+<pre><code>## The following object is masked from &#39;package:base&#39;:
+## 
+##     union</code></pre>
 <div
 id="before-beginning-check-that-commonly-named-functions-are-associated-with-the-expected-package"
 class="section level3">
@@ -365,22 +393,17 @@ with the expected package:</h3>
 <pre class="r"><code>environmentName(environment(select)) # should be dplyr</code></pre>
 <pre><code>## [1] &quot;dplyr&quot;</code></pre>
 <pre class="r"><code>environmentName(environment(degree)) # should be igraph</code></pre>
-<pre><code>## [1] &quot;circlize&quot;</code></pre>
+<pre><code>## [1] &quot;igraph&quot;</code></pre>
 <p>Making the gene list we’ll use as the regulation targets we put into
 yeastract (the regulators are all Scer regulators)</p>
 <pre class="r"><code># Making one shared gene idx list
 idxs &lt;- rownames(counts)
 grep(&quot;/&quot;, idxs, value = TRUE) # paralog pairs with too similar sequence </code></pre>
-<pre><code>##  [1] &quot;YDR012W/YBR031W&quot;        
-##  [2] &quot;YPL090C/YBR181C&quot;        
-##  [3] &quot;YDR025W/YBR048W&quot;        
-##  [4] &quot;YDR343C/YDR342C&quot;        
-##  [5] &quot;YAR071W/YHR215W&quot;        
-##  [6] &quot;YLR036C/YIL089W&quot;        
-##  [7] &quot;YNL336W/YFL062W&quot;        
-##  [8] &quot;YOR390W/YPL279C&quot;        
-##  [9] &quot;YPL280W/YOR391C&quot;        
-## [10] &quot;YNL332W/YFL058W&quot;        
+<pre><code>##  [1] &quot;YDR012W/YBR031W&quot;         &quot;YPL090C/YBR181C&quot;        
+##  [3] &quot;YDR025W/YBR048W&quot;         &quot;YDR343C/YDR342C&quot;        
+##  [5] &quot;YAR071W/YHR215W&quot;         &quot;YLR036C/YIL089W&quot;        
+##  [7] &quot;YNL336W/YFL062W&quot;         &quot;YOR390W/YPL279C&quot;        
+##  [9] &quot;YPL280W/YOR391C&quot;         &quot;YNL332W/YFL058W&quot;        
 ## [11] &quot;YIL172C/YOL157C/YJL221C&quot;</code></pre>
 <pre class="r"><code># need to have separate rows for yeastract:
 idxs &lt;- map(idxs, \(g) {
@@ -404,7 +427,7 @@ yeastract_lookup &lt;- read_delim(&quot;data_files/downloaded_genomes_and_featur
 ##   dat &lt;- vroom(...)
 ##   problems(dat)</code></pre>
 <pre><code>## Rows: 7135 Columns: 5
-## ── Column specification ──────────────────────────────
+## ── Column specification ─────────────────────────────────
 ## Delimiter: &quot;;&quot;
 ## chr (5): common_protein, systematic, common, X4, X5
 ## 
@@ -460,10 +483,10 @@ file_name_suffix &lt;- &quot;_bindingANDexpression.csv&quot; # Binding AND expre
 ypd &lt;- readInRegulatoryMatrix(.file_name = paste0(&quot;data_files/yeastract/Control&quot;,
                                                   file_name_suffix))</code></pre>
 <pre><code>## Rows: 7135 Columns: 5075
-## ── Column specification ──────────────────────────────
+## ── Column specification ─────────────────────────────────
 ## Delimiter: &quot;;&quot;
 ## chr    (1): 5074
-## dbl (5074): TFC3, VPS8, EFB1, SSA1, ERP2, FUN14, S...
+## dbl (5074): TFC3, VPS8, EFB1, SSA1, ERP2, FUN14, SPO7...
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
@@ -500,10 +523,10 @@ setdiff(rownames(regmats$YPD)[rowSums(regmats$YPD) &gt; 0], idxs) # YER109C = FL
 ## [11] &quot;YJL056C&quot;</code></pre>
 <pre class="r"><code># how many connections are we missing?
 rowSums(regmats$YPD[!(rownames(regmats$YPD) %in% colnames(regmats$YPD)),]) # 1% is acceptable</code></pre>
-<pre><code>## YCR106W YER109C YGL254W YHR124W YLR013W YLR256W 
-##       1      30       4     138       3      46 
-## YOL028C YOR113W YPL248C 
-##      12       6      14</code></pre>
+<pre><code>## YCR106W YER109C YGL254W YHR124W YLR013W YLR256W YOL028C 
+##       1      30       4     138       3      46      12 
+## YOR113W YPL248C 
+##       6      14</code></pre>
 <pre class="r"><code>### making regulator matrices square
 regmats &lt;- map(regmats, \(x) {
   common_idxs &lt;- colnames(x)
@@ -570,13 +593,26 @@ regdf</code></pre>
 ## 10 YAL051W   YEL060C YPD         PRB1         
 ## # ℹ 15,887 more rows
 ## # ℹ 3 more variables: target_description &lt;chr&gt;,
-## #   regulator_common &lt;chr&gt;,
-## #   regulator_description &lt;chr&gt;</code></pre>
+## #   regulator_common &lt;chr&gt;, regulator_description &lt;chr&gt;</code></pre>
 <pre class="r"><code># How many regulatory connections are shared between each environment and YPD?
 makeUpsetPlot(mutate(regdf, pair = paste(regulator, target, sep = &quot;_&quot;)), 
               .group_name = &quot;environment&quot;, 
               .group_members = names(regmats),
               .item_names = &quot;pair&quot;, .min_comb_size = 0)</code></pre>
+<pre><code>## Warning: Using an external vector in selections was deprecated in
+## tidyselect 1.1.0.
+## ℹ Please use `all_of()` or `any_of()` instead.
+##   # Was:
+##   data %&gt;% select(.item_names)
+## 
+##   # Now:
+##   data %&gt;% select(all_of(.item_names))
+## 
+## See
+## &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where
+## this warning was generated.</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/ypd-overlap-1.png" width="672" /></p>
 <p>YPD is majority unique connections, but that’s mainly because it has
 so many more than any environment-specific network</p>
@@ -865,7 +901,9 @@ p &lt;- ggplot(plotdf, aes(fill = plasticity, values = n)) +
   xlab(&quot;&quot;) +
   ylab(&quot;&quot;) +
   ggtitle(&quot;targets per regulator&quot;)
-pdf(&quot;paper_figures/Yeastract/regulator_waffle.pdf&quot;,
+p</code></pre>
+<p><img src="Fig_yeastract_files/figure-html/waffle-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Yeastract/regulator_waffle.pdf&quot;,
     width = 10.5, height = 2.5)  
 p
 dev.off()</code></pre>
@@ -924,7 +962,9 @@ p &lt;- ggplot(plotdf, aes(fill = plasticity, values = n)) +
   xlab(&quot;&quot;) +
   ylab(&quot;&quot;) +
   ggtitle(&quot;targets per regulator (unstressed networks)&quot;)
-pdf(&quot;paper_figures/Yeastract/regulator_waffle_YPD.pdf&quot;,
+p</code></pre>
+<p><img src="Fig_yeastract_files/figure-html/waffle-2.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Yeastract/regulator_waffle_YPD.pdf&quot;,
     width = 11.5, height = 2.5)  
 p
 dev.off()</code></pre>
@@ -1298,12 +1338,12 @@ p2 &lt;- ggplot(plotdf, aes(x = log2(var_expr_cer))) +
   xlab(&quot;Var Expression (log2)&quot;)
 annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
                           legend = &quot;right&quot;, ncol = 1, nrow = 2), top = &quot;Scer&quot;)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/variance-1.png" width="672" /></p>
 <pre class="r"><code># Var/Mean by plasticity category, Spar
 p1 &lt;- ggplot(plotdf, aes(x = log2(mean_expr_par))) + 
@@ -1320,12 +1360,12 @@ p2 &lt;- ggplot(plotdf, aes(x = log2(var_expr_par))) +
   xlab(&quot;Var Expression (log2)&quot;)
 annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
                           legend = &quot;right&quot;, ncol = 1, nrow = 2), top = &quot;Spar&quot;)</code></pre>
-<pre><code>## Warning: Removed 4 rows containing non-finite outside the
-## scale range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 4 rows containing non-finite outside the
-## scale range (`stat_density()`).
-## Removed 4 rows containing non-finite outside the
-## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 4 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 4 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 4 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/variance-2.png" width="672" /></p>
 </div>
 </div>

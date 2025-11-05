@@ -493,10 +493,10 @@ p1 &lt;- ggplot(plotdf1, aes(x = log2(var_expr/mean_expr))) + geom_density() +
   geom_vline(xintercept = 0, color = &quot;red&quot;) +
   ggtitle(&quot;after collapsing replicates&quot;)
 ggarrange(p0, p1, nrow = 1, ncol = 2)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite outside the
-## scale range (`stat_density()`).
-## Removed 3 rows containing non-finite outside the
-## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 3 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 <pre class="r"><code># mean expression pre and post (shouldn&#39;t have changed)
 plotdf &lt;- left_join(plotdf0, plotdf1, by = &quot;gene_name&quot;, suffix = c(&quot;_pre&quot;, &quot;_post&quot;))
@@ -511,8 +511,8 @@ ggplot(plotdf, aes(x = log2(mean_expr + 1),
                    y = log2(var_expr_pre) - log2(var_expr_post))) +
   geom_hex() +
   geom_hline(yintercept = 0, color = &quot;gold&quot;)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite outside the
-## scale range (`stat_binhex()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale
+## range (`stat_binhex()`).</code></pre>
 <p><img src="functions_for_figure_scripts_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
 <pre class="r"><code># as expected, there is lower variance post collapse (very few genes below y = 0)
 # most genes have fairly little difference in var when collapsing replicates,

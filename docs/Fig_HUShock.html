@@ -361,22 +361,18 @@ folder_name &lt;- &quot;HUShock&quot;</code></pre>
 <pre class="r"><code># summary of groups in this experiment
 table(expdf$group) |&gt; sort(decreasing = TRUE)</code></pre>
 <pre><code>## 
-##         cons1     levupcer1         cons2 
-##           943           419           370 
-##         dyn21         dyn12         dyn10 
-##           365           250           228 
-##     levuppar1         dyn01 levdynupcer10 
-##           220           116           116 
-## levdynuppar21         dyn20 levdynupcer21 
-##           112           109            90 
-##     levuppar2 levdynupcer12     levupcer2 
-##            88            87            77 
-## levdynuppar12         cons0 levdynupcer20 
-##            68            43            38 
-## levdynupcer01         dyn02 levdynuppar01 
-##            37            35            35 
-## levdynuppar10 levdynuppar20     levupcer0 
-##            34            23            23 
+##         cons1     levupcer1         cons2         dyn21 
+##           943           419           370           365 
+##         dyn12         dyn10     levuppar1         dyn01 
+##           250           228           220           116 
+## levdynupcer10 levdynuppar21         dyn20 levdynupcer21 
+##           116           112           109            90 
+##     levuppar2 levdynupcer12     levupcer2 levdynuppar12 
+##            88            87            77            68 
+##         cons0 levdynupcer20 levdynupcer01         dyn02 
+##            43            38            37            35 
+## levdynuppar01 levdynuppar10 levdynuppar20     levupcer0 
+##            35            34            23            23 
 ## levdynuppar02 levdynupcer02     levuppar0 
 ##            12            11             3</code></pre>
 <pre class="r"><code>sum(table(expdf$group))</code></pre>

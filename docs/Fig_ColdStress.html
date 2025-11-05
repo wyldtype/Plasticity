@@ -361,22 +361,18 @@ folder_name &lt;- &quot;ColdStress&quot;</code></pre>
 <pre class="r"><code># summary of groups in this experiment
 table(expdf$group) |&gt; sort(decreasing = TRUE)</code></pre>
 <pre><code>## 
-##         cons0         dyn10         cons1 
-##           764           390           376 
-##         cons2     levupcer0 levdynupcer10 
-##           308           300           246 
-##         dyn12         dyn20 levdynupcer20 
-##           179           176           141 
-##         dyn01         dyn02     levupcer1 
-##           137           135           131 
-##     levupcer2     levuppar0     levuppar1 
-##           129            89            88 
-##     levuppar2 levdynuppar01 levdynupcer12 
-##            80            57            55 
-##         dyn21 levdynuppar02 levdynupcer01 
-##            48            44            35 
-## levdynupcer21 levdynuppar12 levdynuppar10 
-##            31            28            27 
+##         cons0         dyn10         cons1         cons2 
+##           764           390           376           308 
+##     levupcer0 levdynupcer10         dyn12         dyn20 
+##           300           246           179           176 
+## levdynupcer20         dyn01         dyn02     levupcer1 
+##           141           137           135           131 
+##     levupcer2     levuppar0     levuppar1     levuppar2 
+##           129            89            88            80 
+## levdynuppar01 levdynupcer12         dyn21 levdynuppar02 
+##            57            55            48            44 
+## levdynupcer01 levdynupcer21 levdynuppar12 levdynuppar10 
+##            35            31            28            27 
 ## levdynupcer02 levdynuppar21 levdynuppar20 
 ##            24            18            15</code></pre>
 <pre class="r"><code>sum(table(expdf$group))</code></pre>

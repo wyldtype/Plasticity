@@ -1,24 +1,34 @@
 ---
-title: "Clustering QC"
+title: "Comparing results using different numbers of clusters and dispersion thresholds"
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-TODO: 
-1) Make this not just one chunk
-2) repeat for dispersion
-```{r}
+Quality-Control script to compare how..
+1) a user-specified number of expression clusters (2, 3, or 4)
+
+or
+
+2) a user-specified threshold for miniumum dispersion (variance/mean of expression) a gene can exhibit to be considered to have expression plasticity
+
+...influence which genes are called as diverging in plasticity between species.
+
+```{r package-loading, include=FALSE}
 sapply(c("WGCNA", "stringr", "ggplot2", "RColorBrewer", "ggpubr", "grid", "ComplexHeatmap", "circlize", "huxtable"), require, character.only=TRUE)
 source("functions_for_figure_scripts.R")
-
-# Script to compare how number of clusters changes which genes are called
-# as diverging in plasticity
 load("data_files/QC_CorrelationClustering.RData")
 load("data_files/FinalDataframe3Disp.RData")
 clusterdf_list2 <- clusterdf_list
 rm(clusterdf_list)
+library(dplyr)
+library(purrr)
+```
+
+## Comparing results with 2, 3, or 4 clusters
+
+```{r clustdf}
 # dataframe of nClust = 2, 3, and 4 clustering results
 clustdf <- select(finaldf, gene_name, experiment, level, cer, par) |>
   dplyr::rename(c("cer2"="cer", "par2"="par", "gene_ID"="gene_name")) |>
@@ -26,14 +36,20 @@ clustdf <- select(finaldf, gene_name, experiment, level, cer, par) |>
             by = c("gene_ID", "experiment")) |>
   left_join(rename(clusterdf4, c("cer4"="cer", "par4"="par")),
             by = c("gene_ID", "experiment"))
+```
 
-#### Visualize cluster expression patterns in each experiment ####
+
+```{r palette}
+### Visualize cluster expression patterns in each experiment
 display.brewer.all()
 # color palettes we'll use for the 6 environments
 palettedf <- tibble(experiment = ExperimentNames,
                     palette = c("Greys", "YlGn", "Greens", "Purples", "YlOrBr", "BuPu"),
                     long_name = LongExperimentNames)
+```
 
+
+```{r plotClusterPatternByExperiment}
 plotClusterPatternByExperiment <- function(.df, .experiment, .title = NULL) {
   plotdf <- summarise(group_by(.df, time_point_num, label),
                       mean_expr = mean(expr, na.rm = TRUE))
@@ -53,46 +69,58 @@ plotClusterPatternByExperiment <- function(.df, .experiment, .title = NULL) {
     theme(legend.position = "right") +
     ggtitle(.title)
 }
+```
 
+
+```{r nclust-avg-expr-plots}
 # 2 clusters
-pdf("../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_2.pdf",
-    width = 8, height = 4)
-ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .experiment = "HAP4"),
+p <- ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .experiment = "HAP4"),
           plotClusterPatternByExperiment(clusterdf_list2$CC_2$df, .experiment = "CC"),
           plotClusterPatternByExperiment(clusterdf_list2$LowN_2$df, .experiment = "LowN"),
           plotClusterPatternByExperiment(clusterdf_list2$LowPi_2$df, .experiment = "LowPi"),
           plotClusterPatternByExperiment(clusterdf_list2$Heat_2$df, .experiment = "Heat"),
           plotClusterPatternByExperiment(clusterdf_list2$Cold_2$df, .experiment = "Cold"),
           nrow = 2, ncol = 3, common.legend = FALSE)
+p
+pdf("paper_figures/Supplement/cluster_ref_2.pdf",
+    width = 8, height = 4)
+p
 dev.off()
 
 # 3 clusters
-pdf("../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_3.pdf",
-    width = 8, height = 4)
-ggarrange(plotClusterPatternByExperiment(clusterdf_list3$HAP4_3$df, .experiment = "HAP4"),
+p <- ggarrange(plotClusterPatternByExperiment(clusterdf_list3$HAP4_3$df, .experiment = "HAP4"),
           plotClusterPatternByExperiment(clusterdf_list3$CC_3$df, .experiment = "CC"),
           plotClusterPatternByExperiment(clusterdf_list3$LowN_3$df, .experiment = "LowN"),
           plotClusterPatternByExperiment(clusterdf_list3$LowPi_3$df, .experiment = "LowPi"),
           plotClusterPatternByExperiment(clusterdf_list3$Heat_3$df, .experiment = "Heat"),
           plotClusterPatternByExperiment(clusterdf_list3$Cold_3$df, .experiment = "Cold"),
           nrow = 2, ncol = 3, common.legend = FALSE)
+p
+pdf("paper_figures/Supplement/cluster_ref_3.pdf",
+    width = 8, height = 4)
+p
 dev.off()
 
 # 4 clusters
-pdf("../../aligning_the_molecular_phenotype/paper_figures/Supplement/cluster_ref_4.pdf",
-    width = 8, height = 4)
-ggarrange(plotClusterPatternByExperiment(clusterdf_list4$HAP4_4$df, .experiment = "HAP4"),
+p <- ggarrange(plotClusterPatternByExperiment(clusterdf_list4$HAP4_4$df, .experiment = "HAP4"),
           plotClusterPatternByExperiment(clusterdf_list4$CC_4$df, .experiment = "CC"),
           plotClusterPatternByExperiment(clusterdf_list4$LowN_4$df, .experiment = "LowN"),
           plotClusterPatternByExperiment(clusterdf_list4$LowPi_4$df, .experiment = "LowPi"),
           plotClusterPatternByExperiment(clusterdf_list4$Heat_4$df, .experiment = "Heat"),
           plotClusterPatternByExperiment(clusterdf_list4$Cold_4$df, .experiment = "Cold"),
           nrow = 2, ncol = 3, common.legend = FALSE)
+p
+pdf("paper_figures/Supplement/cluster_ref_4.pdf",
+    width = 8, height = 4)
+p
 dev.off()
+```
 
-#### How does numbers of clusters affect which divergence group genes are in? ####
-# given an experiment name, extracts the full matrix of nClust=2,3,4 x nGenes
-# where each cell is the 4-group expression divergence category
+### How does numbers of clusters affect which divergence group genes are in?
+
+Given an experiment name, extracts the full matrix of nClust=2,3,4 x nGenes where each cell is the 4-group expression divergence category
+
+```{r getClusterQCHeatmap}
 getClusterQCHeatmap <- function(.e) {
   plot_cer <- clustdf |> filter(experiment == .e) |>
     pivot_longer(cols = c("cer2", "cer3", "cer4"),
@@ -140,9 +168,13 @@ test <- getClusterQCHeatmap(.e = "HAP4")
 dim(test)
 table(test[1,])
 test0 <- test[, c(1:20, 2087:2107, 3092:3112, 3844:3864)]
+```
 
+Function to plot results:
+
+```{r plotQCHeatmap}
 # plots the 4-group expression divergence matrix as a heatmap
-plotClusterQCHeatmap <- function(.mat, .legend = FALSE) {
+plotQCHeatmap <- function(.mat, .legend = FALSE) {
   .df <- bind_rows(tibble(gene_name = colnames(.mat),
                              nclust = 2,
                              group4 = .mat[1,],
@@ -173,19 +205,24 @@ plotClusterQCHeatmap <- function(.mat, .legend = FALSE) {
   }
   return(p)
 }
-# tests for plotClusterQCHeatmap
-plotClusterQCHeatmap(.mat = test0, .legend = TRUE)
+# tests for plotQCHeatmap
+plotQCHeatmap(.mat = test0, .legend = TRUE)
+```
 
+```{r nclust-discrete-heatmaps, cache=TRUE}
 # discrete heatmaps
-for (e in c("Heat", "Cold")) {
+for (e in ExperimentNames) {
   cat("working on", e, "\n")
   plot_mat_e <- getClusterQCHeatmap(.e = e)
-  pdf(file = paste0("../../aligning_the_molecular_phenotype/paper_figures/Supplement/nclust_heatmap_", e, "UGH.pdf"),
+  pdf(file = paste0("paper_figures/Supplement/nclust_heatmap_", e, ".pdf"),
       width = 9, height = 1)
-  print(plotClusterQCHeatmap(plot_mat_e))
+  print(plotQCHeatmap(plot_mat_e))
   dev.off()
 }
+```
 
+
+```{r nclust-percents}
 ### Percents of nClust=2 plasticity-divergers also labeled as plasticity-divergers
 # in nClust=3
 sum((clustdf$cer2 != clustdf$par2) & (clustdf$cer3 != clustdf$par3))/sum(clustdf$cer2 != clustdf$par2)
@@ -198,9 +235,119 @@ sum((clustdf$cer2 != clustdf$par2) & (clustdf$cer4 != clustdf$par4))/sum(clustdf
 sum((clustdf$cer3 != clustdf$par3) & (clustdf$cer2 != clustdf$par2))/sum(clustdf$cer3 != clustdf$par3)
 # nClust=4
 sum((clustdf$cer4 != clustdf$par4) & (clustdf$cer2 != clustdf$par2))/sum(clustdf$cer4 != clustdf$par4)
+```
 
-# conclusion: nClust=2 is most conservative, a near perfect subset of nClust=3/4
+Conclusion: nClust=2 is most conservative, a near perfect subset of nClust=3/4
 
-#### Comparing different low variance thresholds (min dispersion) ####
+## Comparing dispersion thresholds
+
+```{r dispdf}
+dispdf <- select(finaldf, gene_name, experiment, level, cer, par) |>
+  dplyr::rename(c("cer3disp"="cer", "par3disp"="par", "gene_ID"="gene_name")) |>
+  left_join(rename(clusterdf_1disp, c("cer1disp"="cer", "par1disp"="par")),
+            by = c("gene_ID", "experiment")) |>
+  left_join(rename(clusterdf_5disp, c("cer5disp"="cer", "par5disp"="par")),
+            by = c("gene_ID", "experiment"))
+```
+
+```{r disp-avg-expr}
+# dispersion = 3
+p <- ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .experiment = "HAP4"),
+          plotClusterPatternByExperiment(clusterdf_list2$CC_2$df, .experiment = "CC"),
+          plotClusterPatternByExperiment(clusterdf_list2$LowN_2$df, .experiment = "LowN"),
+          plotClusterPatternByExperiment(clusterdf_list2$LowPi_2$df, .experiment = "LowPi"),
+          plotClusterPatternByExperiment(clusterdf_list2$Heat_2$df, .experiment = "Heat"),
+          plotClusterPatternByExperiment(clusterdf_list2$Cold_2$df, .experiment = "Cold"),
+          nrow = 2, ncol = 3, common.legend = FALSE)
+p # (already plotted above)
+
+# dispersion = 1
+p <- ggarrange(plotClusterPatternByExperiment(clusterdf_list_1disp$HAP4_2$df, .experiment = "HAP4"),
+          plotClusterPatternByExperiment(clusterdf_list_1disp$CC_2$df, .experiment = "CC"),
+          plotClusterPatternByExperiment(clusterdf_list_1disp$LowN_2$df, .experiment = "LowN"),
+          plotClusterPatternByExperiment(clusterdf_list_1disp$LowPi_2$df, .experiment = "LowPi"),
+          plotClusterPatternByExperiment(clusterdf_list_1disp$Heat_2$df, .experiment = "Heat"),
+          plotClusterPatternByExperiment(clusterdf_list_1disp$Cold_2$df, .experiment = "Cold"),
+          nrow = 2, ncol = 3, common.legend = FALSE)
+p
+pdf("paper_figures/Supplement/cluster_ref_1disp.pdf",
+    width = 8, height = 4)
+p
+dev.off()
+
+# dispersion = 5
+p <- ggarrange(plotClusterPatternByExperiment(clusterdf_list_5disp$HAP4_2$df, .experiment = "HAP4"),
+          plotClusterPatternByExperiment(clusterdf_list_5disp$CC_2$df, .experiment = "CC"),
+          plotClusterPatternByExperiment(clusterdf_list_5disp$LowN_2$df, .experiment = "LowN"),
+          plotClusterPatternByExperiment(clusterdf_list_5disp$LowPi_2$df, .experiment = "LowPi"),
+          plotClusterPatternByExperiment(clusterdf_list_5disp$Heat_2$df, .experiment = "Heat"),
+          plotClusterPatternByExperiment(clusterdf_list_5disp$Cold_2$df, .experiment = "Cold"),
+          nrow = 2, ncol = 3, common.legend = FALSE)
+p
+pdf("paper_figures/Supplement/cluster_ref_5disp.pdf",
+    width = 8, height = 4)
+p
+dev.off()
+```
+
+```{r getDispersionQCHeatmap}
+getDispersionQCHeatmap <- function(.e) {
+  plot_cer <- dispdf |> filter(experiment == .e) |>
+    pivot_longer(cols = c("cer3disp", "cer1disp", "cer5disp"),
+                 names_to = "dispersion", values_to = "cer") |>
+    select(gene_ID, level, dispersion, cer)
+  plot_cer$dispersion <- gsub("cer", "", plot_cer$dispersion)
+  plot_par <- dispdf |> filter(experiment == .e) |>
+    pivot_longer(cols = c("par3disp", "par1disp", "par5disp"),
+                 names_to = "dispersion", values_to = "par") |>
+    select(gene_ID, level, dispersion, par)
+  plot_par$dispersion <- gsub("par", "", plot_par$dispersion)
+
+  plotdf <- full_join(plot_cer, plot_par,
+                      by = c("gene_ID", "level", "dispersion")) |>
+    mutate(plasticity = if_else(cer == par,
+                              true = "conserved",
+                              false = "diverged"))
+  plotdf$group4 <- map2(plotdf$level, plotdf$plasticity, \(l, d) {
+    if (l != "diverged" & d == "conserved") {
+      return("conserved level and plasticity")
+    }
+    if (l != "diverged" & d == "diverged") {
+      return("conserved level, diverged plasticity")
+    }
+    if (l == "diverged" & d == "conserved") {
+      return("diverged level, conserved plasticity")
+    }
+    if (l == "diverged" & d == "diverged") {
+      return("diverged level and plasticity")
+    }
+  }) |> unlist()
+
+  plot_mat_e <- plotdf |> select(gene_ID, dispersion, group4) |>
+    pivot_wider(id_cols = gene_ID, names_from = dispersion,
+                values_from = group4) |> t()
+  colnames(plot_mat_e) <- plot_mat_e[1,]
+  plot_mat_e <- plot_mat_e[-1,]
+  ordered_plot_mat <- orderGenesByGroup(.mat = plot_mat_e)
+  clrs <- structure(colordf[colordf$scheme == "group4",]$type,
+                    names = colordf[colordf$scheme == "group4",]$limits)
+  return(ordered_plot_mat)
+}
+# tests for getClusterQCHeatmap
+test <- getDispersionQCHeatmap(.e = "HAP4")
+dim(test)
+table(test[1,])
+test0 <- test[, c(1:20, 2087:2107, 3092:3112, 3844:3864)]
+```
+
+```{r disp-discrete-heatmaps, cache=TRUE}
+for (e in ExperimentNames) {
+  cat("working on", e, "\n")
+  plot_mat_e <- getDispersionQCHeatmap(.e = e)
+  pdf(file = paste0("paper_figures/Supplement/dispersion_heatmap_", e, ".pdf"),
+      width = 9, height = 1)
+  print(plotQCHeatmap(plot_mat_e))
+  dev.off()
+}
 ```
 

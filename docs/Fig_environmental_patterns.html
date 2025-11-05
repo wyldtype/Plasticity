@@ -349,6 +349,43 @@ across all 6 environments</h1>
 
 <pre class="r"><code>sapply(c(&quot;stringr&quot;, &quot;RColorBrewer&quot;, &quot;circlize&quot;, &quot;ggridges&quot;,
          &quot;ComplexHeatmap&quot;), require, character.only=TRUE)</code></pre>
+<pre><code>## Loading required package: stringr</code></pre>
+<pre><code>## Loading required package: RColorBrewer</code></pre>
+<pre><code>## Loading required package: circlize</code></pre>
+<pre><code>## ========================================
+## circlize version 0.4.16
+## CRAN page: https://cran.r-project.org/package=circlize
+## Github page: https://github.com/jokergoo/circlize
+## Documentation: https://jokergoo.github.io/circlize_book/book/
+## 
+## If you use it in published research, please cite:
+## Gu, Z. circlize implements and enhances circular visualization
+##   in R. Bioinformatics 2014.
+## 
+## This message can be suppressed by:
+##   suppressPackageStartupMessages(library(circlize))
+## ========================================</code></pre>
+<pre><code>## Loading required package: ggridges</code></pre>
+<pre><code>## Loading required package: ComplexHeatmap</code></pre>
+<pre><code>## Loading required package: grid</code></pre>
+<pre><code>## ========================================
+## ComplexHeatmap version 2.24.0
+## Bioconductor page: http://bioconductor.org/packages/ComplexHeatmap/
+## Github page: https://github.com/jokergoo/ComplexHeatmap
+## Documentation: http://jokergoo.github.io/ComplexHeatmap-reference
+## 
+## If you use it in published research, please cite either one:
+## - Gu, Z. Complex Heatmap Visualization. iMeta 2022.
+## - Gu, Z. Complex heatmaps reveal patterns and correlations in multidimensional 
+##     genomic data. Bioinformatics 2016.
+## 
+## 
+## The new InteractiveComplexHeatmap package can directly export static 
+## complex heatmaps into an interactive Shiny app with zero effort. Have a try!
+## 
+## This message can be suppressed by:
+##   suppressPackageStartupMessages(library(ComplexHeatmap))
+## ========================================</code></pre>
 <pre><code>##        stringr   RColorBrewer       circlize 
 ##           TRUE           TRUE           TRUE 
 ##       ggridges ComplexHeatmap 
@@ -477,8 +514,22 @@ class="section level2">
   pivot_wider(id_cols = c(&quot;gene_name&quot;), names_from = &quot;experiment&quot;,
               values_from = &quot;group4&quot;) |&gt; 
   pivot_longer(cols = ExperimentNames, names_to = &quot;experiment&quot;,
-               values_to = &quot;group5&quot;) # to add NA values for low expression
-plotdf$group5 &lt;- if_else(is.na(plotdf$group5), true = &quot;lowly expressed&quot;,
+               values_to = &quot;group5&quot;) # to add NA values for low expression</code></pre>
+<pre><code>## Warning: Using an external vector in selections was deprecated in
+## tidyselect 1.1.0.
+## ℹ Please use `all_of()` or `any_of()` instead.
+##   # Was:
+##   data %&gt;% select(ExperimentNames)
+## 
+##   # Now:
+##   data %&gt;% select(all_of(ExperimentNames))
+## 
+## See
+## &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where
+## this warning was generated.</code></pre>
+<pre class="r"><code>plotdf$group5 &lt;- if_else(is.na(plotdf$group5), true = &quot;lowly expressed&quot;,
                          false = plotdf$group5) |&gt; 
   factor(levels = c(&quot;conserved level and plasticity&quot;,
                     &quot;conserved level, diverged plasticity&quot;,
@@ -554,8 +605,8 @@ plasticity</p>
 <pre class="r"><code>plotdf &lt;- finaldf |&gt; # filter(plasticity == &quot;diverged&quot;) |&gt; 
   group_by(experiment, cer, par) |&gt; 
   summarise(n = n())</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;,
-## &#39;cer&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;, &#39;cer&#39;.
+## You can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>plotdf$long_experiment &lt;- map(plotdf$experiment, \(e) {
   LongExperimentNames[which(ExperimentNames == e)]
 }) |&gt; factor(levels = LongExperimentNames)
@@ -1467,8 +1518,8 @@ plotdf_full &lt;- left_join(x = pivot_longer(dplyr::select(plotdf, gene_name, ex
 <p>Plotting</p>
 <pre class="r"><code>plotdf_means &lt;- group_by(plotdf_full, timepoint, higher_or_lower) |&gt;
   summarise(mean_scaled_expr = mean(scaled_expr))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You
-## can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>p_home &lt;- ggplot(plotdf_means, aes(x = factor(timepoint,
                                               levels = c(&quot;tp0&quot;, &quot;tplast&quot;),
                                               labels = c(&quot;first&quot;, &quot;last&quot;)),
@@ -1556,8 +1607,8 @@ plotdf_full &lt;- left_join(x = pivot_longer(dplyr::select(plotdf, gene_name, ex
 <p>Plotting</p>
 <pre class="r"><code>plotdf_means &lt;- group_by(plotdf_full, timepoint, higher_or_lower) |&gt;
   summarise(mean_scaled_expr = mean(scaled_expr))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You
-## can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>p_other &lt;- ggplot(plotdf_means, aes(x = factor(timepoint,
                                                levels = c(&quot;tp0&quot;, &quot;tplast&quot;),
                                                labels = c(&quot;first&quot;, &quot;last&quot;)),
@@ -1622,7 +1673,7 @@ getTP0NormDifferenceAverage &lt;- function(.gene_vec, .experiment_vec, .decreasi
 getTP0NormDifferenceAverage(.gene_vec = sample(finaldf$gene_name, 3),
                             .experiment_vec = sample(finaldf$experiment, 3),
                             .decreasing_species_vec = sample(c(&quot;cer&quot;, &quot;par&quot;), replace = TRUE, 3))</code></pre>
-<pre><code>## [1] 0.2056606</code></pre>
+<pre><code>## [1] -0.2220307</code></pre>
 <p>Random simulation with 100 iterations:</p>
 <pre class="r"><code>tp0df &lt;- finaldf |&gt; filter(plasticity == &quot;diverged&quot; &amp;
                              level == &quot;conserved&quot; &amp;

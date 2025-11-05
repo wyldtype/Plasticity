@@ -361,22 +361,18 @@ folder_name &lt;- &quot;LowNitrogen&quot;</code></pre>
 <pre class="r"><code># summary of groups in this experiment
 table(expdf$group) |&gt; sort(decreasing = TRUE)</code></pre>
 <pre><code>## 
-##         cons1     levupcer1         cons0 
-##          1082           585           455 
-##         cons2         dyn01         dyn10 
-##           441           363           252 
-##     levuppar1 levdynupcer10     levuppar0 
-##           190           124           110 
-##     levuppar2 levdynuppar01     levupcer0 
-##           105            96            94 
-##         dyn20 levdynupcer01         dyn02 
-##            88            79            62 
-##         dyn21     levupcer2 levdynuppar02 
-##            50            45            39 
-## levdynuppar10 levdynupcer20         dyn12 
-##            32            30            29 
-## levdynupcer21 levdynuppar12 levdynuppar20 
-##            18            13            11 
+##         cons1     levupcer1         cons0         cons2 
+##          1082           585           455           441 
+##         dyn01         dyn10     levuppar1 levdynupcer10 
+##           363           252           190           124 
+##     levuppar0     levuppar2 levdynuppar01     levupcer0 
+##           110           105            96            94 
+##         dyn20 levdynupcer01         dyn02         dyn21 
+##            88            79            62            50 
+##     levupcer2 levdynuppar02 levdynuppar10 levdynupcer20 
+##            45            39            32            30 
+##         dyn12 levdynupcer21 levdynuppar12 levdynuppar20 
+##            29            18            13            11 
 ## levdynupcer12 levdynuppar21 levdynupcer02 
 ##            10             7             2</code></pre>
 <pre class="r"><code>sum(table(expdf$group))</code></pre>

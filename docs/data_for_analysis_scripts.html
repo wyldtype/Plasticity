@@ -507,12 +507,10 @@ cat(&quot;pre-collapse\n&quot;)</code></pre>
   select(time_point_num) |&gt;
   table()</code></pre>
 <pre><code>## time_point_num
-##      0   79.8  124.8  169.8  214.8  259.8  304.8 
-##      1      1      1      1      1      1      1 
-##  364.8  424.8  484.8  544.8  604.8  664.8 1390.2 
-##      1      1      1      1      1      1      1 
-##   1950 
-##      1</code></pre>
+##      0   79.8  124.8  169.8  214.8  259.8  304.8  364.8 
+##      1      1      1      1      1      1      1      1 
+##  424.8  484.8  544.8  604.8  664.8 1390.2   1950 
+##      1      1      1      1      1      1      1</code></pre>
 <pre class="r"><code>cat(&quot;post-collapse\n&quot;)</code></pre>
 <pre><code>## post-collapse</code></pre>
 <pre class="r"><code>dim(collapsed$cer[,info$experiment == &quot;LowN&quot;]) # LowN has been reduced (~30 replicates)</code></pre>
@@ -525,12 +523,10 @@ cat(&quot;pre-collapse\n&quot;)</code></pre>
 <pre><code>## [1] 5045   15</code></pre>
 <pre class="r"><code>info |&gt; filter(experiment == &quot;HAP4&quot;) |&gt; select(time_point_num) |&gt; table()</code></pre>
 <pre><code>## time_point_num
-##      0   79.8  124.8  169.8  214.8  259.8  304.8 
-##      1      1      1      1      1      1      1 
-##  364.8  424.8  484.8  544.8  604.8  664.8 1390.2 
-##      1      1      1      1      1      1      1 
-##   1950 
-##      1</code></pre>
+##      0   79.8  124.8  169.8  214.8  259.8  304.8  364.8 
+##      1      1      1      1      1      1      1      1 
+##  424.8  484.8  544.8  604.8  664.8 1390.2   1950 
+##      1      1      1      1      1      1      1</code></pre>
 <pre class="r"><code>### Tests for collapsed/movavg counts
 # additional tests for collapsing replicates
 # toy count matrix using random sample of genes (to test ability to separate low var genes out)
@@ -552,10 +548,10 @@ p1 &lt;- ggplot(plotdf1, aes(x = log2(var_expr/mean_expr))) + geom_density() +
   geom_vline(xintercept = 0, color = &quot;red&quot;) +
   ggtitle(&quot;after collapsing replicates&quot;)
 ggarrange(p0, p1, nrow = 1, ncol = 2)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite outside the
-## scale range (`stat_density()`).
-## Removed 3 rows containing non-finite outside the
-## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 3 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <pre class="r"><code># mean expression pre and post (shouldn&#39;t have changed)
 plotdf &lt;- left_join(plotdf0, plotdf1, by = &quot;gene_name&quot;, suffix = c(&quot;_pre&quot;, &quot;_post&quot;))
@@ -570,8 +566,8 @@ ggplot(plotdf, aes(x = log2(mean_expr + 1),
                    y = log2(var_expr_pre) - log2(var_expr_post))) +
   geom_hex() +
   geom_hline(yintercept = 0, color = &quot;gold&quot;)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite outside the
-## scale range (`stat_binhex()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale
+## range (`stat_binhex()`).</code></pre>
 <p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-3.png" width="672" /></p>
 <pre class="r"><code># as expected, there is lower variance post collapse (very few genes below y = 0)
 # most genes have fairly little difference in var when collapsing replicates,

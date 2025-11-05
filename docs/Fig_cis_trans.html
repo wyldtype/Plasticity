@@ -406,12 +406,12 @@ summary(mod) # more correlated for genes with the most consistent level divergen
 ## -2.7550 -0.5028  0.0341  0.4596  3.8635 
 ## 
 ## Coefficients:
-##                     Estimate Std. Error t value
-## (Intercept)          -0.2588     0.1270  -2.038
-## effect_size_species   0.5236     0.0440  11.899
-##                     Pr(&gt;|t|)    
-## (Intercept)           0.0453 *  
-## effect_size_species   &lt;2e-16 ***
+##                     Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)          -0.2588     0.1270  -2.038   0.0453
+## effect_size_species   0.5236     0.0440  11.899   &lt;2e-16
+##                        
+## (Intercept)         *  
+## effect_size_species ***
 ## ---
 ## Signif. codes:  
 ## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
@@ -514,8 +514,8 @@ pdf(&quot;paper_figures/CisTrans/cor_eachEnvironment.pdf&quot;,
 ggarrange(plotlist[[1]], plotlist[[2]],
           p_null, p_null, plotlist[[3]], plotlist[[4]],
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <pre><code>## Warning: Removed 1 row containing non-finite outside the scale
 ## range (`stat_density()`).
 ## Removed 1 row containing non-finite outside the scale
@@ -526,10 +526,10 @@ ggarrange(plotlist[[1]], plotlist[[2]],
 ## range (`stat_density()`).
 ## Removed 1 row containing non-finite outside the scale
 ## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <pre><code>## Warning: Removed 1 row containing non-finite outside the scale
 ## range (`stat_density()`).
 ## Removed 1 row containing non-finite outside the scale
@@ -542,8 +542,8 @@ ggarrange(plotlist[[1]], plotlist[[2]],
 <pre class="r"><code>ggarrange(plotlist[[1]], plotlist[[2]],
           p_null, p_null, plotlist[[3]], plotlist[[4]],
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).
 ## Removed 1 row containing non-finite outside the scale
 ## range (`stat_density()`).
 ## Removed 1 row containing non-finite outside the scale
@@ -554,10 +554,10 @@ ggarrange(plotlist[[1]], plotlist[[2]],
 ## range (`stat_density()`).
 ## Removed 1 row containing non-finite outside the scale
 ## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the
-## scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <pre><code>## Warning: Removed 1 row containing non-finite outside the scale
 ## range (`stat_density()`).
 ## Removed 1 row containing non-finite outside the scale

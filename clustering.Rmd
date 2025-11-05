@@ -435,7 +435,7 @@ for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
                           .nClust = 2, 
                           .tree_too = TRUE,
                           .min_var = 5) # changed dispersion threshold for this run
-  clusterdf_list_5disp[[paste(e, 3, sep = "_")]] <- output
+  clusterdf_list_5disp[[paste(e, 2, sep = "_")]] <- output
 }
 clusterdf_5disp <- getClusterCombination(clusterdf_list_5disp)
 

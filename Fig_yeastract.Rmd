@@ -498,6 +498,7 @@ p <- ggplot(plotdf, aes(fill = plasticity, values = n)) +
   xlab("") +
   ylab("") +
   ggtitle("targets per regulator")
+p
 pdf("paper_figures/Yeastract/regulator_waffle.pdf",
     width = 10.5, height = 2.5)  
 p
@@ -553,6 +554,7 @@ p <- ggplot(plotdf, aes(fill = plasticity, values = n)) +
   xlab("") +
   ylab("") +
   ggtitle("targets per regulator (unstressed networks)")
+p
 pdf("paper_figures/Yeastract/regulator_waffle_YPD.pdf",
     width = 11.5, height = 2.5)  
 p

@@ -353,8 +353,43 @@ experiment-specific clustering and combined-experiment clustering is to
 describe each gene by its combination of expression “shapes” in each
 experiment</p>
 <pre class="r"><code>options(stringsAsFactors = FALSE)
-source(&quot;functions_for_figure_scripts.R&quot;)
-load(&quot;data_files/Clustering_Counts.RData&quot;)
+source(&quot;functions_for_figure_scripts.R&quot;)</code></pre>
+<pre><code>## Loading required package: data.table</code></pre>
+<pre><code>## data.table 1.17.4 using 1 threads (see ?getDTthreads).  Latest news: r-datatable.com
+## **********
+## This installation of data.table has not detected OpenMP support. It should still work but in single-threaded mode.
+## This is a Mac. Please read https://mac.r-project.org/openmp/. Please engage with Apple and ask them for support. Check r-datatable.com for updates, and our Mac instructions here: https://github.com/Rdatatable/data.table/wiki/Installation. After several years of many reports of installation problems on Mac, it&#39;s time to gingerly point out that there have been no similar problems on Windows or Linux.
+## **********
+## 
+## Attaching package: &#39;data.table&#39;
+## 
+## The following objects are masked from &#39;package:dplyr&#39;:
+## 
+##     between, first, last
+## 
+## The following object is masked from &#39;package:purrr&#39;:
+## 
+##     transpose
+## 
+## Loading required package: ggpattern
+## Loading required package: WGCNA
+## Loading required package: dynamicTreeCut
+## Loading required package: fastcluster
+## 
+## Attaching package: &#39;fastcluster&#39;
+## 
+## The following object is masked from &#39;package:stats&#39;:
+## 
+##     hclust
+## 
+## 
+## 
+## Attaching package: &#39;WGCNA&#39;
+## 
+## The following object is masked from &#39;package:stats&#39;:
+## 
+##     cor</code></pre>
+<pre class="r"><code>load(&quot;data_files/Clustering_Counts.RData&quot;)
 set.seed(23)
 
 # Method:
@@ -518,8 +553,8 @@ test_labels &lt;- corCluster(toy_mat, .nClust = 4, .min_var = 2,
           .by = &quot;gene_name&quot;) |&gt; 
   mutate(scaled_expr = (expr - mean_expr)/sd_expr) |&gt; 
   left_join(y = test_labels, by = &quot;gene_name&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;gene_name&#39;. You
-## can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;gene_name&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>ggplot(plotdf, aes(x = time_point_str, y = scaled_expr)) + 
   geom_line(aes(group = gene_name)) +
   facet_wrap(~label)</code></pre>
@@ -835,7 +870,7 @@ for (e in c(&quot;CC&quot;, &quot;HAP4&quot;, &quot;LowN&quot;, &quot;LowPi&quot
                           .nClust = 2, 
                           .tree_too = TRUE,
                           .min_var = 5) # changed dispersion threshold for this run
-  clusterdf_list_5disp[[paste(e, 3, sep = &quot;_&quot;)]] &lt;- output
+  clusterdf_list_5disp[[paste(e, 2, sep = &quot;_&quot;)]] &lt;- output
 }</code></pre>
 <pre><code>## *********** working on 2 clusters disp=5 in CC *********** 
 ## counts are in same order, joining counts into single matrix
