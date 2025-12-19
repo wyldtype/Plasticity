@@ -32,9 +32,9 @@ library(purrr)
 # dataframe of nClust = 2, 3, and 4 clustering results
 clustdf <- select(finaldf, gene_name, experiment, level, cer, par) |>
   dplyr::rename(c("cer2"="cer", "par2"="par", "gene_ID"="gene_name")) |>
-  left_join(rename(clusterdf3, c("cer3"="cer", "par3"="par")),
+  left_join(dplyr::rename(clusterdf3, c("cer3"="cer", "par3"="par")),
             by = c("gene_ID", "experiment")) |>
-  left_join(rename(clusterdf4, c("cer4"="cer", "par4"="par")),
+  left_join(dplyr::rename(clusterdf4, c("cer4"="cer", "par4"="par")),
             by = c("gene_ID", "experiment"))
 ```
 
@@ -244,9 +244,9 @@ Conclusion: nClust=2 is most conservative, a near perfect subset of nClust=3/4
 ```{r dispdf}
 dispdf <- select(finaldf, gene_name, experiment, level, cer, par) |>
   dplyr::rename(c("cer3disp"="cer", "par3disp"="par", "gene_ID"="gene_name")) |>
-  left_join(rename(clusterdf_1disp, c("cer1disp"="cer", "par1disp"="par")),
+  left_join(dplyr::rename(clusterdf_1disp, c("cer1disp"="cer", "par1disp"="par")),
             by = c("gene_ID", "experiment")) |>
-  left_join(rename(clusterdf_5disp, c("cer5disp"="cer", "par5disp"="par")),
+  left_join(dplyr::rename(clusterdf_5disp, c("cer5disp"="cer", "par5disp"="par")),
             by = c("gene_ID", "experiment"))
 ```
 
@@ -349,5 +349,156 @@ for (e in ExperimentNames) {
   print(plotQCHeatmap(plot_mat_e))
   dev.off()
 }
+```
+
+## Are the sometimes-static genes an even sampling of diverged and conserved?
+
+Are genes that are put in the static category in at least one species but only at 3 or 5 dispersion an even sampling of genes in the different divergence categories, or are they predominantly coming from certain groups?
+
+Repeating the same heatmaps from the "Similar Proportions" figure, except now with three dispersion levels. Dispersion = 3 (main paper):
+
+```{r sometimes-static-3disp}
+plotdf <- finaldf |>
+  group_by(experiment, cer, par) |> 
+  summarise(n = n())
+plotdf$long_experiment <- map(plotdf$experiment, \(e) {
+  LongExperimentNames[which(ExperimentNames == e)]
+}) |> factor(levels = LongExperimentNames)
+plotdf$cer <- factor(plotdf$cer, levels = c("0", "1", "2"))
+plotdf$par <- factor(plotdf$par, levels = c("2", "1", "0"))
+plotdf$type <- map2(plotdf$cer, plotdf$par, \(x, y) {
+  if (x == y) {
+    if (x == 0 & y == 0) {
+      return("conserved static")
+    }
+    return("conserved plastic")
+  }
+  if (x == 0) {
+    return("Spar-unique")
+  }
+  if (y == 0) {
+    return("Scer-unique")
+  }
+  else {
+    return("reversal")
+  }
+}) |> unlist()
+p <- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
+  geom_tile() +
+  geom_text(aes(label = n,
+                color = grepl(pattern = "conserved", x = type))) +
+  scale_color_discrete(limits = c(TRUE, FALSE),
+                       type = c("grey40", "white")) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
+                      type = colordf[colordf$scheme == "plasticity",]$type) +
+   facet_wrap(~long_experiment) +
+  theme_classic() +
+  xlab("Scer plasticity cluster") +
+  ylab("Spar plasticity cluster") +
+  guides(fill=guide_legend(title="number of genes")) +
+  theme(legend.position = "none")
+pdf("paper_figures/Supplement/plasticity_counts_heatmap_3disp.pdf",
+    width = 4, height = 3)
+p
+dev.off()
+```
+
+Dispersion = 1 (less likely to call a gene static than the main paper):
+
+```{r sometimes-static-1disp}
+finaldf_1disp <- select(finaldf, -cer, -par) |> 
+  left_join(clusterdf_1disp, by = c("gene_name"="gene_ID", "experiment"))
+plotdf <- finaldf_1disp |>
+  group_by(experiment, cer, par) |> 
+  summarise(n = n())
+plotdf$long_experiment <- map(plotdf$experiment, \(e) {
+  LongExperimentNames[which(ExperimentNames == e)]
+}) |> factor(levels = LongExperimentNames)
+plotdf$cer <- factor(plotdf$cer, levels = c("0", "1", "2"))
+plotdf$par <- factor(plotdf$par, levels = c("2", "1", "0"))
+plotdf$type <- map2(plotdf$cer, plotdf$par, \(x, y) {
+  if (x == y) {
+    if (x == 0 & y == 0) {
+      return("conserved static")
+    }
+    return("conserved plastic")
+  }
+  if (x == 0) {
+    return("Spar-unique")
+  }
+  if (y == 0) {
+    return("Scer-unique")
+  }
+  else {
+    return("reversal")
+  }
+}) |> unlist()
+p <- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
+  geom_tile() +
+  geom_text(aes(label = n,
+                color = grepl(pattern = "conserved", x = type))) +
+  scale_color_discrete(limits = c(TRUE, FALSE),
+                       type = c("grey40", "white")) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
+                      type = colordf[colordf$scheme == "plasticity",]$type) +
+   facet_wrap(~long_experiment) +
+  theme_classic() +
+  xlab("Scer plasticity cluster") +
+  ylab("Spar plasticity cluster") +
+  guides(fill=guide_legend(title="number of genes")) +
+  theme(legend.position = "none")
+pdf("paper_figures/Supplement/plasticity_counts_heatmap_1disp.pdf",
+    width = 4, height = 3)
+p
+dev.off()
+```
+Dispersion = 5 (less likely to call a gene static than the main paper):
+
+```{r sometimes-static-5disp}
+finaldf_5disp <- select(finaldf, -cer, -par) |> 
+  left_join(clusterdf_5disp, by = c("gene_name"="gene_ID", "experiment"))
+plotdf <- finaldf_5disp |>
+  group_by(experiment, cer, par) |> 
+  summarise(n = n())
+plotdf$long_experiment <- map(plotdf$experiment, \(e) {
+  LongExperimentNames[which(ExperimentNames == e)]
+}) |> factor(levels = LongExperimentNames)
+plotdf$cer <- factor(plotdf$cer, levels = c("0", "1", "2"))
+plotdf$par <- factor(plotdf$par, levels = c("2", "1", "0"))
+plotdf$type <- map2(plotdf$cer, plotdf$par, \(x, y) {
+  if (x == y) {
+    if (x == 0 & y == 0) {
+      return("conserved static")
+    }
+    return("conserved plastic")
+  }
+  if (x == 0) {
+    return("Spar-unique")
+  }
+  if (y == 0) {
+    return("Scer-unique")
+  }
+  else {
+    return("reversal")
+  }
+}) |> unlist()
+p <- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
+  geom_tile() +
+  geom_text(aes(label = n,
+                color = grepl(pattern = "conserved", x = type))) +
+  scale_color_discrete(limits = c(TRUE, FALSE),
+                       type = c("grey40", "white")) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
+                      type = colordf[colordf$scheme == "plasticity",]$type) +
+   facet_wrap(~long_experiment) +
+  theme_classic() +
+  xlab("Scer plasticity cluster") +
+  ylab("Spar plasticity cluster") +
+  guides(fill=guide_legend(title="number of genes")) +
+  theme(legend.position = "none")
+pdf("paper_figures/Supplement/plasticity_counts_heatmap_5disp.pdf",
+    width = 4, height = 3)
+p
+dev.off()
 ```
 
