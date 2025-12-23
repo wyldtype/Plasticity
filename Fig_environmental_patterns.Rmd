@@ -221,10 +221,15 @@ plotdf$type <- map2(plotdf$cer, plotdf$par, \(x, y) {
     return("reversal")
   }
 }) |> unlist()
+plotdf_sums <- plotdf |> group_by(long_experiment) |> 
+  summarise(n_Exp = sum(n))
+plotdf <- left_join(plotdf, plotdf_sums, 
+                    by = "long_experiment")
+plotdf$pct <- (plotdf$n/plotdf$n_Exp) |> formatC(digits = 1)
 p <- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
   geom_tile() +
-  geom_text(aes(label = n,
-                color = grepl(pattern = "conserved", x = type))) +
+  geom_text(aes(label = pct,
+                color = grepl(pattern = "conserved", x = type)), size = 3) +
   scale_color_discrete(limits = c(TRUE, FALSE),
                        type = c("grey40", "white")) +
   scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
@@ -234,11 +239,17 @@ p <- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
   xlab("Scer plasticity cluster") +
   ylab("Spar plasticity cluster") +
   guides(fill=guide_legend(title="number of genes")) +
-  theme(legend.position = "none")
+  theme(legend.position = "none",
+        panel.spacing.y = unit(1, "cm"))
 pdf("paper_figures/EnvironmentalPatterns/plasticity_counts_heatmap.pdf",
     width = 4, height = 3)
 p
 dev.off()
+```
+nGenes per experiment for paper figure:
+
+```{r plasticity-group-heatmap-ngenes}
+plotdf_sums
 ```
 
 ## Divergence category in one environment is a poor predictor of other environments
