@@ -1233,7 +1233,6 @@ write.csv(sample_info, "data_files/sample_metadata_parent.csv",
           col.names = TRUE, row.names = FALSE)
 write.csv(sample_info_allele, "data_files/sample_metadata_hybrid.csv",
           col.names = TRUE, row.names = FALSE)
-
 ```
 
 
