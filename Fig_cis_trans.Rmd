@@ -18,23 +18,23 @@ eff_thresh <- log2(1.5)
 # extreme cor and log2 fold change values to extract the most
 # cis plasticity divergers and most trans level divergers for
 # avg expression figures
-cis_dyn_thresh <- -0.25 
+cis_plast_thresh <- -0.25 
 trans_lev_thresh <- log2(2)
 ```
 
 ## Log2 fold changes between parents and hybrid are correlated
 
-```{r l2fc-correlated}
+```{r level-explained, warning=FALSE}
 # R squared for effect sizes between parents and hybrid for all genes
 mod_full <- lm(effect_size_allele ~ effect_size_species, data = finaldf)
 summary(mod_full)
 # R squared genes with consistent effect size and diverged level in at least one environment
 levdiv_genes <-  filter(finaldf, level == "diverged") |> 
   select(gene_name) |> pull() |> unique()
-plotdf <- finaldf |> filter(gene_name %in% levdiv_genes) |> 
-  group_by(gene_name) |> summarise(n_lev_dir = length(sign(effect_size_species))) |> 
-  filter(n_lev_dir == 1)
-mod <- lm(effect_size_allele ~ effect_size_species, data = filter(finaldf, gene_name %in% plotdf$gene_name))
+plotdf <- finaldf |> # filter(gene_name %in% levdiv_genes) |> 
+  group_by(gene_name) # |> summarise(n_lev_dir = length(sign(effect_size_species))) |> 
+  #filter(n_lev_dir == 1)
+mod <- lm(effect_size_allele ~ effect_size_species, data = filter(finaldf, gene_name %in% levdiv_genes))
 summary(mod) # more correlated for genes with the most consistent level divergence across envrironments
 
 # looping through each experiment
@@ -42,31 +42,86 @@ library(ggExtra)
 plotlist <- vector(mode = "list", length = length(ExperimentNames))
 names(plotlist) <- ExperimentNames
 for (e in ExperimentNames) {
-  plotdf <- finaldf |> filter(experiment == e & level == "diverged")
+  e_color <- colordf[colordf$limits == e,]$type
+  plotdf <- finaldf |> filter(experiment == e) # & level == "diverged")
   mod_e <- lm(effect_size_allele ~ effect_size_species, data = plotdf)
   plotlist[[e]] <- ggMarginal(ggplot(plotdf, aes(x = effect_size_species,
                                  y = effect_size_allele)) +
                geom_vline(xintercept = 0, alpha = 0.5) +
                geom_hline(yintercept = 0, alpha = 0.5) +
                geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
-               geom_point(aes(color = experiment)) +
-               geom_text(x = -2, y = 4.5, 
-                         label = paste0("R^2 = ", round(summary(mod_e)$r.squared,
-                                                        digits = 3))) +
-               scale_color_discrete(limits = colordf[colordf$scheme == "experiment",]$limits,
-                                    type = colordf[colordf$scheme == "experiment",]$type) +
+               geom_point(aes(color = level == "diverged"), alpha = 0.25, shape = 19) +
+               # geom_text(x = -2, y = 4.5, 
+               #           label = paste0("R^2 = ", round(summary(mod_e)$r.squared,
+               #                                          digits = 3))) +
+               scale_color_discrete(limits = c(TRUE, FALSE),
+                                                     type = c("black", e_color)) +
                xlim(c(-5, 5)) +
                ylim(c(-5, 5)) +
                xlab("") +
                ylab("") +
-               ggtitle(LongExperimentNames[which(ExperimentNames == e)]) +
+               ggtitle(paste(LongExperimentNames[which(ExperimentNames == e)],
+                       paste0(",\nR^2 = ", round(summary(mod_e)$r.squared,
+                                                digits = 3)))) +
                theme_classic() +
                theme(legend.position = "none"),
              groupColour = TRUE, groupFill = TRUE)
 }
+```
+
+Outputting plots to PDF:
+
+```{r level-explained-pdf}
 pdf("paper_figures/CisTrans/l2fc_eachEnvironment.pdf",
-    width = 5, height = 8)
+    width = 2.5, height = 16)
+ggarrange(plotlist = plotlist, nrow = 6, ncol = 1)
+dev.off()
 ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)
+```
+
+## Less of the plasticity divergence observed between parents is explained by the hybrid
+
+```{r plasticity-unexplained, warning=FALSE}
+# R squared for effect sizes between parents and hybrid for all genes
+mod_full <- lm(cor_hybrid ~ cor_parents, data = finaldf)
+summary(mod_full)
+plotdf <- finaldf
+
+# looping through each experiment
+library(ggExtra)
+plotlist <- vector(mode = "list", length = length(ExperimentNames))
+names(plotlist) <- ExperimentNames
+for (e in ExperimentNames) {
+  e_color <- colordf[colordf$limits == e,]$type
+  plotdf <- finaldf |> filter(experiment == e)
+  mod_e <- lm(cor_hybrid ~ cor_parents, data = plotdf)
+  plotlist[[e]] <- ggMarginal(ggplot(plotdf, aes(x = cor_parents,
+                                                 y = cor_hybrid)) +
+                                geom_vline(xintercept = 0, alpha = 0.5) +
+                                geom_hline(yintercept = 0, alpha = 0.5) +
+                                geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
+                                geom_point(aes(color = plasticity == "diverged"), alpha = 0.25, shape = 19) +
+                                # geom_text(x = -0.5, y = 0.8, 
+                                #           label = paste0("R^2 = ", round(summary(mod_e)$r.squared,
+                                #                                          digits = 3))) +
+                                scale_color_discrete(limits = c(TRUE, FALSE),
+                                                     type = c("black", e_color)) +
+               xlim(c(-1, 1)) +
+               ylim(c(-1, 1)) +
+               xlab("") +
+               ylab("") +
+               ggtitle(paste(LongExperimentNames[which(ExperimentNames == e)],
+                       paste0(",\nR^2 = ", round(summary(mod_e)$r.squared,
+                                                digits = 3)))) +
+               theme_classic() +
+               theme(legend.position = "none"),
+             groupColour = TRUE, groupFill = TRUE)
+}
+```
+```{r plasticity-unexplained-pdf}
+pdf("paper_figures/CisTrans/cor_eachEnvironment.pdf",
+    width = 2.5, height = 16)
+ggarrange(plotlist = plotlist, nrow = 6, ncol = 1)
 dev.off()
 ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)
 ```
@@ -99,7 +154,7 @@ for (e in ExperimentNames) {
     theme(legend.position = "none")
 }
 p_null <- ggplot(plotdf) + theme_void()
-pdf("paper_figures/CisTrans/cor_eachEnvironment.pdf",
+pdf("paper_figures/CisTrans/cor_density_eachEnvironment.pdf",
     width = 8, height = 4)
 ggarrange(plotlist[[1]], plotlist[[2]],
           p_null, p_null, plotlist[[3]], plotlist[[4]],
@@ -196,7 +251,7 @@ dev.off()
 ```{r plasticity-pie-chart}
 plotdf <- finaldf |> 
   filter(plasticity == "diverged") |> 
-  mutate(is_cis = cor_hybrid < cis_dyn_thresh)
+  mutate(is_cis = cor_hybrid < cis_plast_thresh)
 plotdf |> group_by(experiment) |> 
   summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
             trans = sum(!is_cis, na.rm = TRUE)/n())
@@ -229,7 +284,7 @@ Average expression of Diauxic Shift example:
 ```{r plasticity-avg-expr}
 plotdf <- finaldf |> 
   filter(plasticity == "diverged") |> 
-  mutate(is_cis = cor_hybrid < cis_dyn_thresh)
+  mutate(is_cis = cor_hybrid < cis_plast_thresh)
 plotdf |> group_by(experiment) |> 
   summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
             trans = sum(!is_cis, na.rm = TRUE)/n())
