@@ -318,18 +318,26 @@ Genes with higher Log2 fold change in Scer:
 ```{r heatmap-upScer}
 plot_mat <- matrix(nrow = length(ExperimentNames),
                    ncol = length(ExperimentNames))
+plot_counts <- matrix(nrow = length(ExperimentNames),
+                      ncol = length(ExperimentNames))
 # up in Scer
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
-    e_gene_idxs <- finaldf |> filter(experiment == e_row &
-                                       level == "diverged" &
-                                       sign(effect_size_species) == 1) |> 
+    e_gene_idxs <- finaldf |> 
+      filter(experiment == e_row & 
+               level == "diverged" &
+               sign(effect_size_species) == 1) |> 
       dplyr::select(gene_name) |> pull()
-    avg_lfc <- finaldf |> filter(experiment == e_col & 
-                                   gene_name %in% e_gene_idxs) |> 
-      dplyr::select(effect_size_species) |> pull() |> mean()
+    avg_lfc <- finaldf |> 
+      filter(experiment == e_col & 
+               gene_name %in% e_gene_idxs) |> 
+      dplyr::select(effect_size_species) |> 
+      pull() |> mean()
+    n_genes <- length(e_gene_idxs)
     plot_mat[which(ExperimentNames == e_row),
              which(ExperimentNames == e_col)] <- avg_lfc
+    plot_counts[which(ExperimentNames == e_row),
+                which(ExperimentNames == e_col)] <- n_genes
   }
 }
 colnames(plot_mat) <- LongExperimentNames
@@ -341,18 +349,30 @@ p <- Heatmap(plot_mat, col = col_fun,
         row_names_side = "left", heatmap_legend_param = list(title = ""),
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf("%.2f", plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
-        })
+        },
+        show_heatmap_legend = FALSE)
 p
 pdf("paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_scer.pdf",
-    width = 5, height = 3)
+    width = 4, height = 3)
 p
 dev.off()
 ```
+
+Legend and number of genes for paper figure (should be all the same number of genes for each row):
+
+```{r heatmap-upScer-ngenes}
+plot_counts
+
+lgd <- Legend(col_fun = col_fun, title = "avgerage log2 fold change",  direction = "horizontal") # need to run draw(lgd) in the console
+```
+
 Genes with higher Log2 fold change in Spar: 
 
 ```{r heatmap-upPar}
 plot_mat <- matrix(nrow = length(ExperimentNames),
                    ncol = length(ExperimentNames))
+plot_counts <- matrix(nrow = length(ExperimentNames),
+                      ncol = length(ExperimentNames))
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
     e_gene_idxs <- finaldf |> filter(experiment == e_row &
@@ -364,6 +384,8 @@ for (e_row in ExperimentNames) {
       dplyr::select(effect_size_species) |> pull() |> mean()
     plot_mat[which(ExperimentNames == e_row),
              which(ExperimentNames == e_col)] <- avg_lfc
+    plot_counts[which(ExperimentNames == e_row),
+                which(ExperimentNames == e_col)] <- length(e_gene_idxs)
   }
 }
 colnames(plot_mat) <- LongExperimentNames
@@ -375,12 +397,20 @@ p <- Heatmap(plot_mat, col = col_fun,
         row_names_side = "left", heatmap_legend_param = list(title = ""),
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf("%.2f", plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
-        })
+        }, show_heatmap_legend = FALSE)
 p
 pdf("paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_spar.pdf",
-    width = 5, height = 3)
+    width = 4, height = 3)
 p
 dev.off()
+```
+
+Legend and number of genes for paper figure (should be all the same number of genes for each row):
+
+```{r heatmap-upSpar-ngenes}
+plot_counts
+
+lgd <- Legend(col_fun = col_fun, title = "avgerage log2 fold change",  direction = "horizontal") # need to run draw(lgd) in the console
 ```
 
 ### Plasticity divergence is unique to each environment
@@ -421,6 +451,8 @@ Heatmap of species correlations for genes increasing in Spar and decreasing in S
 # 2-1 divergers
 plot_mat <- matrix(nrow = length(ExperimentNames),
                    ncol = length(ExperimentNames))
+plot_counts <- matrix(nrow = length(ExperimentNames),
+                      ncol = length(ExperimentNames))
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
     e_gene_idxs <- finaldf |> filter(experiment == e_row &
@@ -429,6 +461,8 @@ for (e_row in ExperimentNames) {
     e_cor <- getplasticityCorr(e_gene_idxs, .experiment_name = e_col)
     plot_mat[which(ExperimentNames == e_row),
              which(ExperimentNames == e_col)] <- e_cor
+    plot_counts[which(ExperimentNames == e_row),
+                which(ExperimentNames == e_col)] <- length(e_gene_idxs)
   }
 }
 colnames(plot_mat) <- LongExperimentNames
@@ -441,12 +475,20 @@ p <- Heatmap(plot_mat, col = col_fun,
         row_names_side = "left", heatmap_legend_param = list(title = ""),
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf("%.2f", plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
-        })
+        }, show_heatmap_legend = FALSE)
 p
 pdf("paper_figures/EnvironmentalPatterns/heatmap_21.pdf",
-    width = 5, height = 3)
+    width = 4, height = 3)
 p
 dev.off()
+```
+
+nGenes and legend for paper figure
+
+```{r heatmap-2-1-ngenes}
+plot_counts
+
+lgd <- Legend(col_fun = col_fun, title = "avgerage expression correlation",  direction = "horizontal") # need to run draw(lgd) in the console
 ```
 
 Heatmap of species correlations for genes decreasing in Spar and increasing in Scer:
@@ -455,6 +497,8 @@ Heatmap of species correlations for genes decreasing in Spar and increasing in S
 # 1-2 divergers
 plot_mat <- matrix(nrow = length(ExperimentNames),
                    ncol = length(ExperimentNames))
+plot_counts <- matrix(nrow = length(ExperimentNames),
+                      ncol = length(ExperimentNames))
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
     e_gene_idxs <- finaldf |> filter(experiment == e_row &
@@ -463,6 +507,8 @@ for (e_row in ExperimentNames) {
     e_cor <- getplasticityCorr(e_gene_idxs, .experiment_name = e_col)
     plot_mat[which(ExperimentNames == e_row),
              which(ExperimentNames == e_col)] <- e_cor
+    plot_counts[which(ExperimentNames == e_row),
+                which(ExperimentNames == e_col)] <- length(e_gene_idxs)
   }
 }
 colnames(plot_mat) <- LongExperimentNames
@@ -475,13 +521,22 @@ p <- Heatmap(plot_mat, col = col_fun,
         row_names_side = "left", heatmap_legend_param = list(title = ""),
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf("%.2f", plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
-        })
+        }, show_heatmap_legend = FALSE)
 p
 pdf("paper_figures/EnvironmentalPatterns/heatmap_12.pdf",
-    width = 5, height = 3)
+    width = 4, height = 3)
 p
 dev.off()
 ```
+
+nGenes counts for paper figure:
+
+```{r heatmap-1-2-ngenes}
+plot_counts
+
+lgd <- Legend(col_fun = col_fun, title = "avgerage expression correlation",  direction = "horizontal") # need to run draw(lgd) in the console
+```
+
 
 All plasticity-divergers grouped together:
 
@@ -632,7 +687,7 @@ dev.off()
 # Low Nitrogen 1-2, plasticity divergers have strongest negative correlation in Cold? -.97?
 gene_idxs <- finaldf |> filter(experiment == "LowN" & cer == 1 & par == 2) |> 
   dplyr::select(gene_name) |> pull()
-plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+p <- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .cts2 = collapsed$par[gene_idxs,],
                           .info1 = info,
                           .info2 = info,,
@@ -642,13 +697,22 @@ plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .normalization = "log2")
 length(gene_idxs) # yes, but LowN has the fewest reversals
 ```
+Plot for supplemental figure:
+
+```{r LowN-1-2-pdf}
+pdf("paper_figures/Supplement/LowN-1-2.pdf",
+    width = 12, height = 2)
+p
+dev.off()
+```
+
 
 ```{r HAP4-2-1}
 # following up on additional examples from heatmap
 # Diauxic Shift 2-1, plasticity divergers also have strongest negative correlation in Cold?
 gene_idxs <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> 
   dplyr::select(gene_name) |> pull()
-plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+p <- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .cts2 = collapsed$par[gene_idxs,],
                           .info1 = info,
                           .info2 = info,,
@@ -657,6 +721,14 @@ plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .show_confidence_intervals = TRUE,
                           .normalization = "log2")
 length(gene_idxs)
+p
+```
+
+```{r HAP4-2-1-pdf}
+pdf("paper_figures/Supplement/HAP4-2-1.pdf",
+    width = 12, height = 2)
+p
+dev.off()
 ```
 
 ```{r CC-2-1}
@@ -664,7 +736,7 @@ length(gene_idxs)
 # HUShock 2-1, plasticity divergers also have strongest negative correlation in LowPi?
 gene_idxs <- finaldf |> filter(experiment == "CC" & cer == 2 & par == 1) |> 
   dplyr::select(gene_name) |> pull()
-plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+p <- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .cts2 = collapsed$par[gene_idxs,],
                           .info1 = info,
                           .info2 = info,,
@@ -673,6 +745,14 @@ plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .show_confidence_intervals = TRUE,
                           .normalization = "log2")
 length(gene_idxs)
+p
+```
+
+```{r CC-2-1-pdf}
+pdf("paper_figures/Supplement/CC-2-1.pdf",
+    width = 12, height = 2)
+p
+dev.off()
 ```
 
 Finally as a contrast, a pair with high correlation:
