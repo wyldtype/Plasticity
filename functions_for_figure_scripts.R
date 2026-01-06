@@ -288,7 +288,7 @@ plotExpressionProfilePair <- function(.cts1, .cts2,
   }
   # background color rectangles for differentiating the experiments
   rects <- data.frame(color = c("orchid", "lightgreen", "gold", "orange", "salmon", "lightblue"),
-                      labels = c("Cell Cycle", "Diauxic Shift", "Low Nitrogen", "Low Phosphorus", "Heat Stress", "Cold Stress"),
+                      labels = c("Hydroxyurea Shock", "Diauxic Shift", "Low Nitrogen", "Low Phosphorus", "Heat Stress", "Cold Stress"),
                       experiment_names = c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold"))
   experiment_order <- c("HAP4", "CC", "LowN", "LowPi", "Heat", "Cold")
   # plotting
@@ -546,7 +546,7 @@ plotExpressionRibbonsPair <- function(.cts1, .cts2,
   experiment_order <- c("HAP4", "CC", "LowN", "LowPi", "Heat", "Cold")
   # background color rectangles for differentiating the experiments
   rects <- data.frame(color = c("orchid", "lightgreen", "gold", "orange", "salmon", "lightblue"),
-                      labels = c("Cell Cycle", "Diauxic Shift", "Low Nitrogen", "Low Phosphorus", "Heat Stress", "Cold Stress"),
+                      labels = c("Hydroxyurea Shock", "Diauxic Shift", "Low Nitrogen", "Low Phosphorus", "Heat Stress", "Cold Stress"),
                       experiment_names = c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold"))
   # plotting
   plotlist <- vector(mode = "list", length = length(unique(plotdf$experiment)))
@@ -779,7 +779,7 @@ plotExpressionProfileQuartet <- function(.cts1, .cts2, .cts3, .cts4,
   plotdf <- gdf
   # background color rectangles for differentiating the 4 experiments
   rects <- data.frame(color = c("lightgreen", "orchid", "gold", "orange", "salmon", "lightblue"),
-                      labels = c("Diauxic Shift", "Cell Cycle", "Low Nitrogen", "Low Phosphorus", "Heat Stress", "Cold Stress"),
+                      labels = c("Diauxic Shift", "Hydroxyurea Shock", "Low Nitrogen", "Low Phosphorus", "Heat Stress", "Cold Stress"),
                       experiment_names = c("HAP4", "CC", "LowN", "LowPi", "Heat", "Cold"))
   # plotting
   plotlist <- vector(mode = "list", length = length(unique(plotdf$experiment)))
