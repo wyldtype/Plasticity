@@ -1222,9 +1222,24 @@ ggplot(pcadf,
 ```
 Those two Scer Heat 30min sample outliers are due to one gene, YFL014W (HSP12), (run the PCA without this gene and the outlier samples will no longer be outliers), which had ~100000 reads in our in-house alignment but an order of magnitude fewer reads in Fay et al. 2023. It is a highly expressed gene in heat shock. Good to keep in mind this outlier.
 
+## Writing processed counts and sample metadata to .csv files
+
+```{r csv-counts}
+write.csv(counts, "data_files/processed_counts_parent.csv", 
+          col.names = TRUE, row.names = TRUE)
+write.csv(counts, "data_files/processed_counts_hybrid.csv", 
+          col.names = TRUE, row.names = TRUE)
+write.csv(sample_info, "data_files/sample_metadata_parent.csv",
+          col.names = TRUE, row.names = FALSE)
+write.csv(sample_info_allele, "data_files/sample_metadata_hybrid.csv",
+          col.names = TRUE, row.names = FALSE)
+
+```
+
+
 ## Saving
 
-```{r}
+```{r saving}
 # final number of genes and samples (should all be the same number of rows)
 dim(counts)
 dim(counts_allele)
