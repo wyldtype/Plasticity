@@ -461,6 +461,37 @@ write_delim(supp_tab1, delim = ",", file = "data_files/Supplementary_Table1.csv"
             col_names = TRUE)
 ```
 
+Supplementary Table 2, including F1 hybrid log2 fold changes and correlations:
+
+```{r supplementary-table2}
+rm(supp_tab1)
+supp_tab2 <- finaldf |> select(gene_name, experiment, effect_size_species, padj_species, effect_size_allele, padj_allele, cor_hybrid, cor_parents, cer, par, level, plasticity) |>
+  dplyr::rename(c("gene"="gene_name", 
+                  "log2_fold_change_parents"="effect_size_species",
+                  "padj_parents"="padj_species",
+                  "log2_fold_change_hybrid"="effect_size_allele",
+                  "padj_hybrid"="padj_allele", 
+                  "cluster_Scer"="cer", "cluster_Spar"="par"))
+# changing cluster names for clarity
+# 0 = "static"
+# 1 = "increasing"
+# 2 = "decreasing"
+supp_tab2$cluster_Scer <-
+  if_else(supp_tab2$cluster_Scer == 0,
+          true = "static",
+          false = if_else(supp_tab2$cluster_Scer == 1,
+                          true = "increasing",
+                          false = "decreasing"))
+supp_tab2$cluster_Spar <-
+  if_else(supp_tab2$cluster_Spar == 0,
+          true = "static",
+          false = if_else(supp_tab2$cluster_Spar == 1,
+                          true = "increasing",
+                          false = "decreasing"))
+write_delim(supp_tab2, delim = ",", file = "data_files/Supplementary_Table2.csv",
+            col_names = TRUE)
+```
+
 ## Gene Ontology Enrichment
 
 Creating a GOslim table recording all the gene ontology terms associated with each gene (filtering out a few terms that are a little too vague to be useful, such as "cellular process").
