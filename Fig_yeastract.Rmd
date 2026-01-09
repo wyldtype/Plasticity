@@ -159,7 +159,8 @@ regmats <- map(regmats, .f = \(x) {x[setdiff(rownames(x), toRemove),]})
 # checking for any genes missing from idxs that have network connections
 setdiff(rownames(regmats$YPD)[rowSums(regmats$YPD) > 0], idxs) # YER109C = FLO8, YLR256W = HAP1, YOL028C = YAP7 all unannotated b/c of large sequence differences between Scer and other saccharomyces
 # how many connections are we missing?
-rowSums(regmats$YPD[!(rownames(regmats$YPD) %in% colnames(regmats$YPD)),]) # 1% is acceptable
+sum(!(rownames(regmats$YPD) %in% colnames(regmats$YPD))) # should be 0
+rowSums(regmats$YPD[!(rownames(regmats$YPD) %in% colnames(regmats$YPD)),]) # if not 0, how many total connections?
 
 ### making regulator matrices square
 regmats <- map(regmats, \(x) {
@@ -446,11 +447,8 @@ Here we want to compare regulators and their regulons from each plasticity group
 by visualizing first the regulator expression across environments
 and then their regulon (or at least the most common plasticity pattern)
 
-Note: waffle package uses plyr, which superseeds dplyr::summarise, causing errors if we don't unload it once the waffle plots are done
-
-```{r waffle}
-library(waffle)
-
+First making a dataframe of each regulator in each environment and the number of connections it has
+```{r TF-dataframe}
 # first how many regulators from each environment are from each plasticity group?
 # and how many connections do each of them have?
 tfdf <- map(ExperimentNames, \(.e) {
@@ -465,6 +463,13 @@ tfdf <- map(ExperimentNames, \(.e) {
 tfdf$out_degree_e[is.na(tfdf$out_degree_e)] <- 0
 tfdf <- tfdf |> filter(out_degree_e != 0)
 tfdf$plasticity <- map2(tfdf$cer, tfdf$par, getPlasticityGroup) |> unlist()
+```
+
+Note: waffle package uses plyr, which superseeds dplyr::summarise, causing errors if we don't unload it once the waffle plots are done
+
+```{r waffle}
+library(waffle)
+
 plotdf <- tfdf |> 
   dplyr::count(plasticity, experiment, out_degree_e, gene_name) |> 
   arrange(experiment, desc(out_degree_e))
@@ -763,5 +768,133 @@ p2 <- ggplot(plotdf, aes(x = log2(var_expr_par))) +
 annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
                           legend = "right", ncol = 1, nrow = 2), top = "Spar")
 ```
+
+## Regulon plasticity divergence across environments
+
+In the three examples above, we see that the regulons have strongly conserved plasticity in their home environment and tend to have more divergent plasticity in alternative environments. How common is this?
+
+For each large regulon (top 5 in each environment, 2 from cold), we will look at the fraction of genes with conserved plasticity in each environment.
+
+```{r regulon-pct-conserved-plasticity}
+plotdf <- tfdf |> group_by(experiment) |> 
+  mutate(rank = rank(-out_degree_e, ties.method = "first")) |> 
+  ungroup() |> filter(rank <= 5) |> 
+  rename(c("home"="experiment", "tf"="gene_name"))
+# adding fraction conserved plasticity in each environment
+plotdf_pcts <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
+  home_mat <- regmats[[h]]
+  h_idxs <- finaldf |> filter(experiment == h) |> 
+    select(gene_name) |> pull()
+  regulon_idxs <- intersect(colnames(home_mat)[home_mat[tf,] > 0], h_idxs)
+  outdf <- purrr::map(ExperimentNames, \(e) {
+    e_plast_genes <- finaldf |>
+      filter(experiment == e & plasticity == "conserved") |>
+      select(gene_name) |> pull()
+    e_genedf <- tibble(tf = tf,
+                       home = h,
+                       experiment = e,
+                       n = length(regulon_idxs),
+                       nConsPlast = sum(regulon_idxs %in% e_plast_genes))
+    return(e_genedf)
+  }) |> purrr::reduce(.f = bind_rows)
+  return(outdf)
+}) |> purrr::reduce(.f = bind_rows)
+```
+
+plotting:
+
+```{r regulon-pct-conserved-plasticity-plotting}
+gcn4 <- "YEL009C"
+hsf1 <- "YGL073W"
+pho4 <- "YFR034C"
+p <- ggplot() +
+  geom_density(data = filter(plotdf_pcts, home != experiment),
+               aes(x = nConsPlast/n), fill = "grey") +
+  geom_vline(data = filter(plotdf_pcts, home != experiment),
+             aes(xintercept = mean(nConsPlast/n)), color = "black", linetype = "dashed") +
+  geom_vline(data = filter(plotdf_pcts, home == experiment),
+             aes(xintercept = nConsPlast/n), color = "red") +
+  # annotating example tfs
+  # GCN4
+  geom_vline(data = filter(plotdf_pcts, home == experiment &
+                             home == "CC" & tf == gcn4), aes(xintercept = nConsPlast/n), color = "blue") +
+  # HSF1
+  geom_vline(data = filter(plotdf_pcts, home == experiment &
+                             home == "Heat" & tf == hsf1), aes(xintercept = nConsPlast/n), color = "blue") +
+  # PHO4
+  geom_vline(data = filter(plotdf_pcts, home == experiment &
+                             home == "LowPi" & tf == pho4), aes(xintercept = nConsPlast/n), color = "blue") +
+  facet_wrap(~factor(home, 
+                     levels = ExperimentNames, 
+                     labels = LongExperimentNames),
+             nrow = 1) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  xlab("fraction of regulon with conserved plasticity")
+p
+```
+
+Outputting to pdf:
+
+```{r home-density-pdf}
+pdf("paper_figures/Yeastract/density.pdf",
+    width = 9, height = 2)
+p
+dev.off()
+```
+
+## Supplemental Table 3: regulators and their regulons in each environment
+
+```{r supp3-regulator-regulon}
+plotdf <- tfdf |> rename(c("home"="experiment", "tf"="gene_name"))
+# dataframe of fraction conserved plasticity in each environment (same starting code as from regulon-pct-conserved-plasticity)
+consplastdf <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
+  home_mat <- regmats[[h]]
+  h_idxs <- finaldf |> filter(experiment == h) |> 
+    select(gene_name) |> pull()
+  regulon_idxs <- intersect(colnames(home_mat)[home_mat[tf,] > 0], h_idxs)
+  outdf <- purrr::map(ExperimentNames, \(e) {
+    e_plast_genes <- finaldf |>
+      filter(experiment == e & plasticity == "conserved") |>
+      select(gene_name) |> pull()
+    e_genedf <- tibble(tf = tf,
+                       home = h,
+                       experiment = e,
+                       n = length(regulon_idxs),
+                       nConsPlast = sum(regulon_idxs %in% e_plast_genes))
+    return(e_genedf)
+  }) |> purrr::reduce(.f = bind_rows)
+  return(outdf)
+}) |> purrr::reduce(.f = bind_rows) |> 
+  mutate(pct_cons_plast = nConsPlast/n) |> 
+  select(tf, home, experiment, pct_cons_plast) |> 
+  pivot_wider(id_cols = c("tf", "home"),
+              names_from = "experiment",
+              values_from = "pct_cons_plast",
+              names_prefix = "percent_conserved_plasticity_")
+suppTable3 <- tfdf |> rename(c("home"="experiment", "tf"="gene_name", 
+                               "regulon_size"="out_degree_e", 
+                               "log2foldChange_parents"="effect_size_species",
+                               "log2foldChange_hybrid"="effect_size_allele",
+                               "padj_parents"="padj_species",
+                               "padj_hybrid"="padj_allele")) |> 
+  select(home, tf, regulon_size,
+         log2foldChange_parents,
+         log2foldChange_hybrid,
+         padj_parents, padj_hybrid, plasticity, 
+         cor_parents, cor_hybrid, cor_scer, cor_spar) |> 
+  left_join(y = consplastdf, by = c("tf", "home"))
+```
+
+Writing supp table to csv:
+
+```{r supp3-csv}
+write_csv(suppTable3, file = "data_files/Supplementary_Table3.csv",
+          col_names = TRUE)
+```
+
+
+
 
 
