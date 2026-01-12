@@ -212,6 +212,62 @@ finaldf$cor_spar <- map2(finaldf$gene_name, finaldf$experiment, getCorelation,
                          .info2 = info) |> unlist()
 ```
 
+Alternative to correlation: area between curves
+
+```{r area-between-curves, cache=TRUE}
+# calculate Area Between Curves, abc
+# takes mean difference between each row in cts1 - each row in cts2
+# @input: 2 vectors of counts of one gene in one environment, 
+# between which ABC will be calculated
+# @output: vector of length nrow(counts matrix) giving each gene's area between curves
+# Note: If this doesn't seem to be capturing the clustering results
+# (i.e. if conserved plasticity genes don't have reliably smaller ABCs)
+# we might want to try making this
+# take "rectangles" between curves to account for timepoints being different distances apart. But this would weight later timepoints more heavily,
+# which currently seems to be the opposite of what would help accuracy
+calculateAreaBetweenCurves <- function(.cts1, .cts2) {
+  # scaling counts so a level difference doesn't affect ABC
+  .cts1_scaled <- scale(.cts1)
+  .cts2_scaled <- scale(.cts2)
+  abc_vec <- abs(.cts1_scaled - .cts2_scaled)
+  return(mean(abc_vec, na.rm = TRUE)) # aka mean scaled absolute difference
+}
+### tests for calculateAreaBetweenCurves
+# random gene with conserved plasticity
+test_idx_conserved <- finaldf |> filter(plasticity == "conserved" & cor_parents > .5) |> select(gene_name, experiment) |> slice_sample(n = 1)
+test_common_cols <- info |> filter(experiment == test_idx_conserved$experiment) |> select(condition) |> pull()
+calculateAreaBetweenCurves(.cts1 = collapsed$cer[test_idx_conserved$gene_name, test_common_cols], 
+                           .cts2 = collapsed$par[test_idx_conserved$gene_name, test_common_cols]) # should be small
+# random gene with diverged plasticity
+test_idx_diverged <- finaldf |> filter(plasticity == "diverged" & cor_parents < -.5) |> select(gene_name, experiment) |> slice_sample(n = 1)
+test_common_cols <- info |> filter(experiment == test_idx_diverged$experiment) |> select(condition) |> pull()
+calculateAreaBetweenCurves(.cts1 = collapsed$cer[test_idx_diverged$gene_name, test_common_cols], 
+                           .cts2 = collapsed$par[test_idx_diverged$gene_name, test_common_cols]) # should be large
+```
+
+Adding area between curves columns to finaldf
+
+```{r adding-area-between-curves-cols}
+# Scer vs Spar
+finaldf$ABC_parents <- map2(finaldf$gene_name, 
+                            finaldf$experiment, 
+                            .f = \(g, e) {
+                              common_cols <- info |> filter(experiment == e) |>
+                                select(condition) |> pull()
+                              calculateAreaBetweenCurves(.cts1 = collapsed$cer[g, common_cols],
+                                                         .cts2 = collapsed$par[g, common_cols])
+                            }) |> unlist()
+# Hyc vs Hyp
+finaldf$ABC_hybrid <- map2(finaldf$gene_name, 
+                           finaldf$experiment, 
+                           .f = \(g, e) {
+                             common_cols <- info_allele |> filter(experiment == e) |>
+                               select(condition) |> pull()
+                             calculateAreaBetweenCurves(.cts1 = collapsed_allele$cer[g, common_cols],
+                                                        .cts2 = collapsed_allele$par[g, common_cols])
+                           }) |> unlist()
+```
+
 Calculating the mean and var of each gene's expression across both species, which is mainly relevant in a couple Supplemental/QC plots
 
 mean:
@@ -465,12 +521,14 @@ Supplementary Table 2, including F1 hybrid log2 fold changes and correlations:
 
 ```{r supplementary-table2}
 rm(supp_tab1)
-supp_tab2 <- finaldf |> select(gene_name, experiment, effect_size_species, padj_species, effect_size_allele, padj_allele, cor_hybrid, cor_parents, cer, par, level, plasticity) |>
+supp_tab2 <- finaldf |> select(gene_name, experiment, effect_size_species, padj_species, effect_size_allele, padj_allele, cor_hybrid, cor_parents, ABC_hybrid, ABC_parents, cer, par, level, plasticity) |>
   dplyr::rename(c("gene"="gene_name", 
                   "log2_fold_change_parents"="effect_size_species",
                   "padj_parents"="padj_species",
                   "log2_fold_change_hybrid"="effect_size_allele",
                   "padj_hybrid"="padj_allele", 
+                  "scaled_mean_difference_parents"="ABC_parents",
+                  "scaled_mean_difference_hybrid"="ABC_hybrid",
                   "cluster_Scer"="cer", "cluster_Spar"="par"))
 # changing cluster names for clarity
 # 0 = "static"

@@ -73,10 +73,48 @@ Outputting plots to PDF:
 
 ```{r level-explained-pdf}
 pdf("paper_figures/CisTrans/l2fc_eachEnvironment.pdf",
-    width = 2.5, height = 16)
-ggarrange(plotlist = plotlist, nrow = 6, ncol = 1)
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
 dev.off()
 ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)
+```
+
+Lumping all environments into one figure for main paper:
+
+```{r level-explained-all-environments, warning=FALSE}
+  plotdf <- finaldf |> slice_sample(n = 10000)
+  mod <- lm(effect_size_allele ~ effect_size_species, data = finaldf)
+  plotdf$diverged <- if_else(plotdf$level == "diverged",
+                             true = "diverged", false = "conserved")
+  p <- ggMarginal(ggplot(plotdf, aes(x = effect_size_species,
+                                     y = effect_size_allele)) +
+                    geom_vline(xintercept = 0, alpha = 0.5) +
+                    geom_hline(yintercept = 0, alpha = 0.5) +
+                    geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
+                    geom_point(aes(shape = diverged, color = diverged)) +
+                    scale_shape_manual(values = c("diverged" = 8, 
+                                                  "conserved" = 1)) +
+                    scale_color_manual(values = c("diverged" = "black", 
+                                                  "conserved" = "grey80")) +
+                    xlim(c(-5, 5)) +
+                    ylim(c(-5, 5)) +
+                    xlab("log2 fold change between parental species") +
+                    ylab("log2 fold change between hybrid alleles") +
+                    ggtitle(paste0("R^2 = ", round(summary(mod)$r.squared,
+                                                      digits = 3))) +
+                    theme_classic() +
+                    theme(legend.position = "none"),
+             groupColour = TRUE, groupFill = TRUE)
+  p
+```
+
+outputting to PDF
+
+```{r level-explained-all-environments-pdf}
+pdf("paper_figures/CisTrans/l2fc_allEnvironments.pdf",
+    width = 4, height = 4)
+p
+dev.off()
 ```
 
 ## Less of the plasticity divergence observed between parents is explained by the hybrid
@@ -120,11 +158,421 @@ for (e in ExperimentNames) {
 ```
 ```{r plasticity-unexplained-pdf}
 pdf("paper_figures/CisTrans/cor_eachEnvironment.pdf",
-    width = 2.5, height = 16)
-ggarrange(plotlist = plotlist, nrow = 6, ncol = 1)
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
 dev.off()
 ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)
 ```
+
+Lumping all environments into one figure for main paper:
+
+```{r plasticity-unexplained-all-environments, warning=FALSE}
+  plotdf <- finaldf |> slice_sample(n = 10000)
+  mod <- lm(cor_hybrid ~ cor_parents, data = finaldf)
+  plotdf$diverged <- if_else(plotdf$plasticity == "diverged",
+                             true = "diverged", false = "conserved")
+  p <- ggMarginal(ggplot(plotdf, aes(x = cor_parents,
+                                     y = cor_hybrid)) +
+                    geom_vline(xintercept = 0, alpha = 0.5) +
+                    geom_hline(yintercept = 0, alpha = 0.5) +
+                    geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
+                    geom_point(aes(shape = diverged, color = diverged)) +
+                    scale_shape_manual(values = c("diverged" = 8, 
+                                                  "conserved" = 1)) +
+                    scale_color_manual(values = c("diverged" = "black", 
+                                                  "conserved" = "grey80")) +
+                    xlim(c(-1, 1)) +
+                    ylim(c(-1, 1)) +
+                    xlab("correlation between parental species") +
+                    ylab("correlation between hybrid alleles") +
+                    ggtitle(paste0("R^2 = ", round(summary(mod)$r.squared,
+                                                      digits = 3))) +
+                    theme_classic() +
+                    theme(legend.position = "none"),
+             groupColour = TRUE, groupFill = TRUE)
+  p
+```
+
+outputting to PDF
+
+```{r plasticity-unexplained-all-environments-pdf}
+pdf("paper_figures/CisTrans/cor_allEnvironments.pdf",
+    width = 4, height = 4)
+p
+dev.off()
+```
+
+## Alternative measurement of plasticity similarity: Area Between Curves
+
+Repeating parents vs hybrid R^2 plot with a different measure of plasticity conservation: area between curves. Should better account for lowly varying but conserved genes
+
+```{r area-between-curves}
+# R squared for effect sizes between parents and hybrid for all genes
+mod_full <- lm(ABC_hybrid ~ ABC_parents, data = finaldf)
+summary(mod_full)
+plotdf <- finaldf
+
+# looping through each experiment
+library(ggExtra)
+plotlist <- vector(mode = "list", length = length(ExperimentNames))
+names(plotlist) <- ExperimentNames
+for (e in ExperimentNames) {
+  e_color <- colordf[colordf$limits == e,]$type
+  plotdf <- finaldf |> filter(experiment == e)
+  mod_e <- lm(ABC_hybrid ~ ABC_parents, data = plotdf)
+  plotlist[[e]] <- ggMarginal(ggplot(plotdf, aes(x = ABC_parents,
+                                                 y = ABC_hybrid)) +
+                                geom_vline(xintercept = 0, alpha = 0.5) +
+                                geom_hline(yintercept = 0, alpha = 0.5) +
+                                geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
+                                geom_point(aes(color = plasticity == "diverged"), alpha = 0.25, shape = 19) +
+                                # geom_text(x = -0.5, y = 0.8, 
+                                #           label = paste0("R^2 = ", round(summary(mod_e)$r.squared,
+                                #                                          digits = 3))) +
+                                scale_color_discrete(limits = c(TRUE, FALSE),
+                                                     type = c("black", e_color)) +
+               #xlim(c(0, 1)) +
+               #ylim(c(0, 1)) +
+               xlab("") +
+               ylab("") +
+               ggtitle(paste(LongExperimentNames[which(ExperimentNames == e)],
+                       paste0(",\nR^2 = ", round(summary(mod_e)$r.squared,
+                                                digits = 3)))) +
+               theme_classic() +
+               theme(legend.position = "none"),
+             groupColour = TRUE, groupFill = TRUE)
+}
+ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)
+```
+
+```{r area-between-curves-unexplained-pdf}
+pdf("paper_figures/CisTrans/abc_eachEnvironment.pdf",
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()
+```
+
+## Average expression examples
+
+Examples of Diauxic Shift environment for main paper:
+
+```{r diauxic-level-avg-expr}
+plotdf <- finaldf |> 
+  filter(level == "diverged") |> 
+  mutate(is_trans_upcer = (effect_size_species > trans_lev_thresh) &
+           (abs(effect_size_allele) < eff_thresh),
+         is_trans_uppar = (effect_size_species < -trans_lev_thresh) &
+           (abs(effect_size_allele) < eff_thresh))
+plotdf |> mutate(is_trans = is_trans_upcer | is_trans_uppar) |> 
+  group_by(experiment) |> 
+  summarise(pct_trans = sum(is_trans)/n(),
+            pct_rest = sum(!is_trans)/n())
+# upcer, both cis and trans
+gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 1 & par == 1 & effect_size_species > 0) |> 
+  select(gene_name) |> pull()
+p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                               .experiment_name = "HAP4"), 
+                     top = paste(length(gene_idxs), "genes"))
+p
+pdf("paper_figures/CisTrans/level_all_HAP411_upcer.pdf", width = 2.5, height = 3)
+p
+dev.off()
+
+# upcer, trans
+gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 1 & 
+                      par == 1 & is_trans_upcer) |> 
+  select(gene_name) |> pull()
+p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                               .experiment_name = "HAP4"), 
+                     top = paste(length(gene_idxs), "genes"))
+p
+pdf("paper_figures/CisTrans/level_trans_HAP411_upcer.pdf", width = 3, height = 3)
+p
+dev.off()
+  
+# upcer, cis
+gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 1 & 
+                      par == 1 & !is_trans_upcer & !is_trans_uppar &
+                        effect_size_species > 0) |> 
+  select(gene_name) |> pull()
+p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                               .experiment_name = "HAP4"), 
+                     top = paste(length(gene_idxs), "genes"))
+p
+pdf("paper_figures/CisTrans/level_cis_HAP411_upcer.pdf", width = 3, height = 3)
+p
+dev.off()
+```
+
+```{r diauxic-plasticity-avg-expr}
+plotdf <- finaldf |> 
+  filter(plasticity == "diverged") |> 
+  mutate(is_cis = cor_hybrid < cis_plast_thresh)
+plotdf |> group_by(experiment) |> 
+  summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
+            trans = sum(!is_cis, na.rm = TRUE)/n())
+# both cis and trans
+gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 2 & 
+                        par == 1) |> 
+    select(gene_name) |> pull()
+p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                                    .experiment_name = "HAP4"), 
+                          top = paste(length(gene_idxs), "genes"))
+p
+pdf("paper_figures/CisTrans/plasticity_all_HAP421.pdf",
+        width = 2.5, height = 3)
+p
+dev.off()
+
+# cis
+gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 2 & 
+                        par == 1 & is_cis) |> 
+    select(gene_name) |> pull()
+p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                                    .experiment_name = "HAP4"), 
+                          top = paste(length(gene_idxs), "genes"))
+p
+pdf("paper_figures/CisTrans/plasticity_cis_HAP421.pdf",
+        width = 3, height = 3)
+p
+dev.off()
+
+# trans
+gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 2 & 
+                        par == 1 & !is_cis) |> 
+    select(gene_name) |> pull()
+p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                                    .experiment_name = "HAP4"), 
+                          top = paste(length(gene_idxs), "genes"))
+p
+pdf("paper_figures/CisTrans/plasticity_trans_HAP421.pdf",
+        width = 3, height = 3)
+p
+dev.off()
+```
+
+All environments for Supplement:
+
+```{r avg-expression-all-environments-level, message=FALSE}
+# UpScer
+plotdf <- finaldf |> filter(level == "diverged" & effect_size_species > 0)
+plotlist <- vector(mode = "list", length = 6)
+names(plotlist) <- ExperimentNames
+for (e in ExperimentNames) {
+  gene_idxs <- plotdf |> filter(experiment == e) |> 
+  select(gene_name) |> pull()
+  plotlist[[e]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
+                                             .quartet = TRUE,
+                                             .experiment_name = e),
+                                   top = paste(length(gene_idxs), "genes"))
+}
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+pdf("paper_figures/CisTrans/avg_expr_all_environments_upScer.pdf",
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()
+
+# UpSpar
+plotdf <- finaldf |> filter(level == "diverged" & effect_size_species < 0)
+plotlist <- vector(mode = "list", length = 6)
+names(plotlist) <- ExperimentNames
+for (e in ExperimentNames) {
+  gene_idxs <- plotdf |> filter(experiment == e) |> 
+  select(gene_name) |> pull()
+  plotlist[[e]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
+                                             .quartet = TRUE,
+                                             .experiment_name = e),
+                                   top = paste(length(gene_idxs), "genes"))
+}
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+pdf("paper_figures/CisTrans/avg_expr_all_environments_upSpar.pdf",
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()
+```
+```{r avg-expression-all-environments-plasticity, message=FALSE}
+# 1-2
+plotdf <- finaldf |> filter(cer == 1 & par == 2)
+plotlist <- vector(mode = "list", length = 6)
+names(plotlist) <- ExperimentNames
+for (e in ExperimentNames) {
+  gene_idxs <- plotdf |> filter(experiment == e) |> 
+  select(gene_name) |> pull()
+  plotlist[[e]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
+                                             .quartet = TRUE,
+                                             .experiment_name = e,
+                                             .normalization = "scale"),
+                                   top = paste(length(gene_idxs), "genes"))
+}
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+pdf("paper_figures/CisTrans/avg_expr_all_environments_12.pdf",
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()
+
+# 2-1
+plotdf <- finaldf |> filter(cer == 2 & par == 1)
+plotlist <- vector(mode = "list", length = 6)
+names(plotlist) <- ExperimentNames
+for (e in ExperimentNames) {
+  gene_idxs <- plotdf |> filter(experiment == e) |> 
+  select(gene_name) |> pull()
+  plotlist[[e]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
+                                             .quartet = TRUE,
+                                             .experiment_name = e,
+                                             .normalization = "scale"),
+                                   top = paste(length(gene_idxs), "genes"))
+}
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+pdf("paper_figures/CisTrans/avg_expr_all_environments_21.pdf",
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()
+```
+
+
+## Compensatory changes are more common in plasticity than in level
+
+Quick quantification of number of genes with large expression divergence (level or plasticity) in the hybrid despite being conserved in parents.
+
+```{r compensatory-level}
+### level
+plotdf <- finaldf |> filter(level == "conserved") |> 
+  select(gene_name, experiment, effect_size_species, effect_size_allele)
+# establishing parental range (2-tailed)
+#low_bounds <- mean(plotdf$effect_size_species) - 2*sd(plotdf$effect_size_species)
+#high_bounds <- mean(plotdf$effect_size_species) + 2*sd(plotdf$effect_size_species)
+low_bounds <- -eff_thresh*2
+high_bounds <- eff_thresh*2
+plotdf$level_compensatory <- plotdf$effect_size_allele < low_bounds |
+  plotdf$effect_size_allele > high_bounds
+plot_counts <- plotdf |> 
+  group_by(experiment, level_compensatory) |> 
+  summarise(nComp_Scer = sum(effect_size_allele > 0),
+            nComp_Spar = sum(effect_size_allele < 0),
+            n = n())
+LongExperimentNamesMod <- map(ExperimentNames, \(e) {
+  nGenes <- plot_counts |> filter(experiment == e) |> select(n) |> pull() |> sum()
+  return(paste0(LongExperimentNames[which(ExperimentNames == e)], "\nn = ", nGenes))})
+p <- ggplot(plotdf, aes(x = effect_size_species, fill = experiment)) +
+  geom_density() +
+  geom_vline(data = filter(plotdf, level_compensatory),
+             aes(xintercept = effect_size_allele), color = "black") +
+  facet_wrap(~factor(experiment, levels = ExperimentNames,
+                     labels = LongExperimentNamesMod)) +
+  scale_fill_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                      type = colordf$type[colordf$scheme == "experiment"]) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type = colordf$type[colordf$scheme == "experiment"]) +
+  # nCompensatory, higher in Spar allele
+  geom_label(data = filter(plot_counts, level_compensatory),
+             x = -3, y = 0.75, size = 5, 
+            aes(label = paste0("n = ", nComp_Spar))) +
+  # nCompensatory, higher in Scer allele
+  geom_label(data = filter(plot_counts, level_compensatory), 
+             x = 3, y = 0.75, size = 5, 
+            aes(label = paste0("n = ", nComp_Scer))) +
+  theme_classic() +
+  theme(legend.position = "none",
+        strip.text = element_text(size = 14)) +
+  xlim(c(-5, 5))
+p
+pdf("paper_figures/CisTrans/compensatory_level.pdf",
+    width = 7, height = 4)
+p
+dev.off()
+```
+
+```{r compensatory-plasticity}
+# need to drop these genes before quantifying
+sum(is.na(finaldf$cor_hybrid)) 
+sum(is.na(finaldf$cor_parents))
+### plasticity
+plotdf <- finaldf |> filter(!is.na(cor_hybrid) & !is.na(cor_parents)) |> 
+  filter(plasticity == "conserved" & cor_parents > 0.75) |> # using a threshold to make it more comparable to level
+  select(gene_name, experiment, cor_parents, cor_hybrid)
+# establishing parental range (1-tailed)
+#low_bounds <- mean(plotdf$cor_parents) - 2*sd(plotdf$cor_parents)
+low_bounds <- 0.5
+plotdf$plasticity_compensatory <- plotdf$cor_hybrid < low_bounds
+plot_counts <- plotdf |> 
+  group_by(experiment, plasticity_compensatory) |> 
+  summarise(n = n())
+LongExperimentNamesMod <- map(ExperimentNames, \(e) {
+  nGenes <- plot_counts |> filter(experiment == e) |> select(n) |> pull() |> sum()
+  return(paste0(LongExperimentNames[which(ExperimentNames == e)], "\nn = ", nGenes))})
+p <- ggplot(plotdf, aes(x = cor_parents, fill = experiment)) +
+  geom_density() +
+  geom_vline(data = filter(plotdf, plasticity_compensatory),
+             aes(xintercept = cor_hybrid), color = "black", alpha = 0.25) +
+  facet_wrap(~factor(experiment, levels = ExperimentNames,
+                     labels = LongExperimentNamesMod)) +
+  scale_fill_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                      type = colordf$type[colordf$scheme == "experiment"]) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type = colordf$type[colordf$scheme == "experiment"]) +
+  # nCompensatory
+  geom_label(data = filter(plot_counts, plasticity_compensatory),
+             x = -0.5, y = 6, size = 6,
+            aes(label = paste0("n = ", n))) +
+  theme_classic() +
+  theme(legend.position = "none",
+        strip.text = element_text(size = 14)) +
+  xlim(c(-1.25, 1.25))
+p
+pdf("paper_figures/CisTrans/compensatory_plasticity.pdf",
+    width = 7, height = 4)
+p
+dev.off()
+```
+
+Repeating with Area Between Curves
+
+```{r compensatory-plasticity-area-between-curves}
+# need to drop these genes before quantifying
+sum(is.na(finaldf$ABC_hybrid)) 
+sum(is.na(finaldf$ABC_parents))
+### plasticity
+plotdf <- finaldf |> filter(!is.na(ABC_hybrid) & !is.na(ABC_parents)) |> 
+  filter(plasticity == "conserved" & ABC_parents < 0.25) |> # using a threshold to make it more comparable to level
+  select(gene_name, experiment, ABC_parents, ABC_hybrid)
+# establishing parental range (1-tailed)
+#low_bounds <- mean(plotdf$ABC_parents) - 2*sd(plotdf$ABC_parents)
+high_bounds <- 0.5
+plotdf$plasticity_compensatory <- plotdf$ABC_hybrid > high_bounds
+plot_counts <- plotdf |> 
+  group_by(experiment, plasticity_compensatory) |> 
+  summarise(n = n())
+LongExperimentNamesMod <- map(ExperimentNames, \(e) {
+  nGenes <- plot_counts |> filter(experiment == e) |> select(n) |> pull() |> sum()
+  return(paste0(LongExperimentNames[which(ExperimentNames == e)], "\nn = ", nGenes))})
+p <- ggplot(plotdf, aes(x = ABC_parents, fill = experiment)) +
+  geom_density() +
+  geom_vline(data = filter(plotdf, plasticity_compensatory),
+             aes(xintercept = ABC_hybrid), color = "black", alpha = 0.25) +
+  facet_wrap(~factor(experiment, levels = ExperimentNames,
+                     labels = LongExperimentNamesMod)) +
+  scale_fill_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                      type = colordf$type[colordf$scheme == "experiment"]) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type = colordf$type[colordf$scheme == "experiment"]) +
+  # nCompensatory
+  geom_label(data = filter(plot_counts, plasticity_compensatory),
+             x = 0.5, y = 6, size = 6,
+            aes(label = paste0("n = ", n))) +
+  theme_classic() +
+  theme(legend.position = "none",
+        strip.text = element_text(size = 14))
+p
+pdf("paper_figures/CisTrans/compensatory_plasticityABC.pdf",
+    width = 7, height = 4)
+p
+dev.off()
+```
+
+
+
+# %%%%%%%%%%%%%%%%% probably archive from here down %%%%%%%%%%%%%%%%% 
 
 ## Hybrids have more correlated plasticity between alleles than parental orthologs
 
@@ -133,6 +581,7 @@ ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)
 plotlist <- vector(mode = "list", length = length(ExperimentNames))
 names(plotlist) <- ExperimentNames
 # density plots of parental vs hybrid cor in each environment
+LongExperimentNamesMod <- gsub("Hydroxyurea Shock", "Hydroxyurea\nShock", LongExperimentNames)
 for (e in ExperimentNames) {
   plotdf <- finaldf |> filter(experiment == e & plasticity == "diverged") |> 
     select(gene_name, experiment, cor_parents, cor_hybrid) |> 
@@ -149,15 +598,16 @@ for (e in ExperimentNames) {
     xlim(c(-1, 1)) +
     xlab("") +
     ylab("") +
-    ggtitle(LongExperimentNames[which(ExperimentNames == e)]) +
+    ggtitle(LongExperimentNamesMod[which(ExperimentNames == e)]) +
     theme_classic() +
     theme(legend.position = "none")
 }
 p_null <- ggplot(plotdf) + theme_void()
 pdf("paper_figures/CisTrans/cor_density_eachEnvironment.pdf",
-    width = 8, height = 4)
+    width = 7.5, height = 4)
 ggarrange(plotlist[[1]], plotlist[[2]],
-          p_null, p_null, plotlist[[3]], plotlist[[4]],
+          plotlist[[3]], plotlist[[4]],
+          p_null, p_null, 
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)
 dev.off()
 ggarrange(plotlist[[1]], plotlist[[2]],
@@ -205,45 +655,6 @@ pdf("paper_figures/CisTrans/level_pcts.pdf",
 p
 dev.off()
 p
-```
-
-Average expression of the cis and trans portion of level divergers, Diauxic Shift as example:
-
-```{r level-avg-expr}
-plotdf <- finaldf |> 
-  filter(level == "diverged") |> 
-  mutate(is_trans_upcer = (effect_size_species > trans_lev_thresh) &
-           (abs(effect_size_allele) < eff_thresh),
-         is_trans_uppar = (effect_size_species < -trans_lev_thresh) &
-           (abs(effect_size_allele) < eff_thresh))
-plotdf |> mutate(is_trans = is_trans_upcer | is_trans_uppar) |> 
-  group_by(experiment) |> 
-  summarise(pct_trans = sum(is_trans)/n(),
-            pct_rest = sum(!is_trans)/n())
-# upcer, trans
-gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 1 & 
-                      par == 1 & is_trans_upcer) |> 
-  select(gene_name) |> pull()
-p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
-                               .experiment_name = "HAP4"), 
-                     top = paste(length(gene_idxs), "genes"))
-p
-pdf("paper_figures/CisTrans/level_trans_HAP411_upcer.pdf", width = 3, height = 3)
-p
-dev.off()
-  
-# upcer, cis
-gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 1 & 
-                      par == 1 & !is_trans_upcer & !is_trans_uppar &
-                        effect_size_species > 0) |> 
-  select(gene_name) |> pull()
-p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
-                               .experiment_name = "HAP4"), 
-                     top = paste(length(gene_idxs), "genes"))
-p
-pdf("paper_figures/CisTrans/level_cis_HAP411_upcer.pdf", width = 3, height = 3)
-p
-dev.off()
 ```
 
 ## Plasticity divergence tends to be in trans
@@ -314,5 +725,4 @@ pdf("paper_figures/CisTrans/plasticity_trans_HAP421.pdf",
 p
 dev.off()
 ```
-
 
