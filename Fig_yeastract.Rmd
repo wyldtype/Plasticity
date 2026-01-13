@@ -773,6 +773,113 @@ annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
 
 In the three examples above, we see that the regulons have strongly conserved plasticity in their home environment and tend to have more divergent plasticity in alternative environments. How common is this?
 
+### Fisher exact tests of regulatory interactions being enriched among conserved plasticity target genes
+
+```{r fisher-exact}
+# each row is one regulatory interaction between one target and one regulator
+plotdf <- purrr::map2(names(regmats), regmats, \(nm, mat) {
+  taget_names_diverged <- intersect(x = finaldf$gene_name[finaldf$experiment == nm & finaldf$plasticity == "diverged"], y = colnames(mat))
+  taget_names_conserved <- intersect(x = finaldf$gene_name[finaldf$experiment == nm & finaldf$plasticity == "conserved"], y = colnames(mat))
+  bind_rows(x = tibble(experiment = nm,
+                       plasticity = "conserved",
+                       nGenes = length(taget_names_conserved),
+                       nInteractions = sum(mat[,colnames(mat) %in% taget_names_conserved])),
+            y = tibble(experiment = nm,
+                       plasticity = "diverged",
+                       nGenes = length(taget_names_diverged),
+                       nInteractions = sum(mat[,colnames(mat) %in% taget_names_diverged])))
+}) |> purrr::reduce(.f = bind_rows)
+plotlist <- vector(mode = "list", length = length(ExperimentNames))
+names(plotlist) <- ExperimentNames
+for (e in ExperimentNames) {
+  plotdf_e <- plotdf |> filter(experiment == e)
+  fisher_mat <- plotdf_e |> 
+    select(nGenes, nInteractions) |> as.matrix()
+  rownames(fisher_mat) <- plotdf_e$plasticity
+  fisher_test <- fisher_mat |> fisher.test()
+  fisher_odds <- fisher_test$estimate
+  fisher_pvalue <- fisher_test$p.value
+  knitr::kable(fisher_mat, row.names = TRUE,
+               caption = paste0("Experiment = ", e, 
+                                "Fisher odds ratio = ", fisher_odds, 
+                                "p-value = ", fisher_pvalue)) |> print()
+  plotdf_e <- pivot_longer(plotdf_e, cols = c("nGenes", "nInteractions"))
+  plotlist[[e]] <- ggplot(plotdf_e, aes(x = name, y = plasticity)) +
+    geom_label(aes(label = value)) +
+    geom_vline(xintercept = 1.5) +
+    geom_hline(yintercept = 1.5) +
+    theme_classic() +
+    xlab("") +
+    ggtitle(paste0(LongExperimentNames[ExperimentNames == e], 
+                   "\nFisher odds ratio = ", round(fisher_odds, digits = 2), 
+                   "\np-value = ", formatC(fisher_pvalue))) +
+    theme(plot.title = element_text(size = 8))
+}
+```
+
+2 x 2 fisher matrices for paper figure:
+
+```{r fisher-plots}
+ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)
+pdf(file = paste0("paper_figures/Yeastract/fisher.pdf"),
+      width = 7, height = 4)
+ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)
+dev.off()
+```
+
+
+
+
+### Histograms of how conserved genes tend to have more regulators in each environment
+
+```{r n-regulators-per-target-histogram}
+plotdf <- purrr::map2(names(regmats), regmats, \(nm, mat) {
+  tibble(target_name = colnames(mat),
+         experiment = nm,
+         nRegulators = colSums(mat))
+}) |> purrr::reduce(.f = bind_rows) |> 
+  right_join(y = finaldf, by = c("target_name"="gene_name",
+                                 "experiment")) |> 
+  drop_na()
+plot_table <- plotdf |> group_by(experiment, plasticity) |> 
+  summarise(n = n())
+plotdf_downsampled <- plotdf |> group_by(experiment, plasticity) |> 
+  slice_sample(n = min(plot_table$n))
+ggplot(plotdf_downsampled, aes(x = nRegulators)) +
+  # geom_density(aes(fill = plasticity, y = after_stat(count)), 
+  #              alpha = 0.25, bw = 1) +
+  geom_histogram(aes(fill = plasticity, y = after_stat(count)), position = "dodge",
+                 binwidth = 0.5) +
+  facet_wrap(~factor(experiment,
+                     levels = ExperimentNames,
+                     labels = LongExperimentNames)) +
+  theme_classic() +
+  xlab("number of regulators per target gene") +
+  scale_x_continuous(breaks = c(0:7)) +
+  scale_fill_discrete(limits = c("conserved", "diverged"),
+                      type = c(colordf$type[colordf$limits == "conserved level and plasticity"],
+                             colordf$type[colordf$limits == "diverged level and plasticity"]))
+```
+
+```{r histogram-all-environments}
+p <- ggplot(plotdf_downsampled, aes(x = nRegulators)) +
+  geom_histogram(aes(fill = plasticity), position = "dodge",
+                 binwidth = 0.5) +
+  theme_classic() +
+  xlab("number of regulators per target gene") +
+  scale_x_continuous(breaks = c(0:7)) +
+  scale_fill_discrete(limits = c("conserved", "diverged"),
+                      type = c(colordf$type[colordf$limits == "conserved level and plasticity"],
+                               colordf$type[colordf$limits == "diverged level and plasticity"]))
+p
+pdf("paper_figures/Yeastract/histogram.pdf",
+    width = 3, height = 2)
+p + theme(legend.position = "none")
+dev.off()
+```
+
+## Regulons have a higher percentage of conserved plasticity genes in their home environment vs alternative environments
+
 For each large regulon (top 5 in each environment, 2 from cold), we will look at the fraction of genes with conserved plasticity in each environment.
 
 ```{r regulon-pct-conserved-plasticity}
@@ -808,8 +915,8 @@ gcn4 <- "YEL009C"
 hsf1 <- "YGL073W"
 pho4 <- "YFR034C"
 p <- ggplot() +
-  geom_density(data = filter(plotdf_pcts, home != experiment),
-               aes(x = nConsPlast/n), fill = "grey") +
+  geom_histogram(data = filter(plotdf_pcts, home != experiment),
+                 aes(x = nConsPlast/n), fill = "grey") +
   geom_vline(data = filter(plotdf_pcts, home != experiment),
              aes(xintercept = mean(nConsPlast/n)), color = "black", linetype = "dashed") +
   geom_vline(data = filter(plotdf_pcts, home == experiment),
@@ -831,6 +938,7 @@ p <- ggplot() +
   theme_classic() +
   theme(legend.position = "none",
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  scale_y_continuous(breaks = c(1:10)) + 
   xlab("fraction of regulon with conserved plasticity")
 p
 ```
@@ -838,7 +946,7 @@ p
 Outputting to pdf:
 
 ```{r home-density-pdf}
-pdf("paper_figures/Yeastract/density.pdf",
+pdf("paper_figures/Yeastract/histogram_regulons.pdf",
     width = 9, height = 2)
 p
 dev.off()
@@ -879,7 +987,10 @@ suppTable3 <- tfdf |> rename(c("home"="experiment", "tf"="gene_name",
                                "log2foldChange_hybrid"="effect_size_allele",
                                "padj_parents"="padj_species",
                                "padj_hybrid"="padj_allele")) |> 
-  select(home, tf, regulon_size,
+  left_join(y = select(yeastract_lookup, 
+                       common, systematic), 
+            by = c("tf"="systematic")) |> 
+  select(home, tf, common, regulon_size,
          log2foldChange_parents,
          log2foldChange_hybrid,
          padj_parents, padj_hybrid, plasticity, 
