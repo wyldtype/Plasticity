@@ -861,6 +861,10 @@ ggplot(plotdf_downsampled, aes(x = nRegulators)) +
                              colordf$type[colordf$limits == "diverged level and plasticity"]))
 ```
 
+
+### TODO: I accidentally git restored (fml) and removed the histogram we've been using in the main plot. which is not downsampled and only shows genes with at least one regulator
+
+
 ```{r histogram-all-environments}
 p <- ggplot(plotdf_downsampled, aes(x = nRegulators)) +
   geom_histogram(aes(fill = plasticity), position = "dodge",
@@ -1006,7 +1010,14 @@ write_csv(suppTable3, file = "data_files/Supplementary_Table3.csv",
           col_names = TRUE)
 ```
 
+### TODO: I accidentally git restored (fml) and removed the chi-sq tests. They're not tricky just testing for chi-sq enrichment among the 6 gene groups that aren't conserved plasticity (i.e. 1-0, 2-1, 2-0, not 2-2, 1-1, 0-0)
 
+```{r chisq, message=FALSE}
+if (file.exists("data_files/ChiSq.RData")) {
+  load("data_files/ChiSq.RData")
+}
+```
 
+### TODO: plot avg expression of largest gene group for each regulator that was a sig hit in the chisqdf
 
 

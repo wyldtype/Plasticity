@@ -252,6 +252,19 @@ ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
 dev.off()
 ```
 
+### Area between curves Hyc-Hyp vs Hyc-Scer and Hyp-Spar
+
+Do hybrid alleles have a smaller area between curves to each other than to parent? 
+
+Rationale: The average expression shows hybird alleles tend to fall together in the middle of the parental expression. But it is possible that this is because half the time they match one parent and half the time they match the other parent. Is that true? Or are they truly in the middle?
+
+If it is true, the Hyb vs Hyc-Scer plot will show a group of genes that have lower abc for Hyc-Scer than they do for Hyb (Hyc-Hyp) a different set of genes will show the same for Hyp-Spar
+
+```{r abc-hyb-vs-allele}
+
+```
+
+
 ## Average expression examples
 
 Examples of Diauxic Shift environment for main paper:
