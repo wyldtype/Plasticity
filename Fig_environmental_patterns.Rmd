@@ -638,6 +638,34 @@ p
 dev.off()
 ```
 
+### QC: getting plasticity cor after centering and scaling
+
+```{r getplasticityCorrScaled}
+# Given gene idxs and experiment, 
+# returns between-species correlation
+# of average expression across timepoints
+getplasticityCorr <- function(.gene_idxs, .experiment_name) {
+  condition_vec <- info |> filter(experiment == .experiment_name) |> 
+    dplyr::select(condition) |> pull()
+  cer_vec <- collapsed$cer[.gene_idxs, condition_vec] |> 
+    colMeans(na.rm = TRUE)
+  par_vec <- collapsed$par[.gene_idxs, condition_vec] |> 
+    colMeans(na.rm = TRUE)
+  return(cor(cer_vec, par_vec))
+}
+# tests for getplasticity Corr
+# HAP4 2-1, should be very uncorrelated in Sat Growth
+gene_idxs <- finaldf |> filter(experiment == "HAP4" &
+                                 cer == 2 & par == 1) |> 
+  dplyr::select(gene_name) |> pull()
+getplasticityCorr(gene_idxs, .experiment_name = "HAP4")
+getplasticityCorr(gene_idxs, .experiment_name = "LowN")
+getplasticityCorr(gene_idxs, .experiment_name = "LowPi")
+getplasticityCorr(gene_idxs, .experiment_name = "CC")
+getplasticityCorr(gene_idxs, .experiment_name = "Heat")
+getplasticityCorr(gene_idxs, .experiment_name = "Cold")
+```
+
 ### Example expression profiles for figure
 
 Genes increasing in Scer, decreasing in Spar, identified in Low Phosphate:
@@ -779,7 +807,7 @@ plotdf <- bind_rows(tibble(species = "cer",
                            sd = test_par_sd,
                            scaled_sd = test_par_sd_scaled,
                            timepoint = parse_number(test_condition_vec)))
-View(plotdf)
+#View(plotdf)
 # scaled
 p_scale <- ggplot(plotdf, aes(x = timepoint, y = scaled_expr)) + 
   geom_line(aes(color = species)) + 
@@ -800,12 +828,17 @@ p_log <- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, info$ex
                           .info2 = filter(info, experiment == "LowPi"),,
                           .normalization = "log2")
 length(gene_idxs)
+p_scalebasic <- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, info$experiment == "LowPi"],
+                          .cts2 = collapsed$par[gene_idxs, info$experiment == "LowPi"],
+                          .info1 = filter(info, experiment == "LowPi"),
+                          .info2 = filter(info, experiment == "LowPi"),,
+                          .normalization = "scale")
 p_scale <- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs, info$experiment == "LowPi"],
                           .cts2 = collapsed$par[gene_idxs, info$experiment == "LowPi"],
                           .info1 = filter(info, experiment == "LowPi"),
                           .info2 = filter(info, experiment == "LowPi"),,
                           .normalization = "scale")
-ggarrange(p_scale, p_log, nrow = 1, ncol = 2)
+ggarrange(p_scale, p_scalebasic, nrow = 1, ncol = 2, common.legend = TRUE)
 ```
 
 

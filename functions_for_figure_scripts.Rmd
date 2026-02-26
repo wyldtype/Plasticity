@@ -514,28 +514,40 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
                   time_point_num = .info1$time_point_num)
   info2 <- tibble(experiment = .info2$experiment,
                   time_point_num = .info2$time_point_num)
+  ### Taking mean of gene group at each timepoint
+  # if we are scaling counts, then we need to take the mean after scaling
+  # if we are log2-transforming counts, we need to take mean before log2-transforming
+  if (.normalization == "scale") {
+    ylabel <- "Expression\n(centered and scaled)"
+    .cts1 <- .cts1 |> 
+      t() |> 
+      scale() |> 
+      t()
+    .cts2 <- .cts2 |> 
+      t() |> 
+      scale() |> 
+      t()
+  }
   gdf1 <- bind_cols(t(.cts1), info1) |> 
     pivot_longer(cols = rownames(.cts1), names_to = "gene_name", values_to = "expr")
   gdf1$group_id <- "1"
   gdf2 <- bind_cols(t(.cts2), info2) |> 
     pivot_longer(cols = rownames(.cts2), names_to = "gene_name", values_to = "expr")
   gdf2$group_id <- "2"
-  # converting each gene's expression to its mean expression between replicates
   gdf <- bind_rows(gdf1, gdf2) |> 
     drop_na() |> # drops genes missing from an experiment (usually Heat/Cold)
     group_by(group_id, experiment, time_point_num) |> 
     summarise(mean_expr = mean(expr, na.rm = TRUE),
               sd_expr = sd(expr, na.rm = TRUE)) |> ungroup()
-  gdf$CI <- gdf$sd_expr/sqrt(nGenes) # 95% confidence in the mean (standard error)
-  ### normalizing expression for visualization purposes (not analysis purposes)
-  if (.normalization == "none") {
+  gdf$CI <- gdf$sd_expr/sqrt(nGenes)
+  if (.normalization == "none" | .normalization == "scale") {
     ylabel <- "Expression\n(counts per million)"
     gdf$norm_expr <- gdf$mean_expr
-    if (.confidence_type == "mean") {
+    if (.confidence_type == "mean") { # 95% confidence in the mean (standard error)
       gdf$norm_upperBound <- gdf$mean_expr + gdf$CI
       gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI
     }
-    if (.confidence_type == "all") {
+    if (.confidence_type == "all") { # 95% of genes fall in this range
       gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr*1.96
       gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr*1.96
     }
@@ -548,20 +560,8 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
       gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI)
     }
     if (.confidence_type == "all") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
       gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr*1.96)
-    }
-  }
-  if (.normalization == "scale") {
-    ylabel <- "Expression\n(centered and scaled)"
-    gdf$norm_expr <- scale(gdf$mean_expr)
-    if (.confidence_type == "mean") {
-      gdf$norm_upperBound <- gdf$norm_expr + scale(gdf$CI)
-      gdf$norm_lowerBound <- gdf$norm_expr - scale(gdf$CI)
-    }
-    if (.confidence_type == "all") {
-      gdf$norm_upperBound <- gdf$norm_expr + scale(gdf$sd_expr*1.96)
-      gdf$norm_lowerBound <- gdf$norm_expr - scale(gdf$sd_expr*1.96)
     }
   }
   # creating consistent plotlims across all experiments
