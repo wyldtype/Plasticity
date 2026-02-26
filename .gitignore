@@ -5,7 +5,7 @@
 *.ai
 /data_files
 /gene_ontology
-/paper_figures
+/paper_figures*
 /docs/data_files
 /docs/paper_figures
 /clean_data_cache
