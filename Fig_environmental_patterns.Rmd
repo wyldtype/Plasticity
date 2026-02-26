@@ -682,21 +682,43 @@ dev.off()
 
 ### Following up on additional examples flagged in heatmap
 
+```{r HAP4-1-2}
+# following up on additional examples from heatmap
+# Diauxic Shift 1-2, plasticity divergers have slight negative correlation Low Pi -0.2?
+gene_idxs <- finaldf |> filter(experiment == "HAP4" & cer == 1 & par == 2) |> 
+  dplyr::select(gene_name) |> pull()
+p <- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
+                          .cts2 = collapsed$par[gene_idxs,],
+                          .info1 = info,
+                          .info2 = info,
+                          .normalization = "log2")
+length(gene_idxs)
+p
+```
+
+Plot for supplemental figure:
+
+```{r HAP4-1-2-pdf}
+pdf("paper_figures/Supplement/HAP4-1-2.pdf",
+    width = 12, height = 2)
+p
+dev.off()
+```
+
 ```{r LowN-1-2}
 # following up on additional examples from heatmap
 # Low Nitrogen 1-2, plasticity divergers have strongest negative correlation in Cold? -.97?
 gene_idxs <- finaldf |> filter(experiment == "LowN" & cer == 1 & par == 2) |> 
   dplyr::select(gene_name) |> pull()
-p <- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+p <- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                           .cts2 = collapsed$par[gene_idxs,],
                           .info1 = info,
-                          .info2 = info,,
-                          .method = "line",
-                          .show_points = FALSE,
-                          .show_confidence_intervals = TRUE,
+                          .info2 = info,
                           .normalization = "log2")
-length(gene_idxs) # yes, but LowN has the fewest reversals
+length(gene_idxs)
+p
 ```
+
 Plot for supplemental figure:
 
 ```{r LowN-1-2-pdf}
@@ -706,20 +728,97 @@ p
 dev.off()
 ```
 
+Why does LowPi have correlation of 0.95 for these 52 genes? The average looks middling
+Conclusion: it was a result of taking log2 before the average. We want to take average before log2, as log2 is just for visualization purposes not analysis
+Leaving this chunk here for now in case it is helpful
+```{r low-Pi95}
+gene_idxs <- finaldf |> filter(experiment == "LowN" & cer == 1 & par == 2) |> 
+  dplyr::select(gene_name) |> pull()
+getplasticityCorr(.gene_idxs = gene_idxs, .experiment_name = "LowPi")
+test_condition_vec <- info |> filter(experiment == "LowPi") |> 
+    dplyr::select(condition) |> pull()
+# means
+test_cer_vec <- collapsed$cer[gene_idxs, test_condition_vec] |>
+  colMeans(na.rm = TRUE)
+test_par_vec <- collapsed$par[gene_idxs, test_condition_vec] |>
+  colMeans(na.rm = TRUE)
+test_cer_vec_scaled <- collapsed$cer[gene_idxs, test_condition_vec] |>
+  t() |> 
+  scale() |> 
+  t() |> 
+  colMeans(na.rm = TRUE)
+test_par_vec_scaled <- collapsed$par[gene_idxs, test_condition_vec] |> 
+  t() |> 
+  scale() |> 
+  t() |> 
+  colMeans(na.rm = TRUE)
+# sds
+test_cer_sd <- collapsed$cer[gene_idxs, test_condition_vec] |>
+  apply(MARGIN = 2, FUN = sd)
+test_par_sd <- collapsed$par[gene_idxs, test_condition_vec] |>
+  apply(MARGIN = 2, FUN = sd)
+test_cer_sd_scaled <- collapsed$cer[gene_idxs, test_condition_vec] |>
+  t() |> 
+  scale() |> 
+  t() |> 
+  apply(MARGIN = 2, FUN = sd)
+test_par_sd_scaled <- collapsed$par[gene_idxs, test_condition_vec] |>
+  t() |> 
+  scale() |> 
+  t() |> 
+  apply(MARGIN = 2, FUN = sd)
+plotdf <- bind_rows(tibble(species = "cer",
+                           expr = test_cer_vec,
+                           scaled_expr = test_cer_vec_scaled,
+                           sd = test_cer_sd,
+                           scaled_sd = test_cer_sd_scaled,
+                           timepoint = parse_number(test_condition_vec)),
+                    tibble(species = "par",
+                           expr = test_par_vec,
+                           scaled_expr = test_par_vec_scaled,
+                           sd = test_par_sd,
+                           scaled_sd = test_par_sd_scaled,
+                           timepoint = parse_number(test_condition_vec)))
+View(plotdf)
+# scaled
+p_scale <- ggplot(plotdf, aes(x = timepoint, y = scaled_expr)) + 
+  geom_line(aes(color = species)) + 
+  geom_ribbon(aes(ymax = scaled_expr + scaled_sd, 
+                  ymin = scaled_expr - scaled_sd, 
+                  fill = species), alpha = 0.3)
+# log2
+p_log <- ggplot(plotdf, aes(x = timepoint, y = log2(expr))) + 
+  geom_line(aes(color = species)) +
+  geom_ribbon(aes(ymax = log2(expr + sd/sqrt(length(gene_idxs))), 
+                  ymin = log2(expr - sd/sqrt(length(gene_idxs))), 
+                  fill = species), alpha = 0.3)
+ggarrange(p_scale, p_log, nrow = 1, ncol = 2)
+cor(test_cer_vec, test_par_vec) # should be 0.95
+p_log <- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, info$experiment == "LowPi"],
+                          .cts2 = collapsed$par[gene_idxs, info$experiment == "LowPi"],
+                          .info1 = filter(info, experiment == "LowPi"),
+                          .info2 = filter(info, experiment == "LowPi"),,
+                          .normalization = "log2")
+length(gene_idxs)
+p_scale <- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs, info$experiment == "LowPi"],
+                          .cts2 = collapsed$par[gene_idxs, info$experiment == "LowPi"],
+                          .info1 = filter(info, experiment == "LowPi"),
+                          .info2 = filter(info, experiment == "LowPi"),,
+                          .normalization = "scale")
+ggarrange(p_scale, p_log, nrow = 1, ncol = 2)
+```
+
 
 ```{r HAP4-2-1}
 # following up on additional examples from heatmap
 # Diauxic Shift 2-1, plasticity divergers also have strongest negative correlation in Cold?
 gene_idxs <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> 
   dplyr::select(gene_name) |> pull()
-p <- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
-                          .cts2 = collapsed$par[gene_idxs,],
-                          .info1 = info,
-                          .info2 = info,,
-                          .method = "line",
-                          .show_points = FALSE,
-                          .show_confidence_intervals = TRUE,
-                          .normalization = "log2")
+p <- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
+                                    .cts2 = collapsed$par[gene_idxs,],
+                                    .info1 = info,
+                                    .info2 = info,
+                                    .normalization = "log2")
 length(gene_idxs)
 p
 ```
@@ -736,13 +835,10 @@ dev.off()
 # HUShock 2-1, plasticity divergers also have strongest negative correlation in LowPi?
 gene_idxs <- finaldf |> filter(experiment == "CC" & cer == 2 & par == 1) |> 
   dplyr::select(gene_name) |> pull()
-p <- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+p <- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                           .cts2 = collapsed$par[gene_idxs,],
                           .info1 = info,
-                          .info2 = info,,
-                          .method = "line",
-                          .show_points = FALSE,
-                          .show_confidence_intervals = TRUE,
+                          .info2 = info,
                           .normalization = "log2")
 length(gene_idxs)
 p
@@ -762,13 +858,10 @@ Finally as a contrast, a pair with high correlation:
 # HAP4 1-2, plasticity divergers have strong positive correlation Low Nitrogen.
 gene_idxs <- finaldf |> filter(experiment == "HAP4" & cer == 1 & par == 2) |> 
   dplyr::select(gene_name) |> pull()
-plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                           .cts2 = collapsed$par[gene_idxs,],
                           .info1 = info,
-                          .info2 = info,,
-                          .method = "line",
-                          .show_points = FALSE,
-                          .show_confidence_intervals = TRUE,
+                          .info2 = info,
                           .normalization = "log2")
 length(gene_idxs)
 ```

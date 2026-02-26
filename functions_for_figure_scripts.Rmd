@@ -486,6 +486,130 @@ plotExpressionProfilePair <- function(.cts1, .cts2,
 #                           .color2 = "red")
 ```
 
+```{r plotExpressionProfilePairBasic}
+# Same as plotExpressionProfilePair, except only allowing
+# default options of the following parameters:
+# .method = "line", .show_points = FALSE
+# .show_confidence_intervals = TRUE
+# (i.e. all the arguments we never end up changing anyway)
+plotExpressionProfilePairBasic <- function(.cts1, .cts2, 
+                                      .info1, .info2, 
+                                      .name1 = "S. cerevisiae", .name2 = "S. paradoxus",
+                                      .color1 = "orange1", .color2 = "blue2",
+                                      .legend = "right",
+                                      .normalization = c("none", "log2", "scale", "center"),
+                                      .confidence_type = "mean",
+                                      .plotlims = NULL,
+                                      .plot_titles = "experiment") {
+  if (!setequal(unique(.info1$experiment), unique(.info2$experiment))) {
+    stop("sample info dataframes do not contain same set of experiments\n")
+  }
+  GivenExperimentNames <- unique(.info1$experiment) # arbitrary to do info1 or info2
+  ShortExperimentNames <- c("HAP4", "CC", "LowN", "LowPi", "Heat", "Cold")
+  LongExperimentNames <- c("Diauxic Shift", "HU Shock", "Low Nitrogen", 
+                           "Low Phosphate", "Heat Stress", "Cold Stress")[GivenExperimentNames %in% ShortExperimentNames]
+  nExperiments <- length(GivenExperimentNames)
+  nGenes <- nrow(.cts1)
+  info1 <- tibble(experiment = .info1$experiment,
+                  time_point_num = .info1$time_point_num)
+  info2 <- tibble(experiment = .info2$experiment,
+                  time_point_num = .info2$time_point_num)
+  gdf1 <- bind_cols(t(.cts1), info1) |> 
+    pivot_longer(cols = rownames(.cts1), names_to = "gene_name", values_to = "expr")
+  gdf1$group_id <- "1"
+  gdf2 <- bind_cols(t(.cts2), info2) |> 
+    pivot_longer(cols = rownames(.cts2), names_to = "gene_name", values_to = "expr")
+  gdf2$group_id <- "2"
+  # converting each gene's expression to its mean expression between replicates
+  gdf <- bind_rows(gdf1, gdf2) |> 
+    drop_na() |> # drops genes missing from an experiment (usually Heat/Cold)
+    group_by(group_id, experiment, time_point_num) |> 
+    summarise(mean_expr = mean(expr, na.rm = TRUE),
+              sd_expr = sd(expr, na.rm = TRUE)) |> ungroup()
+  gdf$CI <- gdf$sd_expr/sqrt(nGenes) # 95% confidence in the mean (standard error)
+  ### normalizing expression for visualization purposes (not analysis purposes)
+  if (.normalization == "none") {
+    ylabel <- "Expression\n(counts per million)"
+    gdf$norm_expr <- gdf$mean_expr
+    if (.confidence_type == "mean") {
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$CI
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI
+    }
+    if (.confidence_type == "all") {
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr*1.96
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr*1.96
+    }
+  }
+  if (.normalization == "log2") {
+    ylabel <- "Expression (log2)"
+    gdf$norm_expr <- log2(gdf$mean_expr)
+    if (.confidence_type == "mean") {
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$CI)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI)
+    }
+    if (.confidence_type == "all") {
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr*1.96)
+    }
+  }
+  if (.normalization == "scale") {
+    ylabel <- "Expression\n(centered and scaled)"
+    gdf$norm_expr <- scale(gdf$mean_expr)
+    if (.confidence_type == "mean") {
+      gdf$norm_upperBound <- gdf$norm_expr + scale(gdf$CI)
+      gdf$norm_lowerBound <- gdf$norm_expr - scale(gdf$CI)
+    }
+    if (.confidence_type == "all") {
+      gdf$norm_upperBound <- gdf$norm_expr + scale(gdf$sd_expr*1.96)
+      gdf$norm_lowerBound <- gdf$norm_expr - scale(gdf$sd_expr*1.96)
+    }
+  }
+  # creating consistent plotlims across all experiments
+  max_expr <- max(gdf$norm_upperBound)
+  min_expr <- min(gdf$norm_lowerBound)
+  if (is.null(.plotlims)) {
+    .plotlims <- c(min_expr, max_expr)
+  }
+  # plotting
+  experiment_order <- ShortExperimentNames[ShortExperimentNames %in% GivenExperimentNames]
+  plotlist <- vector(mode = "list", length = nExperiments)
+  names(plotlist) <- experiment_order
+  for (e in experiment_order) {
+    plotdf_e <- filter(gdf, experiment == e)
+    p <- ggplot(data = plotdf_e) + 
+      theme_classic() +
+      scale_color_discrete(type = c(.color1, .color2), labels = c(.name1, .name2)) +
+      scale_fill_discrete(type = c(.color1, .color2), labels = c(.name1, .name2)) +
+      theme(legend.title = element_blank()) +
+      ylab("") +
+      xlab("") +
+      ylim(.plotlims) +
+      geom_line(aes(x = time_point_num, y = norm_expr, color = group_id), linewidth = 1) +
+      geom_ribbon(aes(x = time_point_num, 
+                      ymin = norm_lowerBound, 
+                      ymax = norm_upperBound, 
+                      fill = group_id), alpha = 0.3)
+    if (.plot_titles != "none" & .plot_titles == "experiment") {
+      p <- p + ggtitle(LongExperimentNames[ShortExperimentNames == e])
+    }
+    if (.plot_titles != "none" & .plot_titles == "ngenes") {
+      p <- p + ggtitle(paste(nGenes, "genes"))
+    }
+    if (.plot_titles != "none" & .plot_titles != "experiment" &
+        .plot_titles != "ngenes") {
+      p <- p + ggtitle(.plot_titles)
+    }
+    plotlist[[e]] <- p
+  }
+  if (length(plotlist) == 1) {
+    return(plotlist[[1]] + xlab("Timepoint (min)") + ylab(ylabel))
+  }
+  fullplot <- ggarrange(plotlist = plotlist, nrow = 1, ncol = length(unique(gdf$experiment)),
+                        common.legend = TRUE, legend = .legend)
+  return(annotate_figure(fullplot, bottom = "Timepoint (min)", left = ylabel))
+}
+```
+
 ```{r plotExpressionRibbonsPair}
 # plotting function to visualize expression profiles of any 2 groups
 # @input: counts, info, and names of two groups to compare
@@ -529,7 +653,7 @@ plotExpressionRibbonsPair <- function(.cts1, .cts2,
   }
   ExperimentNames <- unique(.info1$experiment) # arbitrary to do info1 or info2
   nExperiments <- length(ExperimentNames)
-  nGenes <- nrow(.cts1)
+  nGenes <- nrow(.cts1) # arbitrary to do cts1 or cts2
   info1 <- tibble(experiment = .info1$experiment,
                   time_point_num = .info1$time_point_num)
   info2 <- tibble(experiment = .info2$experiment,
