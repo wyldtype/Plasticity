@@ -210,7 +210,7 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
                                            .color1 = "orange1", .color2 = "blue2",
                                            .legend = "none",
                                            .normalization = c("none", "log2", "scale", "center"),
-                                           .confidence_type = "mean",
+                                           .confidence_type = "default",
                                            .plotlims = NULL,
                                            .plot_titles = "experiment") {
   if (!setequal(unique(.info1$experiment), unique(.info2$experiment))) {
@@ -231,6 +231,9 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
   # if we are log2-transforming counts, we need to take mean before log2-transforming
   if (.normalization == "scale") {
     ylabel <- "Expression\n(centered and scaled)"
+    if (.confidence_type == "default") {
+      .confidence_type <- "all"
+    }
     .cts1 <- .cts1 |> 
       t() |> 
       scale() |> 
@@ -239,6 +242,12 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
       t() |> 
       scale() |> 
       t()
+  }
+  if (.normalization == "none") {
+    ylabel <- "Expression\n(counts per million)"
+    if (.confidence_type == "default") {
+      .confidence_type <- "mean"
+    }
   }
   gdf1 <- bind_cols(t(.cts1), info1) |> 
     pivot_longer(cols = rownames(.cts1), names_to = "gene_name", values_to = "expr")
@@ -253,7 +262,6 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
               sd_expr = sd(expr, na.rm = TRUE)) |> ungroup()
   gdf$CI <- gdf$sd_expr/sqrt(nGenes)
   if (.normalization == "none" | .normalization == "scale") {
-    ylabel <- "Expression\n(counts per million)"
     gdf$norm_expr <- gdf$mean_expr
     if (.confidence_type == "mean") { # 95% confidence in the mean (standard error)
       gdf$norm_upperBound <- gdf$mean_expr + gdf$CI
@@ -266,6 +274,9 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
   }
   if (.normalization == "log2") {
     ylabel <- "Expression (log2)"
+    if (.confidence_type == "default") {
+      .confidence_type <- "mean"
+    }
     gdf$norm_expr <- log2(gdf$mean_expr)
     if (.confidence_type == "mean") {
       gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$CI)
@@ -292,7 +303,7 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
       theme_classic() +
       scale_color_discrete(type = c(.color1, .color2), labels = c(.name1, .name2)) +
       scale_fill_discrete(type = c(.color1, .color2), labels = c(.name1, .name2)) +
-      theme(legend.title = element_blank()) +
+      theme(legend.title = element_blank(), legend.position = .legend) +
       ylab("") +
       xlab("") +
       ylim(.plotlims) +
@@ -366,7 +377,7 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
                                               .color4 = "blue4",
                                               .legend = "none",
                                               .normalization,
-                                              .confidence_type = "mean",
+                                              .confidence_type = "default",
                                               .plotlims = NULL,
                                               .plot_titles = "experiment") {
   if (!setequal(unique(.info1$experiment), unique(.info2$experiment))) {
@@ -391,6 +402,9 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
   # if we are log2-transforming counts, we need to take mean before log2-transforming
   if (.normalization == "scale") {
     ylabel <- "Expression\n(centered and scaled)"
+    if (.confidence_type == "default") {
+      .confidence_type <- "all"
+    }
     .cts1 <- .cts1 |> 
       t() |> 
       scale() |> 
@@ -407,6 +421,12 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
       t() |> 
       scale() |> 
       t()
+  }
+  if (.normalization == "none") {
+    ylabel <- "Expression\n(counts per million)"
+    if (.confidence_type == "default") {
+      .confidence_type <- "mean"
+    }
   }
   gdf1 <- bind_cols(t(.cts1), info1) |> 
     pivot_longer(cols = rownames(.cts1), names_to = "gene_name", values_to = "expr")
@@ -427,7 +447,6 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
               sd_expr = sd(expr, na.rm = TRUE)) |> ungroup()
   gdf$CI <- gdf$sd_expr/sqrt(nGenes)
   if (.normalization == "none" | .normalization == "scale") {
-    ylabel <- "Expression\n(counts per million)"
     gdf$norm_expr <- gdf$mean_expr
     if (.confidence_type == "mean") { # 95% confidence in the mean (standard error)
       gdf$norm_upperBound <- gdf$mean_expr + gdf$CI
@@ -440,6 +459,9 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
   }
   if (.normalization == "log2") {
     ylabel <- "Expression (log2)"
+    if (.confidence_type == "default") {
+      .confidence_type <- "mean"
+    }
     gdf$norm_expr <- log2(gdf$mean_expr)
     if (.confidence_type == "mean") {
       gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$CI)
@@ -468,7 +490,7 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
                            labels = c(.name1, .name2, .name3, .name4)) +
       scale_fill_discrete(type = c(.color1, .color2, .color3, .color4), 
                           labels = c(.name1, .name2, .name3, .name4)) +
-      theme(legend.title = element_blank()) +
+      theme(legend.title = element_blank(), legend.position = .legend) +
       ylab("") +
       xlab("") +
       ylim(.plotlims) +
