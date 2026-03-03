@@ -110,7 +110,7 @@ expdf |> filter(plasticity == "diverged" &
 
 ```{r conserved}
 # Conserved genes:
-ylims <- c(3, 9)
+ylims <- c(4.5, 10.5)
 cluster_names <- expdf |> filter(plasticity != "diverged" & 
                                    level != "diverged") |> 
   dplyr::select(cer, par) |> pull() |> unique()
