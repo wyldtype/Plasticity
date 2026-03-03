@@ -361,11 +361,11 @@ species.</p>
 class="section level2">
 <h2>Comparing results with 2, 3, or 4 clusters</h2>
 <pre class="r"><code># dataframe of nClust = 2, 3, and 4 clustering results
-clustdf &lt;- select(finaldf, gene_name, experiment, level, cer, par) |&gt;
+clustdf &lt;- dplyr::select(finaldf, gene_name, experiment, level, cer, par) |&gt;
   dplyr::rename(c(&quot;cer2&quot;=&quot;cer&quot;, &quot;par2&quot;=&quot;par&quot;, &quot;gene_ID&quot;=&quot;gene_name&quot;)) |&gt;
-  left_join(rename(clusterdf3, c(&quot;cer3&quot;=&quot;cer&quot;, &quot;par3&quot;=&quot;par&quot;)),
+  left_join(dplyr::rename(clusterdf3, c(&quot;cer3&quot;=&quot;cer&quot;, &quot;par3&quot;=&quot;par&quot;)),
             by = c(&quot;gene_ID&quot;, &quot;experiment&quot;)) |&gt;
-  left_join(rename(clusterdf4, c(&quot;cer4&quot;=&quot;cer&quot;, &quot;par4&quot;=&quot;par&quot;)),
+  left_join(dplyr::rename(clusterdf4, c(&quot;cer4&quot;=&quot;cer&quot;, &quot;par4&quot;=&quot;par&quot;)),
             by = c(&quot;gene_ID&quot;, &quot;experiment&quot;))</code></pre>
 <pre class="r"><code>### Visualize cluster expression patterns in each experiment
 display.brewer.all()</code></pre>
@@ -378,9 +378,9 @@ palettedf &lt;- tibble(experiment = ExperimentNames,
   plotdf &lt;- summarise(group_by(.df, time_point_num, label),
                       mean_expr = mean(expr, na.rm = TRUE))
   plotdf$label &lt;- as.factor(plotdf$label)
-  color_plt &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; select(palette) |&gt; pull()
+  color_plt &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; dplyr::select(palette) |&gt; pull()
   if (is.null(.title)) {
-    .title &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; select(long_name) |&gt; pull()
+    .title &lt;- palettedf |&gt; filter(experiment == .experiment) |&gt; dplyr::select(long_name) |&gt; pull()
   }
   ggplot(plotdf, aes(x = time_point_num, y = log2(mean_expr + 1))) +
     geom_line(aes(group = label, color = label), linewidth = 4) +
@@ -401,18 +401,18 @@ p &lt;- ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .exp
           plotClusterPatternByExperiment(clusterdf_list2$Heat_2$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list2$Cold_2$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="QC_clustering_files/figure-html/nclust-avg-expr-plots-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/Supplement/cluster_ref_2.pdf&quot;,
@@ -429,18 +429,18 @@ p &lt;- ggarrange(plotClusterPatternByExperiment(clusterdf_list3$HAP4_3$df, .exp
           plotClusterPatternByExperiment(clusterdf_list3$Heat_3$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list3$Cold_3$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="QC_clustering_files/figure-html/nclust-avg-expr-plots-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/Supplement/cluster_ref_3.pdf&quot;,
@@ -457,18 +457,18 @@ p &lt;- ggarrange(plotClusterPatternByExperiment(clusterdf_list4$HAP4_4$df, .exp
           plotClusterPatternByExperiment(clusterdf_list4$Heat_4$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list4$Cold_4$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="QC_clustering_files/figure-html/nclust-avg-expr-plots-3.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/Supplement/cluster_ref_4.pdf&quot;,
@@ -488,12 +488,12 @@ nGenes where each cell is the 4-group expression divergence category</p>
   plot_cer &lt;- clustdf |&gt; filter(experiment == .e) |&gt;
     pivot_longer(cols = c(&quot;cer2&quot;, &quot;cer3&quot;, &quot;cer4&quot;),
                  names_to = &quot;nclust&quot;, values_to = &quot;cer&quot;) |&gt;
-    select(gene_ID, level, nclust, cer)
+    dplyr::select(gene_ID, level, nclust, cer)
   plot_cer$nclust &lt;- gsub(&quot;cer&quot;, &quot;&quot;, plot_cer$nclust)
   plot_par &lt;- clustdf |&gt; filter(experiment == .e) |&gt;
     pivot_longer(cols = c(&quot;par2&quot;, &quot;par3&quot;, &quot;par4&quot;),
                  names_to = &quot;nclust&quot;, values_to = &quot;par&quot;) |&gt;
-    select(gene_ID, level, nclust, par)
+    dplyr::select(gene_ID, level, nclust, par)
   plot_par$nclust &lt;- gsub(&quot;par&quot;, &quot;&quot;, plot_par$nclust)
 
   plotdf &lt;- full_join(plot_cer, plot_par,
@@ -516,7 +516,7 @@ nGenes where each cell is the 4-group expression divergence category</p>
     }
   }) |&gt; unlist()
 
-  plot_mat_e &lt;- plotdf |&gt; select(gene_ID, nclust, group4) |&gt;
+  plot_mat_e &lt;- plotdf |&gt; dplyr::select(gene_ID, nclust, group4) |&gt;
     pivot_wider(id_cols = gene_ID, names_from = nclust,
                 values_from = group4) |&gt; t()
   colnames(plot_mat_e) &lt;- plot_mat_e[1,]
@@ -613,11 +613,11 @@ nClust=3/4</p>
 </div>
 <div id="comparing-dispersion-thresholds" class="section level2">
 <h2>Comparing dispersion thresholds</h2>
-<pre class="r"><code>dispdf &lt;- select(finaldf, gene_name, experiment, level, cer, par) |&gt;
+<pre class="r"><code>dispdf &lt;- dplyr::select(finaldf, gene_name, experiment, level, cer, par) |&gt;
   dplyr::rename(c(&quot;cer3disp&quot;=&quot;cer&quot;, &quot;par3disp&quot;=&quot;par&quot;, &quot;gene_ID&quot;=&quot;gene_name&quot;)) |&gt;
-  left_join(rename(clusterdf_1disp, c(&quot;cer1disp&quot;=&quot;cer&quot;, &quot;par1disp&quot;=&quot;par&quot;)),
+  left_join(dplyr::rename(clusterdf_1disp, c(&quot;cer1disp&quot;=&quot;cer&quot;, &quot;par1disp&quot;=&quot;par&quot;)),
             by = c(&quot;gene_ID&quot;, &quot;experiment&quot;)) |&gt;
-  left_join(rename(clusterdf_5disp, c(&quot;cer5disp&quot;=&quot;cer&quot;, &quot;par5disp&quot;=&quot;par&quot;)),
+  left_join(dplyr::rename(clusterdf_5disp, c(&quot;cer5disp&quot;=&quot;cer&quot;, &quot;par5disp&quot;=&quot;par&quot;)),
             by = c(&quot;gene_ID&quot;, &quot;experiment&quot;))</code></pre>
 <pre class="r"><code># dispersion = 3
 p &lt;- ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .experiment = &quot;HAP4&quot;),
@@ -627,18 +627,18 @@ p &lt;- ggarrange(plotClusterPatternByExperiment(clusterdf_list2$HAP4_2$df, .exp
           plotClusterPatternByExperiment(clusterdf_list2$Heat_2$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list2$Cold_2$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>p # (already plotted above)</code></pre>
 <p><img src="QC_clustering_files/figure-html/disp-avg-expr-1.png" width="672" /></p>
 <pre class="r"><code># dispersion = 1
@@ -649,18 +649,18 @@ p &lt;- ggarrange(plotClusterPatternByExperiment(clusterdf_list_1disp$HAP4_2$df,
           plotClusterPatternByExperiment(clusterdf_list_1disp$Heat_2$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list_1disp$Cold_2$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="QC_clustering_files/figure-html/disp-avg-expr-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/Supplement/cluster_ref_1disp.pdf&quot;,
@@ -677,18 +677,18 @@ p &lt;- ggarrange(plotClusterPatternByExperiment(clusterdf_list_5disp$HAP4_2$df,
           plotClusterPatternByExperiment(clusterdf_list_5disp$Heat_2$df, .experiment = &quot;Heat&quot;),
           plotClusterPatternByExperiment(clusterdf_list_5disp$Cold_2$df, .experiment = &quot;Cold&quot;),
           nrow = 2, ncol = 3, common.legend = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="QC_clustering_files/figure-html/disp-avg-expr-3.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/Supplement/cluster_ref_5disp.pdf&quot;,
@@ -701,12 +701,12 @@ dev.off()</code></pre>
   plot_cer &lt;- dispdf |&gt; filter(experiment == .e) |&gt;
     pivot_longer(cols = c(&quot;cer3disp&quot;, &quot;cer1disp&quot;, &quot;cer5disp&quot;),
                  names_to = &quot;dispersion&quot;, values_to = &quot;cer&quot;) |&gt;
-    select(gene_ID, level, dispersion, cer)
+    dplyr::select(gene_ID, level, dispersion, cer)
   plot_cer$dispersion &lt;- gsub(&quot;cer&quot;, &quot;&quot;, plot_cer$dispersion)
   plot_par &lt;- dispdf |&gt; filter(experiment == .e) |&gt;
     pivot_longer(cols = c(&quot;par3disp&quot;, &quot;par1disp&quot;, &quot;par5disp&quot;),
                  names_to = &quot;dispersion&quot;, values_to = &quot;par&quot;) |&gt;
-    select(gene_ID, level, dispersion, par)
+    dplyr::select(gene_ID, level, dispersion, par)
   plot_par$dispersion &lt;- gsub(&quot;par&quot;, &quot;&quot;, plot_par$dispersion)
 
   plotdf &lt;- full_join(plot_cer, plot_par,
@@ -729,7 +729,7 @@ dev.off()</code></pre>
     }
   }) |&gt; unlist()
 
-  plot_mat_e &lt;- plotdf |&gt; select(gene_ID, dispersion, group4) |&gt;
+  plot_mat_e &lt;- plotdf |&gt; dplyr::select(gene_ID, dispersion, group4) |&gt;
     pivot_wider(id_cols = gene_ID, names_from = dispersion,
                 values_from = group4) |&gt; t()
   colnames(plot_mat_e) &lt;- plot_mat_e[1,]
@@ -768,6 +768,246 @@ dim(test)</code></pre>
 <pre><code>## working on LowPi</code></pre>
 <pre><code>## working on Heat</code></pre>
 <pre><code>## working on Cold</code></pre>
+</div>
+<div
+id="are-the-sometimes-static-genes-an-even-sampling-of-diverged-and-conserved"
+class="section level2">
+<h2>Are the sometimes-static genes an even sampling of diverged and
+conserved?</h2>
+<p>Are genes that are put in the static category in at least one species
+but only at 3 or 5 dispersion an even sampling of genes in the different
+divergence categories, or are they predominantly coming from certain
+groups?</p>
+<p>Repeating the same heatmaps from the “Similar Proportions” figure,
+except now with three dispersion levels. Dispersion = 3 (main
+paper):</p>
+<pre class="r"><code>plotdf &lt;- finaldf |&gt;
+  group_by(experiment, cer, par) |&gt; 
+  summarise(n = n())</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;, &#39;cer&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>plotdf$long_experiment &lt;- map(plotdf$experiment, \(e) {
+  LongExperimentNames[which(ExperimentNames == e)]
+}) |&gt; factor(levels = LongExperimentNames)
+plotdf$cer &lt;- factor(plotdf$cer, levels = c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;))
+plotdf$par &lt;- factor(plotdf$par, levels = c(&quot;2&quot;, &quot;1&quot;, &quot;0&quot;))
+plotdf$type &lt;- map2(plotdf$cer, plotdf$par, \(x, y) {
+  if (x == y) {
+    if (x == 0 &amp; y == 0) {
+      return(&quot;conserved static&quot;)
+    }
+    return(&quot;conserved plastic&quot;)
+  }
+  if (x == 0) {
+    return(&quot;Spar-unique&quot;)
+  }
+  if (y == 0) {
+    return(&quot;Scer-unique&quot;)
+  }
+  else {
+    return(&quot;reversal&quot;)
+  }
+}) |&gt; unlist()
+plotdf_sums &lt;- plotdf |&gt; group_by(long_experiment) |&gt; 
+  summarise(n_Exp = sum(n))
+plotdf &lt;- left_join(plotdf, plotdf_sums, 
+                    by = &quot;long_experiment&quot;)
+plotdf$pct &lt;- (plotdf$n/plotdf$n_Exp) |&gt; formatC(digits = 1)
+p &lt;- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
+  geom_tile() +
+  geom_text(aes(label = pct,
+                color = grepl(pattern = &quot;conserved&quot;, x = type)), size = 2) +
+  scale_color_discrete(limits = c(TRUE, FALSE),
+                       type = c(&quot;grey40&quot;, &quot;white&quot;)) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == &quot;plasticity&quot;,]$limits,
+                      type = colordf[colordf$scheme == &quot;plasticity&quot;,]$type) +
+   facet_wrap(~long_experiment) +
+  theme_classic() +
+  xlab(&quot;Scer plasticity cluster&quot;) +
+  ylab(&quot;Spar plasticity cluster&quot;) +
+  guides(fill=guide_legend(title=&quot;number of genes&quot;)) +
+  theme(legend.position = &quot;none&quot;)
+p</code></pre>
+<p><img src="QC_clustering_files/figure-html/sometimes-static-3disp-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/plasticity_counts_heatmap_3disp.pdf&quot;,
+    width = 4, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>And total nGenes for paper figure:</p>
+<pre class="r"><code>plotdf_sums</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:sometimes-static-3disp-ngenes">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">long_experiment</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">n_Exp</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Diauxic Shift</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4286</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Hydroxyurea Shock</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3952</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Low Nitrogen</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4412</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Low Phosphate</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4383</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Heat Stress</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4172</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold Stress</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4051</td></tr>
+</table>
+
+<p>Dispersion = 1 (less likely to call a gene static than the main
+paper):</p>
+<pre class="r"><code>finaldf_1disp &lt;- dplyr::select(finaldf, -cer, -par) |&gt; 
+  left_join(clusterdf_1disp, by = c(&quot;gene_name&quot;=&quot;gene_ID&quot;, &quot;experiment&quot;))
+plotdf &lt;- finaldf_1disp |&gt;
+  group_by(experiment, cer, par) |&gt; 
+  summarise(n = n())</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;, &#39;cer&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>plotdf$long_experiment &lt;- map(plotdf$experiment, \(e) {
+  LongExperimentNames[which(ExperimentNames == e)]
+}) |&gt; factor(levels = LongExperimentNames)
+plotdf$cer &lt;- factor(plotdf$cer, levels = c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;))
+plotdf$par &lt;- factor(plotdf$par, levels = c(&quot;2&quot;, &quot;1&quot;, &quot;0&quot;))
+plotdf$type &lt;- map2(plotdf$cer, plotdf$par, \(x, y) {
+  if (x == y) {
+    if (x == 0 &amp; y == 0) {
+      return(&quot;conserved static&quot;)
+    }
+    return(&quot;conserved plastic&quot;)
+  }
+  if (x == 0) {
+    return(&quot;Spar-unique&quot;)
+  }
+  if (y == 0) {
+    return(&quot;Scer-unique&quot;)
+  }
+  else {
+    return(&quot;reversal&quot;)
+  }
+}) |&gt; unlist()
+plotdf_sums &lt;- plotdf |&gt; group_by(long_experiment) |&gt; 
+  summarise(n_Exp = sum(n))
+plotdf &lt;- left_join(plotdf, plotdf_sums, 
+                    by = &quot;long_experiment&quot;)
+plotdf$pct &lt;- (plotdf$n/plotdf$n_Exp) |&gt; formatC(digits = 1)
+p &lt;- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
+  geom_tile() +
+  geom_text(aes(label = pct,
+                color = grepl(pattern = &quot;conserved&quot;, x = type)), size = 2) +
+  scale_color_discrete(limits = c(TRUE, FALSE),
+                       type = c(&quot;grey40&quot;, &quot;white&quot;)) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == &quot;plasticity&quot;,]$limits,
+                      type = colordf[colordf$scheme == &quot;plasticity&quot;,]$type) +
+   facet_wrap(~long_experiment) +
+  theme_classic() +
+  xlab(&quot;Scer plasticity cluster&quot;) +
+  ylab(&quot;Spar plasticity cluster&quot;) +
+  guides(fill=guide_legend(title=&quot;number of genes&quot;)) +
+  theme(legend.position = &quot;none&quot;)
+p</code></pre>
+<p><img src="QC_clustering_files/figure-html/sometimes-static-1disp-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/plasticity_counts_heatmap_1disp.pdf&quot;,
+    width = 4, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>And total nGenes for paper figure:</p>
+<pre class="r"><code>plotdf_sums</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:sometimes-static-1disp-ngenes">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">long_experiment</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">n_Exp</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Diauxic Shift</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4286</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Hydroxyurea Shock</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3952</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Low Nitrogen</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4412</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Low Phosphate</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4383</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Heat Stress</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4172</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold Stress</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4051</td></tr>
+</table>
+
+<p>Dispersion = 5 (less likely to call a gene static than the main
+paper):</p>
+<pre class="r"><code>finaldf_5disp &lt;- dplyr::select(finaldf, -cer, -par) |&gt; 
+  left_join(clusterdf_5disp, by = c(&quot;gene_name&quot;=&quot;gene_ID&quot;, &quot;experiment&quot;))
+plotdf &lt;- finaldf_5disp |&gt;
+  group_by(experiment, cer, par) |&gt; 
+  summarise(n = n())</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;, &#39;cer&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>plotdf$long_experiment &lt;- map(plotdf$experiment, \(e) {
+  LongExperimentNames[which(ExperimentNames == e)]
+}) |&gt; factor(levels = LongExperimentNames)
+plotdf$cer &lt;- factor(plotdf$cer, levels = c(&quot;0&quot;, &quot;1&quot;, &quot;2&quot;))
+plotdf$par &lt;- factor(plotdf$par, levels = c(&quot;2&quot;, &quot;1&quot;, &quot;0&quot;))
+plotdf$type &lt;- map2(plotdf$cer, plotdf$par, \(x, y) {
+  if (x == y) {
+    if (x == 0 &amp; y == 0) {
+      return(&quot;conserved static&quot;)
+    }
+    return(&quot;conserved plastic&quot;)
+  }
+  if (x == 0) {
+    return(&quot;Spar-unique&quot;)
+  }
+  if (y == 0) {
+    return(&quot;Scer-unique&quot;)
+  }
+  else {
+    return(&quot;reversal&quot;)
+  }
+}) |&gt; unlist()
+plotdf_sums &lt;- plotdf |&gt; group_by(long_experiment) |&gt; 
+  summarise(n_Exp = sum(n))
+plotdf &lt;- left_join(plotdf, plotdf_sums, 
+                    by = &quot;long_experiment&quot;)
+plotdf$pct &lt;- (plotdf$n/plotdf$n_Exp) |&gt; formatC(digits = 1)
+p &lt;- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
+  geom_tile() +
+  geom_text(aes(label = pct,
+                color = grepl(pattern = &quot;conserved&quot;, x = type)), size = 2) +
+  scale_color_discrete(limits = c(TRUE, FALSE),
+                       type = c(&quot;grey40&quot;, &quot;white&quot;)) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == &quot;plasticity&quot;,]$limits,
+                      type = colordf[colordf$scheme == &quot;plasticity&quot;,]$type) +
+   facet_wrap(~long_experiment) +
+  theme_classic() +
+  xlab(&quot;Scer plasticity cluster&quot;) +
+  ylab(&quot;Spar plasticity cluster&quot;) +
+  guides(fill=guide_legend(title=&quot;number of genes&quot;)) +
+  theme(legend.position = &quot;none&quot;)
+p</code></pre>
+<p><img src="QC_clustering_files/figure-html/sometimes-static-5disp-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/plasticity_counts_heatmap_5disp.pdf&quot;,
+    width = 4, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>And total nGenes for paper figure:</p>
+<pre class="r"><code>plotdf_sums</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:sometimes-static-5disp-ngenes">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">long_experiment</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">n_Exp</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Diauxic Shift</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4286</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Hydroxyurea Shock</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3952</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Low Nitrogen</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4412</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Low Phosphate</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4383</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Heat Stress</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4172</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold Stress</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4051</td></tr>
+</table>
+
 </div>
 
 

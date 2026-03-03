@@ -152,14 +152,14 @@ Tables of gene counts to report in main paper:
 table(finaldf$plasticity, finaldf$level, useNA = "always") # checking that all observations are in the 2x2 box
 sum(table(finaldf$level, finaldf$plasticity))
 nrow(finaldf) # mutually exclusive group categories
-finaldf |> filter(plasticity == "diverged") |> select(experiment) |> table()
-finaldf |> filter(level == "diverged") |> select(experiment) |> table()
+finaldf |> filter(plasticity == "diverged") |> dplyr::select(all_of("experiment")) |> table()
+finaldf |> filter(level == "diverged") |> dplyr::select(all_of("experiment")) |> table()
 ```
 
 Tables of number of timepoints per experiment for paper figure:
 
 ```{r paper-table-samples}
-sample_info |> select(experiment, time_point_str) |> 
+sample_info |> dplyr::select(all_of(c("experiment", "time_point_str"))) |> 
   unique() |> 
   group_by(experiment) |> 
   summarise(n = n())
@@ -234,13 +234,13 @@ calculateAreaBetweenCurves <- function(.cts1, .cts2) {
 }
 ### tests for calculateAreaBetweenCurves
 # random gene with conserved plasticity
-test_idx_conserved <- finaldf |> filter(plasticity == "conserved" & cor_parents > .5) |> select(gene_name, experiment) |> slice_sample(n = 1)
-test_common_cols <- info |> filter(experiment == test_idx_conserved$experiment) |> select(condition) |> pull()
+test_idx_conserved <- finaldf |> filter(plasticity == "conserved" & cor_parents > .5) |> dplyr::select(all_of(c("gene_name", "experiment"))) |> slice_sample(n = 1)
+test_common_cols <- info |> filter(experiment == test_idx_conserved$experiment) |> dplyr::select(all_of("condition")) |> pull()
 calculateAreaBetweenCurves(.cts1 = collapsed$cer[test_idx_conserved$gene_name, test_common_cols], 
                            .cts2 = collapsed$par[test_idx_conserved$gene_name, test_common_cols]) # should be small
 # random gene with diverged plasticity
-test_idx_diverged <- finaldf |> filter(plasticity == "diverged" & cor_parents < -.5) |> select(gene_name, experiment) |> slice_sample(n = 1)
-test_common_cols <- info |> filter(experiment == test_idx_diverged$experiment) |> select(condition) |> pull()
+test_idx_diverged <- finaldf |> filter(plasticity == "diverged" & cor_parents < -.5) |> dplyr::select(all_of(c("gene_name", "experiment"))) |> slice_sample(n = 1)
+test_common_cols <- info |> filter(experiment == test_idx_diverged$experiment) |> dplyr::select(all_of("condition")) |> pull()
 calculateAreaBetweenCurves(.cts1 = collapsed$cer[test_idx_diverged$gene_name, test_common_cols], 
                            .cts2 = collapsed$par[test_idx_diverged$gene_name, test_common_cols]) # should be large
 ```
@@ -253,16 +253,16 @@ finaldf$ABC_parents <- map2(finaldf$gene_name,
                             finaldf$experiment, 
                             .f = \(g, e) {
                               common_cols <- info |> filter(experiment == e) |>
-                                select(condition) |> pull()
+                                dplyr::select(all_of("condition")) |> pull()
                               calculateAreaBetweenCurves(.cts1 = collapsed$cer[g, common_cols],
                                                          .cts2 = collapsed$par[g, common_cols])
                             }) |> unlist()
 # Hyc vs Hyp
-finaldf$ABC_hybrid <- map2(finaldf$gene_name, 
-                           finaldf$experiment, 
+finaldf$ABC_hybrid <- map2(finaldf$gene_name, finaldf$experiment, 
                            .f = \(g, e) {
-                             common_cols <- info_allele |> filter(experiment == e) |>
-                               select(condition) |> pull()
+                             common_cols <- info_allele |> 
+                               filter(experiment == e) |>
+                               dplyr::select(all_of("condition")) |> pull()
                              calculateAreaBetweenCurves(.cts1 = collapsed_allele$cer[g, common_cols],
                                                         .cts2 = collapsed_allele$par[g, common_cols])
                            }) |> unlist()
@@ -336,11 +336,11 @@ finaldf$level <- if_else(finaldf$bias == "none",
 
 # effect of bias on plasticity divergence
 p_none <- plotdf |> filter(bias == "none") |> 
-  select(cer, par) |> table()
+  dplyr::select(all_of(c("cer", "par"))) |> table()
 p_cer <- plotdf |> filter(bias == "cer") |> 
-  select(cer, par) |> table()
+  dplyr::select(all_of(c("cer", "par"))) |> table()
 p_par <- plotdf |> filter(bias == "par") |> 
-  select(cer, par) |> table()
+  dplyr::select(all_of(c("cer", "par"))) |> table()
 
 round(p_none/sum(p_none), digits = 2)
 round(p_cer/sum(p_cer), digits = 2)
@@ -430,7 +430,7 @@ Removing level thresholds that we don't use, just keeping the 1.5 threshold
 ```{r}
 # removing effect size threshold we don't use
 finaldf <- filter(finaldf, eff_threshold == "level") |> 
-  select(-eff_threshold)
+  dplyr::select(-all_of("eff_threshold"))
 ```
 
 ### Group codes
@@ -494,7 +494,7 @@ save(finaldf, colordf, ExperimentNames,
 Renaming some column names and selecting specific finaldf columns for the supplementary table, so that it appears as close to the workflow figure as possible
 
 ```{r supplementary-table1}
-supp_tab1 <- finaldf |> select(gene_name, experiment, effect_size_species, padj_species, cer, par, level, plasticity) |>
+supp_tab1 <- finaldf |> dplyr::select(all_of(c("gene_name", "experiment", "effect_size_species", "padj_species", "cer", "par", "level", "plasticity"))) |>
   dplyr::rename(c("gene"="gene_name", "log2_fold_change"="effect_size_species",
                   "padj"="padj_species", "cluster_Scer"="cer", "cluster_Spar"="par"))
 # changing cluster names for clarity
@@ -521,7 +521,7 @@ Supplementary Table 2, including F1 hybrid log2 fold changes and correlations:
 
 ```{r supplementary-table2}
 rm(supp_tab1)
-supp_tab2 <- finaldf |> select(gene_name, experiment, effect_size_species, padj_species, effect_size_allele, padj_allele, cor_hybrid, cor_parents, ABC_hybrid, ABC_parents, cer, par, level, plasticity) |>
+supp_tab2 <- finaldf |> dplyr::select(all_of(c("gene_name", "experiment", "effect_size_species", "padj_species", "effect_size_allele", "padj_allele", "cor_hybrid", "cor_parents", "ABC_hybrid", "ABC_parents", "cer", "par", "level", "plasticity"))) |>
   dplyr::rename(c("gene"="gene_name", 
                   "log2_fold_change_parents"="effect_size_species",
                   "padj_parents"="padj_species",

@@ -19,19 +19,19 @@ makeDf <- function(.cts, .info, .join_by = "sample_name") {
 
 # takes mean expr in each condition (timepoint/experiment/allele)
 collapseReplicates <- function(.info, .cts) {
-  conditions_cer <- .info |> filter(allele == "cer") |> select(condition) |> pull() |> unique()
-  conditions_par <- .info |> filter(allele == "par") |> select(condition) |> pull() |> unique()
+  conditions_cer <- .info |> filter(allele == "cer") |> dplyr::select(condition) |> pull() |> unique()
+  conditions_par <- .info |> filter(allele == "par") |> dplyr::select(condition) |> pull() |> unique()
   common_conditions <- intersect(conditions_cer, conditions_par)
   # cer
   collapsed_cts_cer <- map(common_conditions, \(cond) {
     samps <- .info |> filter(condition == cond & allele == "cer") |> 
-      select(sample_name) |> pull()
+      dplyr::select(sample_name) |> pull()
     cts <- .cts[,samps, drop = FALSE] # in HAP4 and LowPi, which don't have replicates, this will take the mean of one sample
     return(rowMeans(cts))
   }) |> purrr::reduce(cbind)
   collapsed_cts_par <- map(common_conditions, \(cond) {
     samps <- .info |> filter(condition == cond & allele == "par") |> 
-      select(sample_name) |> pull()
+      dplyr::select(sample_name) |> pull()
     cts <- .cts[,samps, drop = FALSE] 
     return(rowMeans(cts))
   }) |> purrr::reduce(cbind)
@@ -50,7 +50,7 @@ collapseReplicates <- function(.info, .cts) {
 # # LowPi, shouldn't have changed much
 # # (only a couple samples have replicates, and only in par)
 # sample_info |> filter(experiment == "LowPi" & organism == "par") |>
-#   select(condition) |> table() |> sort(decresing = TRUE)
+#   dplyr::select(condition) |> table() |> sort(decresing = TRUE)
 # # cer first, should not have changed
 # test1 <- counts[,sample_info$experiment == "LowPi" &
 #                   sample_info$allele == "cer"]
@@ -58,7 +58,7 @@ collapseReplicates <- function(.info, .cts) {
 # test2 <- test_collapse$cer[,grepl("LowPi", colnames(test_collapse$cer))]
 # dim(test2)
 # filter(sample_info, sample_name %in% colnames(test1)) |>
-#   select(condition) |> pull() |> setdiff(y = colnames(test2))
+#   dplyr::select(condition) |> pull() |> setdiff(y = colnames(test2))
 # # now par, also should not have changed
 # test1 <- counts[,sample_info$experiment == "LowPi" &
 #                   sample_info$allele == "par"]
@@ -66,7 +66,7 @@ collapseReplicates <- function(.info, .cts) {
 # test2 <- test_collapse$par[,grepl("LowPi", colnames(test_collapse$par))]
 # dim(test2)
 # filter(sample_info, sample_name %in% colnames(test1)) |>
-#   select(condition) |> pull() |> setdiff(y = colnames(test2))
+#   dplyr::select(condition) |> pull() |> setdiff(y = colnames(test2))
 # # hybrid
 # dim(counts_allele)
 # test_collapse <- collapseReplicates(sample_info_allele, counts_allele)
@@ -78,7 +78,7 @@ collapseReplicates <- function(.info, .cts) {
 # test2 <- test_collapse$cer[,grepl("HAP4", colnames(test_collapse$cer))]
 # dim(test2)
 # filter(sample_info_allele, sample_name %in% colnames(test1)) |>
-#   select(condition) |> pull() |> setdiff(y = colnames(test2))
+#   dplyr::select(condition) |> pull() |> setdiff(y = colnames(test2))
 #
 # # checking for genes with significant reduction in variance post-collapse
 # # additional tests for collapseReplicates
@@ -106,7 +106,7 @@ collapseReplicates <- function(.info, .cts) {
 # ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
 #   geom_point() +
 #   geom_abline(slope = 1, intercept = 0, color = "gold")
-# plotdf <- select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |>
+# plotdf <- dplyr::select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |>
 #   rename("mean_expr"="mean_expr_pre")
 # # difference in var/mean pre and post versus mean expr
 # ggplot(plotdf, aes(x = log2(mean_expr + 1),
@@ -118,14 +118,14 @@ collapseReplicates <- function(.info, .cts) {
 # # but the difference can be extreme for a few genes, of middling expression level
 # # For genes with a difference, do we trust the collapsed variance to be more accurate to expression shape?
 # # first random gene that tend to have very little difference in variance
-# gene_idx <- plotdf |> select(gene_name) |> pull() |> sample(1)
+# gene_idx <- plotdf |> dplyr::select(gene_name) |> pull() |> sample(1)
 # ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
 #   geom_jitter() +
 #   geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
 #             aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
 #             color = "red")
 # # second a gene with variance substantially reduced in collapsed form
-# gene_idx <- plotdf |> filter(log2(var_expr_pre) - log2(var_expr_post) > 7) |> select(gene_name) |> pull() |> sample(1)
+# gene_idx <- plotdf |> filter(log2(var_expr_pre) - log2(var_expr_post) > 7) |> dplyr::select(gene_name) |> pull() |> sample(1)
 # ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
 #   geom_jitter() +
 #   geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
@@ -630,7 +630,7 @@ plotGenes <- function(.gene_idxs,
 # # Example: LowPi 1-2
 # gene_idxs <- finaldf |> filter(experiment == "LowPi" & dynamics == "diverged" &
 #                                  cer == 1 & par == 2) |>
-#   select(gene_name) |> pull()
+#   dplyr::select(gene_name) |> pull()
 # plotGenes(gene_idxs, .experiment_name = "HAP4", .plot_titles = "HAP4")
 # plotGenes(gene_idxs, .experiment_name = "LowPi", .plot_titles = "LowPi")
 # plotGenes(gene_idxs, .experiment_name = "LowN", .plot_titles = "LowN")
@@ -713,7 +713,7 @@ plotEnvironments <- function(.gene_idxs,
 # # tests for plotEnvironments
 # gene_idxs <- finaldf |> filter(experiment == "LowPi" & dynamics == "diverged" &
 #                                  cer == 1 & par == 2) |>
-#   select(gene_name) |> pull()
+#   dplyr::select(gene_name) |> pull()
 # plotEnvironments(gene_idxs)
 
 ### proportional area plots, set of 4
@@ -838,7 +838,7 @@ makeUpsetPlot <- function(.df, .group_name, .group_members, .item_names,
     lt[[grpmem]] <- filter(.df, .data[[.group_name]] == grpmem)
   }
   lt <- lt |> 
-    map(.f = select, .item_names) |> 
+    map(.f = dplyr::select, .item_names) |> 
     map(.f = \(x) {purrr::reduce(x, .f = paste0)})
   plotdf <- make_comb_mat(lt)
   plotdf <- plotdf[,comb_size(plotdf) >= .min_comb_size]
@@ -887,10 +887,10 @@ makeGeneGroupHeatmap <- function(.df, .tf_order,
                                  .col_fun = colorRamp2(c(0, 10, 30, 100), c("blue", "yellow", "red", "magenta")),
                                  .legend = FALSE,
                                  .title = NULL) {
-  griddf <- select(.df, c("deletion", .groups)) |> 
+  griddf <- dplyr::select(.df, c("deletion", .groups)) |> 
     filter(deletion %in% .tf_order) |>
     unique() |>
-    select(-deletion) |> 
+    dplyr::select(-deletion) |> 
     expand_grid(deletion = .tf_order) |>
     unique() |> 
     arrange(across(.groups))
@@ -906,7 +906,7 @@ makeGeneGroupHeatmap <- function(.df, .tf_order,
                 names_from = .groups,
                 values_from = "nGenes") |>
     ungroup()
-  effects_mat <- plotdf |> select(-deletion) |> as.matrix()
+  effects_mat <- plotdf |> dplyr::select(-deletion) |> as.matrix()
   rownames(effects_mat) <- plotdf$deletion
   effects_mat <- effects_mat[rownames(effects_mat) %in% .tf_order,]
   Heatmap(effects_mat, col = .col_fun, na_col = "grey80",
@@ -993,12 +993,12 @@ orderGenesByGroup <- function(.mat, .row_idx = 1,
 #### Gene Ontology Enrichment ####
 getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/results/",
                         .min_hits = 5) {
-  test_table <- goslim |> filter(ORF %in% .idxs) |> select(GOslim_term) |> table()
+  test_table <- goslim |> filter(ORF %in% .idxs) |> dplyr::select(GOslim_term) |> table()
   test_table <- test_table[test_table >= .min_hits]
   testdf <- tibble("term" = names(test_table),
                    "group_count" = as.numeric(test_table))
   testdf$overall_count <- map(testdf$term, \(x) {
-    ct <- goslim |> filter(GOslim_term == x) |> select(ORF) |> 
+    ct <- goslim |> filter(GOslim_term == x) |> dplyr::select(ORF) |> 
       pull() |> unique() |> length()
     return(ct)
   }) |> unlist()
@@ -1012,7 +1012,7 @@ getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/result
   testdf$sig <- testdf$exact_pval < 0.001
   testdf$genes <- map(testdf$term, \(x) {
     termgenes <- goslim |> filter(ORF %in% .idxs & GOslim_term == x) |> 
-      select(ORF) |> pull() |> unique()
+      dplyr::select(ORF) |> pull() |> unique()
     return(purrr::reduce(termgenes, paste, sep = " "))
   }) |> unlist()
   

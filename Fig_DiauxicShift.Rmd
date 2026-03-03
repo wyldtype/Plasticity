@@ -69,13 +69,13 @@ expdf |> filter(level == "biased") |> nrow()
 setdiff(unique(finaldf$gene_name), expdf$gene_name) |> length()
 
 # Scer gene counts:
-expdf |> select(cer) |> table()
-expdf |> select(par) |> table()
+expdf |> dplyr::select(cer) |> table()
+expdf |> dplyr::select(par) |> table()
 
 cat("Conserved genes:")
 expdf |> filter(plasticity != "diverged" & 
                   level != "diverged") |> 
-  select(cer, par) |> table()
+  dplyr::select(cer, par) |> table()
 
 cat("Diverged level:")
 expdf |> filter(plasticity != "diverged" & 
@@ -83,7 +83,7 @@ expdf |> filter(plasticity != "diverged" &
   mutate(direction = if_else(effect_size_species > 0,
                              true = "up in Scer",
                              false = "up in Spar")) |> 
-  select(cer, par, direction) |> table()
+  dplyr::select(cer, par, direction) |> table()
 
 cat("Diverged plasticity:")
 expdf |> filter(plasticity == "diverged" & 
@@ -93,7 +93,7 @@ expdf |> filter(plasticity == "diverged" &
                                          true = "Scer0",
                                          false = "Spar0"),
                           false = "neither0")) |> 
-  select(cer, par, isZero) |> table()
+  dplyr::select(cer, par, isZero) |> table()
 
 cat("Diverged level and plasticity:")
 expdf |> filter(plasticity == "diverged" & 
@@ -101,7 +101,7 @@ expdf |> filter(plasticity == "diverged" &
   mutate(direction = if_else(effect_size_species > 0,
                              true = "up in Scer",
                              false = "up in Spar")) |> 
-  select(cer, par, direction) |> table()
+  dplyr::select(cer, par, direction) |> table()
 ```
 
 ## Average expression of genes in each divergence category
@@ -113,7 +113,7 @@ expdf |> filter(plasticity == "diverged" &
 ylims <- c(3, 9)
 cluster_names <- expdf |> filter(plasticity != "diverged" & 
                                    level != "diverged") |> 
-  select(cer, par) |> pull() |> unique()
+  dplyr::select(cer, par) |> pull() |> unique()
 plotlist <- vector(mode = "list", length = length(cluster_names))
 names(plotlist) <- cluster_names
 for (clust in cluster_names) {
@@ -121,7 +121,7 @@ for (clust in cluster_names) {
                                  level != "diverged" &
                                  cer == clust &
                                  par == clust) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
   plotlist[[as.character(clust)]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                                                                .experiment_name = experiment_name,
                                                                .plotlims = ylims) + 
@@ -140,7 +140,7 @@ gene_idxs <- expdf |> filter(plasticity != "diverged" &
                                  level != "diverged" &
                                  cer == cluster_names[1] &
                                  par == cluster_names[1]) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
 pdf(file = paste0("paper_figures/", 
                   folder_name, "/conserved_scaled.pdf"), width = 2, height = 2)
 print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
@@ -180,7 +180,7 @@ for (i in c(1:nrow(griddf))) {
                                  cer == clust &
                                  par == clust &
                                  sign(effect_size_species) == lfcsign) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
   plotlist[[paste0(clust, lfcsign)]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                                                                   .experiment_name = experiment_name,
                                                                   .plotlims = ylims) + 
@@ -220,7 +220,7 @@ for (i in c(1:nrow(griddf))) {
                                  level != "diverged" &
                                  cer == clust_cer &
                                  par == clust_par) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
   plotlist[[paste0(clust_cer, clust_par)]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                                                                         .experiment_name = experiment_name,
                                                                         .plotlims = ylims) + 
@@ -238,7 +238,7 @@ gene_idxs <- expdf |> filter(plasticity == "diverged" &
                                  level != "diverged" &
                                  cer == 2 &
                                  par == 1) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
 pdf(file = paste0("paper_figures/", 
                   folder_name, "/plasticity_scaled.pdf"), width = 2, height = 2)
 print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
@@ -279,7 +279,7 @@ for (i in c(1:nrow(griddf))) {
                                  cer == clust_cer &
                                  par == clust_par &
                                  sign(effect_size_species) == lfcsign) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
   plotlist[[paste0(clust_cer, clust_par, lfcsign)]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                                                                   .experiment_name = experiment_name,
                                                                   .plotlims = ylims) + 
@@ -309,7 +309,7 @@ dev.off()
 ### Proportional area plot for Main figure
 prop_table <- expdf |> mutate(plasticity_diverged = plasticity == "diverged",
                 level_diverged = level == "diverged") |> 
-  select(plasticity_diverged, level_diverged) |> table()
+  dplyr::select(plasticity_diverged, level_diverged) |> table()
 prop_table
 sum(prop_table)
 prop_table/sum(prop_table)
@@ -330,7 +330,7 @@ dev.off()
 if (experiment_name == "HAP4") {
   # choosing one level-diverging and one plasticity-diverging gene
   # level
-  expdf |> filter(level == "diverged" & plasticity == "conserved") |> select(gene_name) |> 
+  expdf |> filter(level == "diverged" & plasticity == "conserved") |> dplyr::select(gene_name) |> 
     pull() |> sample(1)
   # we chose: YBR067C
   pdf("paper_figures/ExperimentOverview/level_expr.pdf",
@@ -341,7 +341,7 @@ if (experiment_name == "HAP4") {
   dev.off()
   
   # plasticity
-  expdf |> filter(level == "conserved" & plasticity == "diverged") |> select(gene_name) |> 
+  expdf |> filter(level == "conserved" & plasticity == "diverged") |> dplyr::select(gene_name) |> 
     pull() |> sample(1) # YNL312W is absolutely wild, nearly mirror image
   # We chose: YJR001W
   pdf("paper_figures/ExperimentOverview/plasticity_expr.pdf",
@@ -370,18 +370,18 @@ plotdf$cluster_group <- paste0(plotdf$cer, plotdf$par, plotdf$lfc_direction) |>
 # upScer divergent vs conserved plasticity genes
 cons_fold_changes <- plotdf |> filter(plasticity == "conserved" &
                                         lfc_direction == 1) |> 
-  select(effect_size_species) |> pull()
+  dplyr::select(effect_size_species) |> pull()
 div_fold_changes <- plotdf |> filter(plasticity == "diverged" &
                                         lfc_direction == 1) |> 
-  select(effect_size_species) |> pull()
+  dplyr::select(effect_size_species) |> pull()
 p_upcer <- t.test(x = cons_fold_changes, y = div_fold_changes)$p.value
 # upSpar divergent vs conserved plasticity genes
 cons_fold_changes <- plotdf |> filter(plasticity == "conserved" &
                                         lfc_direction == -1) |> 
-  select(effect_size_species) |> pull()
+  dplyr::select(effect_size_species) |> pull()
 div_fold_changes <- plotdf |> filter(plasticity == "diverged" &
                                        lfc_direction == -1) |> 
-  select(effect_size_species) |> pull()
+  dplyr::select(effect_size_species) |> pull()
 p_uppar <- t.test(x = cons_fold_changes, y = div_fold_changes)$p.value
 # scatter plot of each cluster combination to screen 
 # for clusters with more level divergence than others

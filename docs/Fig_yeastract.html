@@ -363,8 +363,6 @@ sapply(c(&quot;Matrix&quot;, &quot;stringr&quot;, &quot;ComplexHeatmap&quot;), r
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
 library(dplyr)
 library(igraph)</code></pre>
-<pre><code>## Warning: package &#39;igraph&#39; was built under R version
-## 4.5.1</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;igraph&#39;</code></pre>
 <pre><code>## The following object is masked from &#39;package:circlize&#39;:
@@ -422,24 +420,24 @@ yeastract_lookup &lt;- read_delim(&quot;data_files/downloaded_genomes_and_featur
                                delim = &quot;;&quot;, col_names = c(&quot;common_protein&quot;, 
                                                           &quot;systematic&quot;, 
                                                           &quot;common&quot;))</code></pre>
-<pre><code>## Warning: One or more parsing issues, call `problems()` on your
-## data frame for details, e.g.:
+<pre><code>## Warning: One or more parsing issues, call `problems()` on your data frame for
+## details, e.g.:
 ##   dat &lt;- vroom(...)
 ##   problems(dat)</code></pre>
 <pre><code>## Rows: 7135 Columns: 5
-## ── Column specification ─────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────
 ## Delimiter: &quot;;&quot;
 ## chr (5): common_protein, systematic, common, X4, X5
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>yeastract_lookup$description &lt;- select(yeastract_lookup, 
+<pre class="r"><code>yeastract_lookup$description &lt;- dplyr::select(yeastract_lookup, 
                                        setdiff(colnames(yeastract_lookup),
                                                c(&quot;common_protein&quot;, 
                                                  &quot;systematic&quot;, 
                                                  &quot;common&quot;))) |&gt; 
-  apply(MARGIN = 1, \(x) reduce(x, .f = paste0)) |&gt; as.character()
-yeastract_lookup &lt;- select(yeastract_lookup,
+  apply(MARGIN = 1, \(x) purrr::reduce(x, .f = paste0)) |&gt; as.character()
+yeastract_lookup &lt;- dplyr::select(yeastract_lookup,
                            common_protein,
                            systematic,
                            common,
@@ -468,10 +466,10 @@ readInRegulatoryMatrix &lt;- function(.file_name) {
   mat &lt;- matdf[, -1] |&gt; as.matrix()
   colnames(mat) &lt;- left_join(tibble(common = colnames(mat)),
                              yeastract_lookup, by = &quot;common&quot;) |&gt; 
-    select(systematic) |&gt; pull()
+    dplyr::select(systematic) |&gt; pull()
   rownames(mat) &lt;- left_join(tibble(common_protein = unlist(matdf[,1])),
                              yeastract_lookup, by = &quot;common_protein&quot;) |&gt; 
-    select(systematic) |&gt; pull()
+    dplyr::select(systematic) |&gt; pull()
   return(mat)
 }</code></pre>
 <p>Reading in the un-stressed regulator matrix:</p>
@@ -483,10 +481,10 @@ file_name_suffix &lt;- &quot;_bindingANDexpression.csv&quot; # Binding AND expre
 ypd &lt;- readInRegulatoryMatrix(.file_name = paste0(&quot;data_files/yeastract/Control&quot;,
                                                   file_name_suffix))</code></pre>
 <pre><code>## Rows: 7135 Columns: 5075
-## ── Column specification ─────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────
 ## Delimiter: &quot;;&quot;
 ## chr    (1): 5074
-## dbl (5074): TFC3, VPS8, EFB1, SSA1, ERP2, FUN14, SPO7...
+## dbl (5074): TFC3, VPS8, EFB1, SSA1, ERP2, FUN14, SPO7, MDM10, SWC3,...
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
@@ -518,15 +516,16 @@ regmats &lt;- map(regmats, .f = \(x) {x[setdiff(rownames(x), toRemove),]})</code
 
 # checking for any genes missing from idxs that have network connections
 setdiff(rownames(regmats$YPD)[rowSums(regmats$YPD) &gt; 0], idxs) # YER109C = FLO8, YLR256W = HAP1, YOL028C = YAP7 all unannotated b/c of large sequence differences between Scer and other saccharomyces</code></pre>
-<pre><code>##  [1] &quot;YCR106W&quot; &quot;YDR123C&quot; &quot;YER109C&quot; &quot;YGL254W&quot; &quot;YHR124W&quot;
-##  [6] &quot;YLR013W&quot; &quot;YLR256W&quot; &quot;YOL028C&quot; &quot;YOR113W&quot; &quot;YPL248C&quot;
-## [11] &quot;YJL056C&quot;</code></pre>
+<pre><code>##  [1] &quot;YCR106W&quot; &quot;YDR123C&quot; &quot;YER109C&quot; &quot;YGL254W&quot; &quot;YHR124W&quot; &quot;YLR013W&quot;
+##  [7] &quot;YLR256W&quot; &quot;YOL028C&quot; &quot;YOR113W&quot; &quot;YPL248C&quot; &quot;YJL056C&quot;</code></pre>
 <pre class="r"><code># how many connections are we missing?
-rowSums(regmats$YPD[!(rownames(regmats$YPD) %in% colnames(regmats$YPD)),]) # 1% is acceptable</code></pre>
-<pre><code>## YCR106W YER109C YGL254W YHR124W YLR013W YLR256W YOL028C 
-##       1      30       4     138       3      46      12 
-## YOR113W YPL248C 
-##       6      14</code></pre>
+sum(!(rownames(regmats$YPD) %in% colnames(regmats$YPD))) # should be 0</code></pre>
+<pre><code>## [1] 9</code></pre>
+<pre class="r"><code>rowSums(regmats$YPD[!(rownames(regmats$YPD) %in% colnames(regmats$YPD)),]) # if not 0, how many total connections?</code></pre>
+<pre><code>## YCR106W YER109C YGL254W YHR124W YLR013W YLR256W YOL028C YOR113W 
+##       1      30       4     138       3      46      12       6 
+## YPL248C 
+##      14</code></pre>
 <pre class="r"><code>### making regulator matrices square
 regmats &lt;- map(regmats, \(x) {
   common_idxs &lt;- colnames(x)
@@ -569,38 +568,38 @@ regdf &lt;- map2(regmats, names(regmats), .f = \(x, y) {
   return(outdf)
 }) |&gt; purrr::reduce(.f = bind_rows) |&gt; 
   # adding regulator descriptions
-  left_join(select(yeastract_lookup, systematic, common, description),
+  left_join(dplyr::select(yeastract_lookup, systematic, common, description),
                      by = c(&quot;target&quot;=&quot;systematic&quot;)) |&gt; 
   dplyr::rename(c(&quot;target_description&quot;=&quot;description&quot;,
            &quot;target_common&quot;=&quot;common&quot;)) |&gt; 
-  left_join(select(yeastract_lookup, systematic, common, description),
+  left_join(dplyr::select(yeastract_lookup, systematic, common, description),
             by = c(&quot;regulator&quot;=&quot;systematic&quot;)) |&gt;
-  rename(c(&quot;regulator_description&quot;=&quot;description&quot;,
+  dplyr::rename(c(&quot;regulator_description&quot;=&quot;description&quot;,
            &quot;regulator_common&quot;=&quot;common&quot;))
 regdf</code></pre>
 <pre><code>## # A tibble: 15,897 × 7
-##    regulator target  environment target_common
-##    &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;       &lt;chr&gt;        
-##  1 YAL051W   YAR071W YPD         PHO11        
-##  2 YAL051W   YBR126C YPD         TPS1         
-##  3 YAL051W   YBR135W YPD         CKS1         
-##  4 YAL051W   YDL070W YPD         BDF2         
-##  5 YAL051W   YDR072C YPD         IPT1         
-##  6 YAL051W   YDR077W YPD         SED1         
-##  7 YAL051W   YDR207C YPD         UME6         
-##  8 YAL051W   YDR256C YPD         CTA1         
-##  9 YAL051W   YEL011W YPD         GLC3         
-## 10 YAL051W   YEL060C YPD         PRB1         
+##    regulator target  environment target_common target_description      
+##    &lt;chr&gt;     &lt;chr&gt;   &lt;chr&gt;       &lt;chr&gt;         &lt;chr&gt;                   
+##  1 YAL051W   YAR071W YPD         PHO11         One of three repressibl…
+##  2 YAL051W   YBR126C YPD         TPS1          Synthase subunit of tre…
+##  3 YAL051W   YBR135W YPD         CKS1          Cyclin-dependent protei…
+##  4 YAL051W   YDL070W YPD         BDF2          Protein involved in tra…
+##  5 YAL051W   YDR072C YPD         IPT1          Inositolphosphotransfer…
+##  6 YAL051W   YDR077W YPD         SED1          Major stress-induced st…
+##  7 YAL051W   YDR207C YPD         UME6          Rpd3L histone deacetyla…
+##  8 YAL051W   YDR256C YPD         CTA1          Catalase A breaks down …
+##  9 YAL051W   YEL011W YPD         GLC3          Glycogen branching enzy…
+## 10 YAL051W   YEL060C YPD         PRB1          Vacuolar proteinase B (…
 ## # ℹ 15,887 more rows
-## # ℹ 3 more variables: target_description &lt;chr&gt;,
-## #   regulator_common &lt;chr&gt;, regulator_description &lt;chr&gt;</code></pre>
+## # ℹ 2 more variables: regulator_common &lt;chr&gt;,
+## #   regulator_description &lt;chr&gt;</code></pre>
 <pre class="r"><code># How many regulatory connections are shared between each environment and YPD?
 makeUpsetPlot(mutate(regdf, pair = paste(regulator, target, sep = &quot;_&quot;)), 
               .group_name = &quot;environment&quot;, 
               .group_members = names(regmats),
               .item_names = &quot;pair&quot;, .min_comb_size = 0)</code></pre>
-<pre><code>## Warning: Using an external vector in selections was deprecated in
-## tidyselect 1.1.0.
+<pre><code>## Warning: Using an external vector in selections was deprecated in tidyselect
+## 1.1.0.
 ## ℹ Please use `all_of()` or `any_of()` instead.
 ##   # Was:
 ##   data %&gt;% select(.item_names)
@@ -608,11 +607,10 @@ makeUpsetPlot(mutate(regdf, pair = paste(regulator, target, sep = &quot;_&quot;)
 ##   # Now:
 ##   data %&gt;% select(all_of(.item_names))
 ## 
-## See
-## &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## See &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
 ## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_lifecycle_warnings()` to see where
-## this warning was generated.</code></pre>
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning
+## was generated.</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/ypd-overlap-1.png" width="672" /></p>
 <p>YPD is majority unique connections, but that’s mainly because it has
 so many more than any environment-specific network</p>
@@ -633,10 +631,10 @@ graph in igraph format, good for plotting:</p>
 <pre class="r"><code>getConnectedGraph &lt;- function(.adj) {
   colnames(.adj) &lt;- left_join(tibble(systematic = colnames(.adj)),
                              yeastract_lookup, by = &quot;systematic&quot;) |&gt; 
-    select(common) |&gt; pull()
+    dplyr::select(common) |&gt; pull()
   rownames(.adj) &lt;- left_join(tibble(systematic = rownames(.adj)),
                              yeastract_lookup, by = &quot;systematic&quot;) |&gt; 
-    select(common) |&gt; pull()
+    dplyr::select(common) |&gt; pull()
   regnames &lt;- rownames(.adj)[rowSums(.adj) &gt; 0]
   g &lt;- graph_from_adjacency_matrix(.adj)
   sub_g &lt;- subgraph(g, which(igraph::degree(g) &gt; 0))
@@ -681,21 +679,6 @@ for (r in setdiff(names(regmats), &quot;YPD&quot;)) {
 }</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/igraph-plots-1.png" width="672" /><img src="Fig_yeastract_files/figure-html/igraph-plots-2.png" width="672" /><img src="Fig_yeastract_files/figure-html/igraph-plots-3.png" width="672" /><img src="Fig_yeastract_files/figure-html/igraph-plots-4.png" width="672" /><img src="Fig_yeastract_files/figure-html/igraph-plots-5.png" width="672" /><img src="Fig_yeastract_files/figure-html/igraph-plots-6.png" width="672" /></p>
 </div>
-<div id="number-of-regulators-and-targets-in-each-environmental-network"
-class="section level3">
-<h3>Number of regulators and targets in each environmental network</h3>
-<pre class="r"><code># getting numbers for figure
-for (e in ExperimentNames) {
-  cat(e, &quot;nTargets:&quot;, sum(colSums(regmats[[e]]) != 0),
-      &quot;nRegulators:&quot;, sum(rowSums(regmats[[e]]) != 0), &quot;\n&quot;)
-}</code></pre>
-<pre><code>## HAP4 nTargets: 1121 nRegulators: 34 
-## CC nTargets: 1270 nRegulators: 56 
-## LowN nTargets: 952 nRegulators: 37 
-## LowPi nTargets: 27 nRegulators: 8 
-## Heat nTargets: 419 nRegulators: 24 
-## Cold nTargets: 3 nRegulators: 2</code></pre>
-</div>
 </div>
 <div id="supplementary-figure-stacked-barplots" class="section level2">
 <h2>Supplementary figure: stacked barplots</h2>
@@ -729,7 +712,7 @@ getPlasticityGroup &lt;- function(.cer, .par) {
 <p>Plotting (very large amount of dplyr-ing the plot dataframe):</p>
 <pre class="r"><code>plotdf &lt;- map(ExperimentNames, \(.e) {
   expr_genes &lt;- filter(finaldf, experiment == .e) |&gt; 
-    select(gene_name) |&gt; pull() |&gt; 
+    dplyr::select(gene_name) |&gt; pull() |&gt; 
     intersect(colnames(regmats$YPD))
   tibble(gene_name = expr_genes,
          in_degree_e = colSums(regmats[[.e]][expr_genes, expr_genes]),
@@ -780,8 +763,8 @@ plotdf &lt;- plotdf |&gt; group_by(experiment, plasticity) |&gt;
                            false = if_else(grepl(&quot;genes&quot;, prop_type),
                                            true = &quot;genes&quot;,
                                            false = &quot;env&quot;)))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You
-## can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>totalsdf &lt;- pivot_longer(totalsdf,
                          cols = c(&quot;total_in_e&quot;, &quot;total_in_YPD&quot;,
                                   &quot;total_out_e&quot;, &quot;total_out_YPD&quot;,
@@ -850,15 +833,13 @@ over-representation of single-species plasticiy connections Here we want
 to compare regulators and their regulons from each plasticity group by
 visualizing first the regulator expression across environments and then
 their regulon (or at least the most common plasticity pattern)</p>
-<p>Note: waffle package uses plyr, which superseeds dplyr::summarise,
-causing errors if we don’t unload it once the waffle plots are done</p>
-<pre class="r"><code>library(waffle)
-
-# first how many regulators from each environment are from each plasticity group?
+<p>First making a dataframe of each regulator in each environment and
+the number of connections it has</p>
+<pre class="r"><code># first how many regulators from each environment are from each plasticity group?
 # and how many connections do each of them have?
 tfdf &lt;- map(ExperimentNames, \(.e) {
   expr_genes &lt;- filter(finaldf, experiment == .e) |&gt; 
-    select(gene_name) |&gt; pull() |&gt; 
+    dplyr::select(gene_name) |&gt; pull() |&gt; 
     intersect(colnames(regmats$YPD))
   tibble(gene_name = expr_genes,
          out_degree_e = rowSums(regmats[[.e]][expr_genes, expr_genes])) |&gt; 
@@ -867,7 +848,39 @@ tfdf &lt;- map(ExperimentNames, \(.e) {
 }) |&gt; purrr::reduce(.f = bind_rows)
 tfdf$out_degree_e[is.na(tfdf$out_degree_e)] &lt;- 0
 tfdf &lt;- tfdf |&gt; filter(out_degree_e != 0)
-tfdf$plasticity &lt;- map2(tfdf$cer, tfdf$par, getPlasticityGroup) |&gt; unlist()
+tfdf$plasticity &lt;- map2(tfdf$cer, tfdf$par, getPlasticityGroup) |&gt; unlist()</code></pre>
+<div id="number-of-regulators-and-targets-in-each-environmental-network"
+class="section level3">
+<h3>Number of regulators and targets in each environmental network</h3>
+<pre class="r"><code># getting numbers for figure
+# nTargets
+for (e in ExperimentNames) {
+  cat(e, &quot;nTargets:&quot;, sum(colSums(regmats[[e]]) != 0), &quot;\n&quot;)
+}</code></pre>
+<pre><code>## HAP4 nTargets: 1121 
+## CC nTargets: 1270 
+## LowN nTargets: 952 
+## LowPi nTargets: 27 
+## Heat nTargets: 419 
+## Cold nTargets: 3</code></pre>
+<pre class="r"><code># nRegulators
+tfdf |&gt; group_by(experiment) |&gt; summarise(nRegulators = n())</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   experiment nRegulators
+##   &lt;chr&gt;            &lt;int&gt;
+## 1 CC                  35
+## 2 Cold                 2
+## 3 HAP4                27
+## 4 Heat                20
+## 5 LowN                30
+## 6 LowPi                6</code></pre>
+</div>
+<div id="waffle-plots" class="section level3">
+<h3>Waffle plots</h3>
+<p>Note: waffle package uses plyr, which superseeds dplyr::summarise,
+causing errors if we don’t unload it once the waffle plots are done</p>
+<pre class="r"><code>library(waffle)
+
 plotdf &lt;- tfdf |&gt; 
   dplyr::count(plasticity, experiment, out_degree_e, gene_name) |&gt; 
   arrange(experiment, desc(out_degree_e))
@@ -903,13 +916,12 @@ p &lt;- ggplot(plotdf, aes(fill = plasticity, values = n)) +
   ggtitle(&quot;targets per regulator&quot;)
 p</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/waffle-1.png" width="672" /></p>
-<pre class="r"><code>pdf(&quot;paper_figures/Yeastract/regulator_waffle.pdf&quot;,
-    width = 10.5, height = 2.5)  
-p
-dev.off()</code></pre>
-<pre><code>## quartz_off_screen 
-##                 2</code></pre>
-<pre class="r"><code>### Also creating YPD waffle plot where genes are colored by their plasticity group in each environment
+<pre class="r"><code># pdf(&quot;paper_figures/Yeastract/regulator_waffle.pdf&quot;,
+#     width = 10.5, height = 2.5)  
+# p
+# dev.off()
+
+### Also creating YPD waffle plot where genes are colored by their plasticity group in each environment
 nTargets_thresh &lt;- 21
 # using a common set of genes in all environments, so regulators can be in the same
 # order in each waffle plot, by desc(nTargets)
@@ -973,110 +985,62 @@ dev.off()</code></pre>
 <pre class="r"><code># unloading waffle
 detach(&quot;package:waffle&quot;, unload=TRUE)</code></pre>
 </div>
+</div>
 <div id="example-regulator-regulon-expression" class="section level2">
 <h2>Example regulator-regulon expression</h2>
 <div id="example-i-pho4-regulon-conserved-in-lowpi-diverged-in-hap4"
 class="section level3">
 <h3>Example I: PHO4 regulon conserved in LowPi, diverged in HAP4</h3>
-<pre class="r"><code>e &lt;- &quot;LowPi&quot;
-e2 &lt;- &quot;HAP4&quot;
-# regulator
-reg_idx &lt;- tfdf |&gt; filter(experiment == e) |&gt; 
-  filter(out_degree_e == 24) |&gt; 
-  select(gene_name) |&gt; pull()
-regname &lt;- filter(yeastract_lookup, systematic == reg_idx) |&gt; select(common) |&gt; pull()
-regname # Pho4</code></pre>
-<pre><code>## [1] &quot;PHO4&quot;</code></pre>
-<pre class="r"><code>p_regulator &lt;- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = TRUE,
-                                         .normalization = &quot;log2&quot;,
-                                         .plotlims = c(4.5, 10),
-                                         .experiment_name = e), top = regname) </code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf</code></pre>
-<pre class="r"><code># regulon
-regulon_idxs &lt;- filter(regdf, environment == e &amp; regulator == reg_idx) |&gt; 
-  select(target) |&gt; pull() |&gt; 
-  intersect(y = finaldf[finaldf$experiment == e,]$gene_name)
-p_regulon &lt;- annotate_figure(plotGenes(.gene_idxs = regulon_idxs, .normalization = &quot;scale&quot;,
-                                       .experiment_name = e,
-                                       .quartet = TRUE),
-                             top = paste0(regname, &quot; regulon (&quot;, length(regulon_idxs), &quot; genes)&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre class="r"><code>p_home &lt;- annotate_figure(ggarrange(p_regulator, p_regulon, nrow = 2, ncol = 1),
-                          top = &quot;Low Phosphate&quot;)
-# Diauxic Shift expression
-p_regulator &lt;- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = TRUE,
-                                         .normalization = &quot;log2&quot;,
-                                         .plotlims = c(4.5, 10),
-                                         .experiment_name = e2), top = regname) </code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf</code></pre>
-<pre class="r"><code># regulon
-regulon_idxs &lt;- filter(regdf, environment == e &amp; regulator == reg_idx) |&gt; 
-  select(target) |&gt; pull() |&gt; 
-  intersect(y = finaldf[finaldf$experiment == e,]$gene_name)
-p_regulon &lt;- annotate_figure(plotGenes(.gene_idxs = regulon_idxs, .normalization = &quot;scale&quot;,
-                                       .experiment_name = e2,
-                                       .quartet = TRUE),
-                             top = paste0(regname, &quot; regulon (&quot;, length(regulon_idxs), &quot; genes)&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre class="r"><code>p_divEnv &lt;- annotate_figure(ggarrange(p_regulator, p_regulon, nrow = 2, ncol = 1),
-                            top = &quot;Diauxic Shift&quot;)
-ggarrange(p_home, p_divEnv, nrow = 1, ncol = 2)</code></pre>
+<pre class="r"><code>plotHomeAndAltEnvironments &lt;- function(.tf_common, 
+                                       .reg_idxs = NULL,
+                                       .e, .e2, .plotlims,
+                                       .include_hybrid = TRUE) {
+  e_name &lt;- LongExperimentNames[ExperimentNames == .e]
+  e2_name &lt;- LongExperimentNames[ExperimentNames == .e2]
+  ### Home environment
+  # regulator
+  reg_idx &lt;- yeastract_lookup |&gt; filter(common == .tf_common) |&gt;
+    dplyr::select(all_of(&quot;systematic&quot;)) |&gt; pull()
+  p_regulator &lt;- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = .include_hybrid,
+                                           .normalization = &quot;log2&quot;,
+                                           .plotlims = .plotlims,
+                                           .experiment_name = .e), top = .tf_common) 
+  # regulon
+  if (is.null(.reg_idxs)) {
+    regulon_idxs &lt;- filter(regdf, environment == .e &amp; regulator == reg_idx) |&gt; 
+    dplyr::select(target) |&gt; pull() |&gt; 
+    intersect(y = finaldf[finaldf$experiment == .e,]$gene_name)
+  } else {
+    regulon_idxs &lt;- .reg_idxs
+  }
+  p_regulon &lt;- annotate_figure(plotGenes(.gene_idxs = regulon_idxs, .normalization = &quot;scale&quot;,
+                                         .experiment_name = .e,
+                                         .quartet = .include_hybrid),
+                               top = paste0(.tf_common, &quot; regulon (&quot;, length(regulon_idxs), &quot; genes)&quot;))
+  p_home &lt;- annotate_figure(ggarrange(p_regulator, p_regulon, nrow = 2, ncol = 1),
+                            top = e_name)
+  ### Alt environment
+  # regulator
+  p_regulator &lt;- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = .include_hybrid,
+                                           .normalization = &quot;log2&quot;,
+                                           .plotlims = .plotlims,
+                                           .experiment_name = .e2), top = .tf_common) 
+  # regulon
+  p_regulon &lt;- annotate_figure(plotGenes(.gene_idxs = regulon_idxs, .normalization = &quot;scale&quot;,
+                                         .experiment_name = .e2,
+                                         .quartet = .include_hybrid),
+                               top = paste0(.tf_common, &quot; regulon (&quot;, length(regulon_idxs), &quot; genes)&quot;))
+  p_divEnv &lt;- annotate_figure(ggarrange(p_regulator, p_regulon, nrow = 2, ncol = 1),
+                              top = e2_name)
+  return(ggarrange(p_home, p_divEnv, nrow = 1, ncol = 2))
+}</code></pre>
+<pre class="r"><code>p &lt;- plotHomeAndAltEnvironments(.tf_common = &quot;PHO4&quot;, .e = &quot;LowPi&quot;, 
+                                .e2 = &quot;HAP4&quot;, .plotlims = c(4.5, 10))
+p</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/pho4-1.png" width="672" /></p>
-<pre class="r"><code>pdf(paste0(&quot;paper_figures/Yeastract/&quot;, regname, &quot;.pdf&quot;),
+<pre class="r"><code>pdf(paste0(&quot;paper_figures/Yeastract/PHO4.pdf&quot;),
     width = 6, height = 6)
-ggarrange(p_home, p_divEnv, nrow = 1, ncol = 2)
+p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -1086,106 +1050,13 @@ id="example-ii-gcn4-conserved-in-hu-shock-diverged-in-heat-and-lowpi"
 class="section level3">
 <h3>Example II: GCN4 conserved in HU Shock, diverged in Heat and
 LowPi</h3>
-<pre class="r"><code>e &lt;- &quot;CC&quot;
-e2 &lt;- &quot;Heat&quot;
-reglims &lt;- c(8, 12)
-# regulator
-reg_idx &lt;- tfdf |&gt; filter(experiment == e) |&gt; 
-  filter(out_degree_e == 163) |&gt; 
-  select(gene_name) |&gt; pull()
-regname &lt;- filter(yeastract_lookup, systematic == reg_idx) |&gt; select(common) |&gt; pull()
-regname # GCN4</code></pre>
-<pre><code>## [1] &quot;GCN4&quot;</code></pre>
-<pre class="r"><code>p_regulator &lt;- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = TRUE,
-                                         .normalization = &quot;log2&quot;,
-                                         .plotlims = reglims,
-                                         .experiment_name = e), top = regname) </code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf</code></pre>
-<pre class="r"><code># regulon
-regulon_idxs &lt;- filter(regdf, environment == e &amp; regulator == reg_idx) |&gt; 
-  select(target) |&gt; pull() |&gt; 
-  intersect(y = finaldf[finaldf$experiment == e,]$gene_name)
-p_regulon &lt;- annotate_figure(plotGenes(.gene_idxs = regulon_idxs, .normalization = &quot;scale&quot;,
-                                       .experiment_name = e,
-                                       .quartet = TRUE),
-                             top = paste0(regname, &quot; regulon (&quot;, length(regulon_idxs), &quot; genes)&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre class="r"><code>p_home &lt;- annotate_figure(ggarrange(p_regulator, p_regulon, nrow = 2, ncol = 1),
-                          top = LongExperimentNames[which(ExperimentNames == e)])
-# Other environment expression
-p_regulator &lt;- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = TRUE,
-                                         .normalization = &quot;log2&quot;,
-                                         .plotlims = reglims,
-                                         .experiment_name = e2), top = regname) </code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf</code></pre>
-<pre class="r"><code># regulon
-regulon_idxs &lt;- filter(regdf, environment == e &amp; regulator == reg_idx) |&gt; 
-  select(target) |&gt; pull() |&gt; 
-  intersect(y = finaldf[finaldf$experiment == e,]$gene_name)
-p_regulon &lt;- annotate_figure(plotGenes(.gene_idxs = regulon_idxs, .normalization = &quot;scale&quot;,
-                                       .experiment_name = e2,
-                                       .quartet = TRUE),
-                             top = paste0(regname, &quot; regulon (&quot;, length(regulon_idxs), &quot; genes)&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre class="r"><code>p_divEnv &lt;- annotate_figure(ggarrange(p_regulator, p_regulon, nrow = 2, ncol = 1),
-                            top = LongExperimentNames[which(ExperimentNames == e2)])
-ggarrange(p_home, p_divEnv, nrow = 1, ncol = 2)</code></pre>
+<pre class="r"><code>p &lt;- plotHomeAndAltEnvironments(.tf_common = &quot;GCN4&quot;, .e = &quot;CC&quot;, 
+                                .e2 = &quot;Heat&quot;, .plotlims = c(8, 12))
+p</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/gcn4-1.png" width="672" /></p>
-<pre class="r"><code>pdf(paste0(&quot;paper_figures/Yeastract/&quot;, regname, &quot;.pdf&quot;),
+<pre class="r"><code>pdf(paste0(&quot;paper_figures/Yeastract/GCN4.pdf&quot;),
     width = 6, height = 6)
-ggarrange(p_home, p_divEnv, nrow = 1, ncol = 2)
+p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -1193,106 +1064,13 @@ dev.off()</code></pre>
 <div id="example-iii-hsf1-regulon-conserved-in-heat"
 class="section level3">
 <h3>Example III: HSF1 regulon conserved in Heat</h3>
-<pre class="r"><code>e &lt;- &quot;Heat&quot;
-e2 &lt;- &quot;LowPi&quot;
-reglims &lt;- c(5, 8)
-# regulator
-reg_idx &lt;- tfdf |&gt; filter(experiment == e) |&gt; 
-  filter(out_degree_e == 89) |&gt; 
-  select(gene_name) |&gt; pull()
-regname &lt;- filter(yeastract_lookup, systematic == reg_idx) |&gt; select(common) |&gt; pull()
-regname # HSF1</code></pre>
-<pre><code>## [1] &quot;HSF1&quot;</code></pre>
-<pre class="r"><code>p_regulator &lt;- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = TRUE,
-                                         .normalization = &quot;log2&quot;,
-                                         .plotlims = reglims,
-                                         .experiment_name = e), top = regname) </code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf</code></pre>
-<pre class="r"><code># regulon
-regulon_idxs &lt;- filter(regdf, environment == e &amp; regulator == reg_idx) |&gt; 
-  select(target) |&gt; pull() |&gt; 
-  intersect(y = finaldf[finaldf$experiment == e,]$gene_name)
-p_regulon &lt;- annotate_figure(plotGenes(.gene_idxs = regulon_idxs, .normalization = &quot;scale&quot;,
-                                       .experiment_name = e,
-                                       .quartet = TRUE),
-                             top = paste0(regname, &quot; regulon (&quot;, length(regulon_idxs), &quot; genes)&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre class="r"><code>p_home &lt;- annotate_figure(ggarrange(p_regulator, p_regulon, nrow = 2, ncol = 1),
-                          top = LongExperimentNames[which(ExperimentNames == e)])
-# Diauxic Shift expression
-p_regulator &lt;- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = TRUE,
-                                         .normalization = &quot;log2&quot;,
-                                         .plotlims = reglims,
-                                         .experiment_name = e2), top = regname) </code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre><code>## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf
-## Warning in max(ids, na.rm = TRUE): no non-missing
-## arguments to max; returning -Inf</code></pre>
-<pre class="r"><code># regulon
-regulon_idxs &lt;- filter(regdf, environment == e &amp; regulator == reg_idx) |&gt; 
-  select(target) |&gt; pull() |&gt; 
-  intersect(y = finaldf[finaldf$experiment == e,]$gene_name)
-p_regulon &lt;- annotate_figure(plotGenes(.gene_idxs = regulon_idxs, .normalization = &quot;scale&quot;,
-                                       .experiment_name = e2,
-                                       .quartet = TRUE),
-                             top = paste0(regname, &quot; regulon (&quot;, length(regulon_idxs), &quot; genes)&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre class="r"><code>p_divEnv &lt;- annotate_figure(ggarrange(p_regulator, p_regulon, nrow = 2, ncol = 1),
-                            top = LongExperimentNames[which(ExperimentNames == e2)])
-ggarrange(p_home, p_divEnv, nrow = 1, ncol = 2)</code></pre>
+<pre class="r"><code>p &lt;- plotHomeAndAltEnvironments(.tf_common = &quot;HSF1&quot;, .e = &quot;Heat&quot;, 
+                                .e2 = &quot;LowPi&quot;, .plotlims = c(5, 8))
+p</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/hsf1-1.png" width="672" /></p>
-<pre class="r"><code>pdf(paste0(&quot;paper_figures/Yeastract/&quot;, regname, &quot;.pdf&quot;),
+<pre class="r"><code>pdf(paste0(&quot;paper_figures/Yeastract/HSF1.pdf&quot;),
     width = 6, height = 6)
-ggarrange(p_home, p_divEnv, nrow = 1, ncol = 2)
+p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -1338,12 +1116,12 @@ p2 &lt;- ggplot(plotdf, aes(x = log2(var_expr_cer))) +
   xlab(&quot;Var Expression (log2)&quot;)
 annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
                           legend = &quot;right&quot;, ncol = 1, nrow = 2), top = &quot;Scer&quot;)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/variance-1.png" width="672" /></p>
 <pre class="r"><code># Var/Mean by plasticity category, Spar
 p1 &lt;- ggplot(plotdf, aes(x = log2(mean_expr_par))) + 
@@ -1360,13 +1138,429 @@ p2 &lt;- ggplot(plotdf, aes(x = log2(var_expr_par))) +
   xlab(&quot;Var Expression (log2)&quot;)
 annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
                           legend = &quot;right&quot;, ncol = 1, nrow = 2), top = &quot;Spar&quot;)</code></pre>
-<pre><code>## Warning: Removed 4 rows containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 4 rows containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 4 rows containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 4 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 4 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 4 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
 <p><img src="Fig_yeastract_files/figure-html/variance-2.png" width="672" /></p>
+</div>
+</div>
+<div id="regulon-plasticity-divergence-across-environments"
+class="section level2">
+<h2>Regulon plasticity divergence across environments</h2>
+<p>In the three examples above, we see that the regulons have strongly
+conserved plasticity in their home environment and tend to have more
+divergent plasticity in alternative environments. How common is
+this?</p>
+<div
+id="fisher-exact-tests-of-regulatory-interactions-being-enriched-among-conserved-plasticity-target-genes"
+class="section level3">
+<h3>Fisher exact tests of regulatory interactions being enriched among
+conserved plasticity target genes</h3>
+<pre class="r"><code># each row is one regulatory interaction between one target and one regulator
+plotdf &lt;- purrr::map2(names(regmats), regmats, \(nm, mat) {
+  taget_names_diverged &lt;- finaldf$gene_name[finaldf$experiment == nm &amp; finaldf$plasticity == &quot;diverged&quot;]
+  taget_names_conserved &lt;- finaldf$gene_name[finaldf$experiment == nm &amp; finaldf$plasticity == &quot;conserved&quot;]
+  bind_rows(x = tibble(experiment = nm,
+                       plasticity = &quot;conserved&quot;,
+                       nGenes = length(taget_names_conserved),
+                       nInteractions = sum(mat[,colnames(mat) %in% taget_names_conserved])),
+            y = tibble(experiment = nm,
+                       plasticity = &quot;diverged&quot;,
+                       nGenes = length(taget_names_diverged),
+                       nInteractions = sum(mat[,colnames(mat) %in% taget_names_diverged])))
+}) |&gt; purrr::reduce(.f = bind_rows)
+plotlist &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
+names(plotlist) &lt;- ExperimentNames
+for (e in ExperimentNames) {
+  plotdf_e &lt;- plotdf |&gt; filter(experiment == e)
+  fisher_mat &lt;- plotdf_e |&gt; 
+    dplyr::select(nGenes, nInteractions) |&gt; as.matrix()
+  rownames(fisher_mat) &lt;- plotdf_e$plasticity
+  fisher_test &lt;- fisher_mat |&gt; fisher.test()
+  fisher_odds &lt;- fisher_test$estimate
+  fisher_pvalue &lt;- fisher_test$p.value
+  knitr::kable(fisher_mat, row.names = TRUE,
+               caption = paste0(&quot;Experiment = &quot;, e, 
+                                &quot;Fisher odds ratio = &quot;, fisher_odds, 
+                                &quot;p-value = &quot;, fisher_pvalue)) |&gt; print()
+  plotdf_e &lt;- pivot_longer(plotdf_e, cols = c(&quot;nGenes&quot;, &quot;nInteractions&quot;))
+  plotlist[[e]] &lt;- ggplot(plotdf_e, aes(x = name, y = plasticity)) +
+    geom_label(aes(label = value), size = 5) +
+    geom_vline(xintercept = 1.5) +
+    geom_hline(yintercept = 1.5) +
+    theme_classic() +
+    xlab(&quot;&quot;) +
+    ggtitle(paste0(LongExperimentNames[ExperimentNames == e], 
+                   &quot;\nFisher odds ratio = &quot;, round(fisher_odds, digits = 2), 
+                   &quot;\np-value = &quot;, formatC(fisher_pvalue))) +
+    theme(plot.title = element_text(size = 8))
+}</code></pre>
+<pre><code>## 
+## 
+## Table: Experiment = HAP4Fisher odds ratio = 0.682369626478413p-value = 4.08946347222014e-09
+## 
+## |          | nGenes| nInteractions|
+## |:---------|------:|-------------:|
+## |conserved |   2831|          1172|
+## |diverged  |   1455|           411|
+## 
+## 
+## Table: Experiment = CCFisher odds ratio = 0.752793002139748p-value = 5.4880661472393e-06
+## 
+## |          | nGenes| nInteractions|
+## |:---------|------:|-------------:|
+## |conserved |   2186|           911|
+## |diverged  |   1766|           554|
+## 
+## 
+## Table: Experiment = LowNFisher odds ratio = 0.665391352333346p-value = 6.42197964902612e-08
+## 
+## |          | nGenes| nInteractions|
+## |:---------|------:|-------------:|
+## |conserved |   3107|           959|
+## |diverged  |   1305|           268|
+## 
+## 
+## Table: Experiment = LowPiFisher odds ratio = 0.141742263834348p-value = 7.47666784538156e-05
+## 
+## |          | nGenes| nInteractions|
+## |:---------|------:|-------------:|
+## |conserved |   2638|            32|
+## |diverged  |   1745|             3|
+## 
+## 
+## Table: Experiment = HeatFisher odds ratio = 0.4166811219463p-value = 1.38961917215029e-16
+## 
+## |          | nGenes| nInteractions|
+## |:---------|------:|-------------:|
+## |conserved |   2429|           378|
+## |diverged  |   1743|           113|
+## 
+## 
+## Table: Experiment = ColdFisher odds ratio = 0.845499633453142p-value = 1
+## 
+## |          | nGenes| nInteractions|
+## |:---------|------:|-------------:|
+## |conserved |   2265|             3|
+## |diverged  |   1786|             2|</code></pre>
+<p>2 x 2 fisher matrices for paper figure:</p>
+<pre class="r"><code>ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)</code></pre>
+<p><img src="Fig_yeastract_files/figure-html/fisher-plots-1.png" width="672" /></p>
+<pre class="r"><code>pdf(file = paste0(&quot;paper_figures/Yeastract/fisher.pdf&quot;),
+      width = 7, height = 4)
+ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div
+id="histograms-of-how-conserved-genes-tend-to-have-more-regulators-in-each-environment"
+class="section level3">
+<h3>Histograms of how conserved genes tend to have more regulators in
+each environment</h3>
+<pre class="r"><code>plotdf &lt;- purrr::map2(names(regmats), regmats, \(nm, mat) {
+  tibble(target_name = colnames(mat),
+         experiment = nm,
+         nRegulators = colSums(mat))
+}) |&gt; purrr::reduce(.f = bind_rows) |&gt; 
+  right_join(y = finaldf, by = c(&quot;target_name&quot;=&quot;gene_name&quot;,
+                                 &quot;experiment&quot;)) |&gt; 
+  drop_na()
+plot_table &lt;- plotdf |&gt; group_by(experiment, plasticity) |&gt; 
+  summarise(n = n())</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<pre class="r"><code>plotdf_downsampled &lt;- plotdf |&gt; group_by(experiment, plasticity) |&gt; 
+  slice_sample(n = min(plot_table$n))
+ggplot(plotdf_downsampled, aes(x = nRegulators)) +
+  # geom_density(aes(fill = plasticity, y = after_stat(count)), 
+  #              alpha = 0.25, bw = 1) +
+  geom_histogram(aes(fill = plasticity, y = after_stat(count)), position = &quot;dodge&quot;,
+                 binwidth = 0.5) +
+  facet_wrap(~factor(experiment,
+                     levels = ExperimentNames,
+                     labels = LongExperimentNames)) +
+  theme_classic() +
+  xlab(&quot;number of regulators per target gene&quot;) +
+  scale_x_continuous(breaks = c(0:7)) +
+  scale_fill_discrete(limits = c(&quot;conserved&quot;, &quot;diverged&quot;),
+                      type = c(colordf$type[colordf$limits == &quot;conserved level and plasticity&quot;],
+                             colordf$type[colordf$limits == &quot;diverged level and plasticity&quot;]))</code></pre>
+<p><img src="Fig_yeastract_files/figure-html/n-regulators-per-target-histogram-1.png" width="672" /></p>
+<pre class="r"><code>p &lt;- ggplot(filter(plotdf, nRegulators &gt; 0), 
+            aes(x = nRegulators)) +
+  geom_histogram(aes(fill = plasticity), 
+                 position = position_dodge(width = 0.5), stat=&quot;count&quot;) +
+  theme_classic() +
+  geom_label(stat = &quot;count&quot;, aes(label=..count.., group = plasticity), 
+             position = position_dodge(width = 0.5), label.size = NA,
+             alpha = 0, vjust = -0.25) +
+  xlab(&quot;number of regulators per target gene&quot;) +
+  scale_x_continuous(breaks = c(0:7)) +
+  scale_fill_discrete(limits = c(&quot;conserved&quot;, &quot;diverged&quot;),
+                      type = c(colordf$type[colordf$limits == &quot;conserved level and plasticity&quot;],
+                               colordf$type[colordf$limits == &quot;diverged level and plasticity&quot;])) +
+  ylim(c(0, 1560))</code></pre>
+<pre><code>## Warning in geom_histogram(aes(fill = plasticity), position =
+## position_dodge(width = 0.5), : Ignoring unknown parameters: `binwidth`
+## and `bins`</code></pre>
+<pre><code>## Warning: The `label.size` argument of `geom_label()` is deprecated as of
+## ggplot2 3.5.0.
+## ℹ Please use the `linewidth` argument instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning
+## was generated.</code></pre>
+<pre class="r"><code>p</code></pre>
+<pre><code>## Warning: The dot-dot notation (`..count..`) was deprecated in ggplot2 3.4.0.
+## ℹ Please use `after_stat(count)` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning
+## was generated.</code></pre>
+<p><img src="Fig_yeastract_files/figure-html/histogram-all-environments-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Yeastract/histogram.pdf&quot;,
+    width = 3, height = 2)
+p + theme(legend.position = &quot;none&quot;)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+</div>
+<div
+id="regulons-have-a-higher-percentage-of-conserved-plasticity-genes-in-their-home-environment-vs-alternative-environments"
+class="section level2">
+<h2>Regulons have a higher percentage of conserved plasticity genes in
+their home environment vs alternative environments</h2>
+<p>For each large regulon (top 5 in each environment, 2 from cold), we
+will look at the fraction of genes with conserved plasticity in each
+environment.</p>
+<pre class="r"><code>plotdf &lt;- tfdf |&gt; group_by(experiment) |&gt; 
+  mutate(rank = rank(-out_degree_e, ties.method = &quot;first&quot;)) |&gt; 
+  ungroup() |&gt; filter(rank &lt;= 5) |&gt; 
+  dplyr::rename(c(&quot;home&quot;=&quot;experiment&quot;, &quot;tf&quot;=&quot;gene_name&quot;))
+# adding fraction conserved plasticity in each environment
+plotdf_pcts &lt;- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
+  home_mat &lt;- regmats[[h]]
+  h_idxs &lt;- finaldf |&gt; filter(experiment == h) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+  regulon_idxs &lt;- intersect(colnames(home_mat)[home_mat[tf,] &gt; 0], h_idxs)
+  outdf &lt;- purrr::map(ExperimentNames, \(e) {
+    e_plast_genes &lt;- finaldf |&gt;
+      filter(experiment == e &amp; plasticity == &quot;conserved&quot;) |&gt;
+      dplyr::select(gene_name) |&gt; pull()
+    e_genedf &lt;- tibble(tf = tf,
+                       home = h,
+                       experiment = e,
+                       n = length(regulon_idxs),
+                       nConsPlast = sum(regulon_idxs %in% e_plast_genes))
+    return(e_genedf)
+  }) |&gt; purrr::reduce(.f = bind_rows)
+  return(outdf)
+}) |&gt; purrr::reduce(.f = bind_rows)</code></pre>
+<p>plotting:</p>
+<pre class="r"><code>gcn4 &lt;- &quot;YEL009C&quot;
+hsf1 &lt;- &quot;YGL073W&quot;
+pho4 &lt;- &quot;YFR034C&quot;
+p &lt;- ggplot() +
+  geom_histogram(data = filter(plotdf_pcts, home != experiment),
+                 aes(x = nConsPlast/n), fill = &quot;grey&quot;) +
+  geom_vline(data = filter(plotdf_pcts, home != experiment),
+             aes(xintercept = mean(nConsPlast/n)), color = &quot;black&quot;, linetype = &quot;dashed&quot;) +
+  geom_vline(data = filter(plotdf_pcts, home == experiment),
+             aes(xintercept = nConsPlast/n), color = &quot;red&quot;) +
+  # annotating example tfs
+  # GCN4
+  geom_vline(data = filter(plotdf_pcts, home == experiment &amp;
+                             home == &quot;CC&quot; &amp; tf == gcn4), aes(xintercept = nConsPlast/n), color = &quot;blue&quot;) +
+  # HSF1
+  geom_vline(data = filter(plotdf_pcts, home == experiment &amp;
+                             home == &quot;Heat&quot; &amp; tf == hsf1), aes(xintercept = nConsPlast/n), color = &quot;blue&quot;) +
+  # PHO4
+  geom_vline(data = filter(plotdf_pcts, home == experiment &amp;
+                             home == &quot;LowPi&quot; &amp; tf == pho4), aes(xintercept = nConsPlast/n), color = &quot;blue&quot;) +
+  facet_wrap(~factor(home, 
+                     levels = ExperimentNames, 
+                     labels = LongExperimentNames),
+             nrow = 1) +
+  theme_classic() +
+  theme(legend.position = &quot;none&quot;,
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +
+  scale_y_continuous(breaks = c(1:10)) + 
+  xlab(&quot;fraction of regulon with conserved plasticity&quot;)
+p</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</code></pre>
+<p><img src="Fig_yeastract_files/figure-html/regulon-pct-conserved-plasticity-plotting-1.png" width="672" /></p>
+<p>Outputting to pdf:</p>
+<pre class="r"><code>pdf(&quot;paper_figures/Yeastract/histogram_regulons.pdf&quot;,
+    width = 9, height = 2)
+p</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div
+id="supplemental-table-3-regulators-and-their-regulons-in-each-environment"
+class="section level2">
+<h2>Supplemental Table 3: regulators and their regulons in each
+environment</h2>
+<pre class="r"><code>plotdf &lt;- tfdf |&gt; dplyr::rename(c(&quot;home&quot;=&quot;experiment&quot;, &quot;tf&quot;=&quot;gene_name&quot;))
+# dataframe of fraction conserved plasticity in each environment (same starting code as from regulon-pct-conserved-plasticity)
+consplastdf &lt;- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
+  home_mat &lt;- regmats[[h]]
+  h_idxs &lt;- finaldf |&gt; filter(experiment == h) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+  regulon_idxs &lt;- intersect(colnames(home_mat)[home_mat[tf,] &gt; 0], h_idxs)
+  outdf &lt;- purrr::map(ExperimentNames, \(e) {
+    e_plast_genes &lt;- finaldf |&gt;
+      filter(experiment == e &amp; plasticity == &quot;conserved&quot;) |&gt;
+      dplyr::select(gene_name) |&gt; pull()
+    e_genedf &lt;- tibble(tf = tf,
+                       home = h,
+                       experiment = e,
+                       n = length(regulon_idxs),
+                       nConsPlast = sum(regulon_idxs %in% e_plast_genes))
+    return(e_genedf)
+  }) |&gt; purrr::reduce(.f = bind_rows)
+  return(outdf)
+}) |&gt; purrr::reduce(.f = bind_rows) |&gt; 
+  mutate(pct_cons_plast = nConsPlast/n) |&gt; 
+  dplyr::select(tf, home, experiment, pct_cons_plast) |&gt; 
+  pivot_wider(id_cols = c(&quot;tf&quot;, &quot;home&quot;),
+              names_from = &quot;experiment&quot;,
+              values_from = &quot;pct_cons_plast&quot;,
+              names_prefix = &quot;percent_conserved_plasticity_&quot;)
+suppTable3 &lt;- tfdf |&gt; dplyr::rename(c(&quot;home&quot;=&quot;experiment&quot;, &quot;tf&quot;=&quot;gene_name&quot;, 
+                               &quot;regulon_size&quot;=&quot;out_degree_e&quot;, 
+                               &quot;log2foldChange_parents&quot;=&quot;effect_size_species&quot;,
+                               &quot;log2foldChange_hybrid&quot;=&quot;effect_size_allele&quot;,
+                               &quot;padj_parents&quot;=&quot;padj_species&quot;,
+                               &quot;padj_hybrid&quot;=&quot;padj_allele&quot;)) |&gt; 
+  left_join(y = dplyr::select(yeastract_lookup, 
+                       common, systematic), 
+            by = c(&quot;tf&quot;=&quot;systematic&quot;)) |&gt; 
+  dplyr::select(home, tf, common, regulon_size,
+         log2foldChange_parents,
+         log2foldChange_hybrid,
+         padj_parents, padj_hybrid, plasticity, 
+         cor_parents, cor_hybrid, cor_scer, cor_spar) |&gt; 
+  left_join(y = consplastdf, by = c(&quot;tf&quot;, &quot;home&quot;))</code></pre>
+<p>Writing supp table to csv:</p>
+<pre class="r"><code>write_csv(suppTable3, file = &quot;data_files/Supplementary_Table3.csv&quot;,
+          col_names = TRUE)</code></pre>
+<div
+id="todo-i-accidentally-git-restored-fml-and-removed-the-chi-sq-tests.-theyre-not-tricky-just-testing-for-chi-sq-enrichment-among-the-6-gene-groups-that-arent-conserved-plasticity-i.e.-1-0-2-1-2-0-not-2-2-1-1-0-0"
+class="section level3">
+<h3>TODO: I accidentally git restored (fml) and removed the chi-sq
+tests. They’re not tricky just testing for chi-sq enrichment among the 6
+gene groups that aren’t conserved plasticity (i.e. 1-0, 2-1, 2-0, not
+2-2, 1-1, 0-0)</h3>
+<pre class="r"><code>if (file.exists(&quot;data_files/ChiSq.RData&quot;)) {
+  load(&quot;data_files/ChiSq.RData&quot;)
+}
+chisqdf$adj_pval &lt;- p.adjust(chisqdf$chi_pval, method = &quot;BH&quot;)</code></pre>
+</div>
+<div
+id="supplementary-figure-avg-expression-of-largest-gene-group-for-each-regulator-that-was-a-sig-hit-in-the-chisqdf"
+class="section level3">
+<h3>Supplementary Figure: avg expression of largest gene group for each
+regulator that was a sig hit in the chisqdf</h3>
+<pre class="r"><code>plotdf &lt;- chisqdf |&gt; group_by(tf) |&gt; 
+  summarise(nSig = sum(adj_pval &lt; 0.05))
+sum(plotdf$nSig != 0)</code></pre>
+<pre><code>## [1] 26</code></pre>
+<pre class="r"><code>nrow(plotdf)</code></pre>
+<pre><code>## [1] 29</code></pre>
+<pre class="r"><code>sum(plotdf$nSig != 0)/nrow(plotdf) # % of regulators with at least one divergent environment, counting each regulator once</code></pre>
+<pre><code>## [1] 0.8965517</code></pre>
+<pre class="r"><code>plotdf &lt;- chisqdf |&gt; group_by(tf, home) |&gt; 
+  summarise(nSig = sum(adj_pval &lt; 0.05))
+sum(plotdf$nSig != 0)</code></pre>
+<pre><code>## [1] 37</code></pre>
+<pre class="r"><code>nrow(plotdf)</code></pre>
+<pre><code>## [1] 41</code></pre>
+<pre class="r"><code>sum(plotdf$nSig != 0)/nrow(plotdf) # % of regulators with at least one divergent environment, counting regulators with multiple homes multiple times</code></pre>
+<pre><code>## [1] 0.902439</code></pre>
+<pre class="r"><code>plotdf_sig &lt;- filter(chisqdf, adj_pval &lt; 0.05) |&gt; 
+  dplyr::select(all_of(c(&quot;tf&quot;, &quot;home&quot;))) |&gt; unique()
+plotlist &lt;- map(c(1:nrow(plotdf_sig)), \(i) {
+  cat(i, &quot;/&quot;, nrow(plotdf_sig), &quot;\n&quot;)
+  tf &lt;- plotdf_sig$tf[i]
+  tf_common &lt;- yeastract_lookup |&gt; filter(systematic == tf) |&gt; 
+    dplyr::select(all_of(&quot;common&quot;)) |&gt; pull()
+  e &lt;- plotdf_sig$home[i]
+  reg_idxs &lt;- filter(regdf, regulator == tf &amp; environment == e) |&gt;
+    dplyr::select(all_of(&quot;target&quot;)) |&gt; pull()
+  countdf &lt;- finaldf |&gt; filter(gene_name %in% reg_idxs) |&gt; 
+    dplyr::select(all_of(c(&quot;gene_name&quot;, &quot;experiment&quot;, &quot;cer&quot;, &quot;par&quot;))) |&gt; 
+    group_by(experiment, cer, par) |&gt; 
+    summarise(n = n()) |&gt; filter(cer != par &amp; experiment != e) |&gt; 
+    arrange(desc(n))
+  cer_clust &lt;- countdf$cer[1]
+  par_clust &lt;- countdf$par[1]
+  e2 &lt;- countdf$experiment[1]
+  regulondf &lt;- regdf |&gt; filter(regulator == tf &amp; environment == e) |&gt; 
+    left_join(filter(finaldf, experiment == e2),
+              by = c(&quot;target&quot;=&quot;gene_name&quot;))
+  gene_idxs &lt;- regulondf |&gt; filter(cer == cer_clust &amp; par == par_clust) |&gt; 
+    dplyr::select(all_of(&quot;target&quot;)) |&gt; pull()
+  p &lt;- plotHomeAndAltEnvironments(.tf_common = tf_common,
+                                  .reg_idxs = gene_idxs,
+                                  .e = e, .e2 = e2, .plotlims = c(0, 12), .include_hybrid = FALSE)
+  return(p)
+})</code></pre>
+<pre><code>## 1 / 37</code></pre>
+<pre><code>## 2 / 37</code></pre>
+<pre><code>## 3 / 37</code></pre>
+<pre><code>## 4 / 37</code></pre>
+<pre><code>## 5 / 37</code></pre>
+<pre><code>## 6 / 37</code></pre>
+<pre><code>## 7 / 37</code></pre>
+<pre><code>## 8 / 37</code></pre>
+<pre><code>## 9 / 37</code></pre>
+<pre><code>## 10 / 37</code></pre>
+<pre><code>## 11 / 37</code></pre>
+<pre><code>## 12 / 37</code></pre>
+<pre><code>## 13 / 37</code></pre>
+<pre><code>## 14 / 37</code></pre>
+<pre><code>## 15 / 37</code></pre>
+<pre><code>## 16 / 37</code></pre>
+<pre><code>## 17 / 37</code></pre>
+<pre><code>## 18 / 37</code></pre>
+<pre><code>## 19 / 37</code></pre>
+<pre><code>## 20 / 37</code></pre>
+<pre><code>## 21 / 37</code></pre>
+<pre><code>## 22 / 37</code></pre>
+<pre><code>## 23 / 37</code></pre>
+<pre><code>## 24 / 37</code></pre>
+<pre><code>## 25 / 37</code></pre>
+<pre><code>## 26 / 37</code></pre>
+<pre><code>## 27 / 37</code></pre>
+<pre><code>## 28 / 37</code></pre>
+<pre><code>## 29 / 37</code></pre>
+<pre><code>## 30 / 37</code></pre>
+<pre><code>## 31 / 37</code></pre>
+<pre><code>## 32 / 37</code></pre>
+<pre><code>## 33 / 37</code></pre>
+<pre><code>## 34 / 37</code></pre>
+<pre><code>## 35 / 37</code></pre>
+<pre><code>## 36 / 37</code></pre>
+<pre><code>## 37 / 37</code></pre>
+<pre class="r"><code>ggarrange(plotlist = plotlist, ncol = 2,
+          nrow = ceiling(length(plotlist)/2))</code></pre>
+<p><img src="Fig_yeastract_files/figure-html/supp-regulons-1.png" width="672" /></p>
+<pre class="r"><code># adding blank plot for key in main figure
+p_blank &lt;- ggplot() + theme_void()
+plotlist0 &lt;- c(list(p_blank), plotlist)
+pdf(&quot;paper_figures/Yeastract/Supp_regulons.pdf&quot;,
+    width = 12, height = 4*ceiling(length(plotlist0)/2))
+ggarrange(plotlist = plotlist0, ncol = 2,
+          nrow = ceiling(length(plotlist0)/2))
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
 </div>
 </div>
 

@@ -386,10 +386,10 @@ across all 6 environments</h1>
 ## This message can be suppressed by:
 ##   suppressPackageStartupMessages(library(ComplexHeatmap))
 ## ========================================</code></pre>
-<pre><code>##        stringr   RColorBrewer       circlize 
-##           TRUE           TRUE           TRUE 
-##       ggridges ComplexHeatmap 
-##           TRUE           TRUE</code></pre>
+<pre><code>##        stringr   RColorBrewer       circlize       ggridges 
+##           TRUE           TRUE           TRUE           TRUE 
+## ComplexHeatmap 
+##           TRUE</code></pre>
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
 load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
 load(&quot;data_files/Cleaned_Counts.RData&quot;)
@@ -491,18 +491,18 @@ ggarrange(plotClusterPatternByExperiment(clusterdf_list$HAP4_2$df, .experiment =
           p_blank,
           plotClusterPatternByExperiment(clusterdf_list$Cold_2$df, .experiment = &quot;Cold&quot;),
           nrow = 3, ncol = 3, common.legend = FALSE, widths = c(2, 0.5, 2))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.
+## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -515,8 +515,8 @@ class="section level2">
               values_from = &quot;group4&quot;) |&gt; 
   pivot_longer(cols = ExperimentNames, names_to = &quot;experiment&quot;,
                values_to = &quot;group5&quot;) # to add NA values for low expression</code></pre>
-<pre><code>## Warning: Using an external vector in selections was deprecated in
-## tidyselect 1.1.0.
+<pre><code>## Warning: Using an external vector in selections was deprecated in tidyselect
+## 1.1.0.
 ## ℹ Please use `all_of()` or `any_of()` instead.
 ##   # Was:
 ##   data %&gt;% select(ExperimentNames)
@@ -524,11 +524,10 @@ class="section level2">
 ##   # Now:
 ##   data %&gt;% select(all_of(ExperimentNames))
 ## 
-## See
-## &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
+## See &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
 ## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_lifecycle_warnings()` to see where
-## this warning was generated.</code></pre>
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning
+## was generated.</code></pre>
 <pre class="r"><code>plotdf$group5 &lt;- if_else(is.na(plotdf$group5), true = &quot;lowly expressed&quot;,
                          false = plotdf$group5) |&gt; 
   factor(levels = c(&quot;conserved level and plasticity&quot;,
@@ -605,8 +604,8 @@ plasticity</p>
 <pre class="r"><code>plotdf &lt;- finaldf |&gt; # filter(plasticity == &quot;diverged&quot;) |&gt; 
   group_by(experiment, cer, par) |&gt; 
   summarise(n = n())</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;, &#39;cer&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;, &#39;cer&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>plotdf$long_experiment &lt;- map(plotdf$experiment, \(e) {
   LongExperimentNames[which(ExperimentNames == e)]
 }) |&gt; factor(levels = LongExperimentNames)
@@ -629,10 +628,15 @@ plotdf$type &lt;- map2(plotdf$cer, plotdf$par, \(x, y) {
     return(&quot;reversal&quot;)
   }
 }) |&gt; unlist()
+plotdf_sums &lt;- plotdf |&gt; group_by(long_experiment) |&gt; 
+  summarise(n_Exp = sum(n))
+plotdf &lt;- left_join(plotdf, plotdf_sums, 
+                    by = &quot;long_experiment&quot;)
+plotdf$pct &lt;- (plotdf$n/plotdf$n_Exp) |&gt; formatC(digits = 1)
 p &lt;- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
   geom_tile() +
-  geom_text(aes(label = n,
-                color = grepl(pattern = &quot;conserved&quot;, x = type))) +
+  geom_text(aes(label = pct,
+                color = grepl(pattern = &quot;conserved&quot;, x = type)), size = 3) +
   scale_color_discrete(limits = c(TRUE, FALSE),
                        type = c(&quot;grey40&quot;, &quot;white&quot;)) +
   scale_fill_discrete(limits = colordf[colordf$scheme == &quot;plasticity&quot;,]$limits,
@@ -642,13 +646,25 @@ p &lt;- ggplot(plotdf, aes(x = cer, y = par, fill = type)) +
   xlab(&quot;Scer plasticity cluster&quot;) +
   ylab(&quot;Spar plasticity cluster&quot;) +
   guides(fill=guide_legend(title=&quot;number of genes&quot;)) +
-  theme(legend.position = &quot;none&quot;)
+  theme(legend.position = &quot;none&quot;,
+        panel.spacing.y = unit(1, &quot;cm&quot;))
 pdf(&quot;paper_figures/EnvironmentalPatterns/plasticity_counts_heatmap.pdf&quot;,
     width = 4, height = 3)
 p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
+<p>nGenes per experiment for paper figure:</p>
+<pre class="r"><code>plotdf_sums</code></pre>
+<pre><code>## # A tibble: 6 × 2
+##   long_experiment   n_Exp
+##   &lt;fct&gt;             &lt;int&gt;
+## 1 Diauxic Shift      4286
+## 2 Hydroxyurea Shock  3952
+## 3 Low Nitrogen       4412
+## 4 Low Phosphate      4383
+## 5 Heat Stress        4172
+## 6 Cold Stress        4051</code></pre>
 </div>
 <div
 id="divergence-category-in-one-environment-is-a-poor-predictor-of-other-environments"
@@ -721,18 +737,26 @@ between strains</h3>
 <p>Genes with higher Log2 fold change in Scer:</p>
 <pre class="r"><code>plot_mat &lt;- matrix(nrow = length(ExperimentNames),
                    ncol = length(ExperimentNames))
+plot_counts &lt;- matrix(nrow = length(ExperimentNames),
+                      ncol = length(ExperimentNames))
 # up in Scer
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
-    e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
-                                       level == &quot;diverged&quot; &amp;
-                                       sign(effect_size_species) == 1) |&gt; 
+    e_gene_idxs &lt;- finaldf |&gt; 
+      filter(experiment == e_row &amp; 
+               level == &quot;diverged&quot; &amp;
+               sign(effect_size_species) == 1) |&gt; 
       dplyr::select(gene_name) |&gt; pull()
-    avg_lfc &lt;- finaldf |&gt; filter(experiment == e_col &amp; 
-                                   gene_name %in% e_gene_idxs) |&gt; 
-      dplyr::select(effect_size_species) |&gt; pull() |&gt; mean()
+    avg_lfc &lt;- finaldf |&gt; 
+      filter(experiment == e_col &amp; 
+               gene_name %in% e_gene_idxs) |&gt; 
+      dplyr::select(effect_size_species) |&gt; 
+      pull() |&gt; mean()
+    n_genes &lt;- length(e_gene_idxs)
     plot_mat[which(ExperimentNames == e_row),
              which(ExperimentNames == e_col)] &lt;- avg_lfc
+    plot_counts[which(ExperimentNames == e_row),
+                which(ExperimentNames == e_col)] &lt;- n_genes
   }
 }
 colnames(plot_mat) &lt;- LongExperimentNames
@@ -744,18 +768,32 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
-        })
+        },
+        show_heatmap_legend = FALSE)
 p</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/heatmap-upScer-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_scer.pdf&quot;,
-    width = 5, height = 3)
+    width = 4, height = 3)
 p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
+<p>Legend and number of genes for paper figure (should be all the same
+number of genes for each row):</p>
+<pre class="r"><code>plot_counts</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6]
+## [1,]  561  561  561  561  561  561
+## [2,]  898  898  898  898  898  898
+## [3,]  987  987  987  987  987  987
+## [4,]  687  687  687  687  687  687
+## [5,]  906  906  906  906  906  906
+## [6,] 1092 1092 1092 1092 1092 1092</code></pre>
+<pre class="r"><code>lgd &lt;- Legend(col_fun = col_fun, title = &quot;avgerage log2 fold change&quot;,  direction = &quot;horizontal&quot;) # need to run draw(lgd) in the console</code></pre>
 <p>Genes with higher Log2 fold change in Spar:</p>
 <pre class="r"><code>plot_mat &lt;- matrix(nrow = length(ExperimentNames),
                    ncol = length(ExperimentNames))
+plot_counts &lt;- matrix(nrow = length(ExperimentNames),
+                      ncol = length(ExperimentNames))
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
     e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
@@ -767,6 +805,8 @@ for (e_row in ExperimentNames) {
       dplyr::select(effect_size_species) |&gt; pull() |&gt; mean()
     plot_mat[which(ExperimentNames == e_row),
              which(ExperimentNames == e_col)] &lt;- avg_lfc
+    plot_counts[which(ExperimentNames == e_row),
+                which(ExperimentNames == e_col)] &lt;- length(e_gene_idxs)
   }
 }
 colnames(plot_mat) &lt;- LongExperimentNames
@@ -778,15 +818,26 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
-        })
+        }, show_heatmap_legend = FALSE)
 p</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/heatmap-upPar-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/level_divergence_heatmap_up_spar.pdf&quot;,
-    width = 5, height = 3)
+    width = 4, height = 3)
 p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
+<p>Legend and number of genes for paper figure (should be all the same
+number of genes for each row):</p>
+<pre class="r"><code>plot_counts</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6]
+## [1,]  628  628  628  628  628  628
+## [2,]  595  595  595  595  595  595
+## [3,]  603  603  603  603  603  603
+## [4,]  838  838  838  838  838  838
+## [5,]  481  481  481  481  481  481
+## [6,]  446  446  446  446  446  446</code></pre>
+<pre class="r"><code>lgd &lt;- Legend(col_fun = col_fun, title = &quot;avgerage log2 fold change&quot;,  direction = &quot;horizontal&quot;) # need to run draw(lgd) in the console</code></pre>
 </div>
 <div id="plasticity-divergence-is-unique-to-each-environment"
 class="section level3">
@@ -835,6 +886,8 @@ decreasing in Scer:</p>
 <pre class="r"><code># 2-1 divergers
 plot_mat &lt;- matrix(nrow = length(ExperimentNames),
                    ncol = length(ExperimentNames))
+plot_counts &lt;- matrix(nrow = length(ExperimentNames),
+                      ncol = length(ExperimentNames))
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
     e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
@@ -843,6 +896,8 @@ for (e_row in ExperimentNames) {
     e_cor &lt;- getplasticityCorr(e_gene_idxs, .experiment_name = e_col)
     plot_mat[which(ExperimentNames == e_row),
              which(ExperimentNames == e_col)] &lt;- e_cor
+    plot_counts[which(ExperimentNames == e_row),
+                which(ExperimentNames == e_col)] &lt;- length(e_gene_idxs)
   }
 }
 colnames(plot_mat) &lt;- LongExperimentNames
@@ -855,20 +910,32 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
-        })
+        }, show_heatmap_legend = FALSE)
 p</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/2-1-heatmap-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_21.pdf&quot;,
-    width = 5, height = 3)
+    width = 4, height = 3)
 p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
+<p>nGenes and legend for paper figure</p>
+<pre class="r"><code>plot_counts</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6]
+## [1,]  289  289  289  289  289  289
+## [2,]  567  567  567  567  567  567
+## [3,]   75   75   75   75   75   75
+## [4,]  803  803  803  803  803  803
+## [5,]  431  431  431  431  431  431
+## [6,]   97   97   97   97   97   97</code></pre>
+<pre class="r"><code>lgd &lt;- Legend(col_fun = col_fun, title = &quot;avgerage expression correlation&quot;,  direction = &quot;horizontal&quot;) # need to run draw(lgd) in the console</code></pre>
 <p>Heatmap of species correlations for genes decreasing in Spar and
 increasing in Scer:</p>
 <pre class="r"><code># 1-2 divergers
 plot_mat &lt;- matrix(nrow = length(ExperimentNames),
                    ncol = length(ExperimentNames))
+plot_counts &lt;- matrix(nrow = length(ExperimentNames),
+                      ncol = length(ExperimentNames))
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
     e_gene_idxs &lt;- finaldf |&gt; filter(experiment == e_row &amp;
@@ -877,6 +944,8 @@ for (e_row in ExperimentNames) {
     e_cor &lt;- getplasticityCorr(e_gene_idxs, .experiment_name = e_col)
     plot_mat[which(ExperimentNames == e_row),
              which(ExperimentNames == e_col)] &lt;- e_cor
+    plot_counts[which(ExperimentNames == e_row),
+                which(ExperimentNames == e_col)] &lt;- length(e_gene_idxs)
   }
 }
 colnames(plot_mat) &lt;- LongExperimentNames
@@ -889,15 +958,25 @@ p &lt;- Heatmap(plot_mat, col = col_fun,
         row_names_side = &quot;left&quot;, heatmap_legend_param = list(title = &quot;&quot;),
         cell_fun = function(j, i, x, y, width, height, fill) {
           grid.text(sprintf(&quot;%.2f&quot;, plot_mat[i, j]), x, y, gp = gpar(fontsize = 10))
-        })
+        }, show_heatmap_legend = FALSE)
 p</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/1-2-heatmap-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/heatmap_12.pdf&quot;,
-    width = 5, height = 3)
+    width = 4, height = 3)
 p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
+<p>nGenes counts for paper figure:</p>
+<pre class="r"><code>plot_counts</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6]
+## [1,]   55   55   55   55   55   55
+## [2,]  405  405  405  405  405  405
+## [3,]   52   52   52   52   52   52
+## [4,]  375  375  375  375  375  375
+## [5,]  118  118  118  118  118  118
+## [6,]  262  262  262  262  262  262</code></pre>
+<pre class="r"><code>lgd &lt;- Legend(col_fun = col_fun, title = &quot;avgerage expression correlation&quot;,  direction = &quot;horizontal&quot;) # need to run draw(lgd) in the console</code></pre>
 <p>All plasticity-divergers grouped together:</p>
 <pre class="r"><code>getplasticityCorrAllClusters &lt;- function(.gene_idxs, .experiment_name) {
   condition_vec &lt;- info |&gt; filter(experiment == .experiment_name) |&gt; 
@@ -927,8 +1006,8 @@ gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
                                  cer == 1 &amp; par == 2) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
 testcor12 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>testcor12</code></pre>
 <pre><code>## [1] -0.9021212</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
@@ -940,8 +1019,8 @@ gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
                                  cer == 2 &amp; par == 1) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
 testcor21 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>testcor21</code></pre>
 <pre><code>## [1] -0.9543984</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
@@ -967,8 +1046,8 @@ gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
                                  cer != 0 &amp; par != 0) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
 getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same as manual calculation</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## [1] -0.9377567</code></pre>
 <pre class="r"><code># test2: HAP4/CC failed until we added drop = FALSE
 gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
@@ -983,8 +1062,8 @@ finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; gene_name %in% gene_idxs
 ##   1  31 148  32
 ##   2   9  42  50</code></pre>
 <pre class="r"><code>getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;CC&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## [1] 0.5749308</code></pre>
 <pre class="r"><code># plotting
 plot_mat &lt;- matrix(nrow = length(ExperimentNames),
@@ -1003,113 +1082,113 @@ for (e_row in ExperimentNames) {
   }
 }</code></pre>
 <pre><code>## HAP4 HAP4</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## HAP4 CC</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## HAP4 LowN</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## HAP4 LowPi</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## HAP4 Heat</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## HAP4 Cold</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## CC HAP4</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## CC CC</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## CC LowN</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## CC LowPi</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## CC Heat</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## CC Cold</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowN HAP4</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowN CC</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowN LowN</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowN LowPi</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowN Heat</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowN Cold</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowPi HAP4</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowPi CC</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowPi LowN</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowPi LowPi</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowPi Heat</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## LowPi Cold</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Heat HAP4</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Heat CC</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Heat LowN</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Heat LowPi</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Heat Heat</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Heat Cold</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Cold HAP4</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Cold CC</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Cold LowN</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Cold LowPi</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Cold Heat</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre><code>## Cold Cold</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;cer&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>colnames(plot_mat) &lt;- LongExperimentNames
 rownames(plot_mat) &lt;- LongExperimentNames
 
@@ -1130,6 +1209,45 @@ dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 </div>
+<div id="qc-getting-plasticity-cor-after-centering-and-scaling"
+class="section level3">
+<h3>QC: getting plasticity cor after centering and scaling</h3>
+<pre class="r"><code># Given gene idxs and experiment, 
+# returns between-species correlation
+# of average expression across timepoints
+getplasticityCorr &lt;- function(.gene_idxs, .experiment_name) {
+  condition_vec &lt;- info |&gt; filter(experiment == .experiment_name) |&gt; 
+    dplyr::select(condition) |&gt; pull()
+  cer_vec &lt;- collapsed$cer[.gene_idxs, condition_vec] |&gt; 
+    colMeans(na.rm = TRUE)
+  par_vec &lt;- collapsed$par[.gene_idxs, condition_vec] |&gt; 
+    colMeans(na.rm = TRUE)
+  return(cor(cer_vec, par_vec))
+}
+# tests for getplasticity Corr
+# HAP4 2-1, should be very uncorrelated in Sat Growth
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
+                                 cer == 2 &amp; par == 1) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+getplasticityCorr(gene_idxs, .experiment_name = &quot;HAP4&quot;)</code></pre>
+<pre><code>##            [,1]
+## [1,] -0.9359643</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowN&quot;)</code></pre>
+<pre><code>##          [,1]
+## [1,] 0.906296</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.9128942</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;CC&quot;)</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.6486633</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Heat&quot;)</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.9786642</code></pre>
+<pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Cold&quot;)</code></pre>
+<pre><code>##            [,1]
+## [1,] -0.4895706</code></pre>
+</div>
 <div id="example-expression-profiles-for-figure" class="section level3">
 <h3>Example expression profiles for figure</h3>
 <p>Genes increasing in Scer, decreasing in Spar, identified in Low
@@ -1144,18 +1262,8 @@ p &lt;- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .show_points = FALSE,
                           .show_confidence_intervals = TRUE,
                           .normalization = &quot;log2&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/LowPi-1-2-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/LowPi12.pdf&quot;,
@@ -1177,18 +1285,8 @@ p &lt;- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .show_points = FALSE,
                           .show_confidence_intervals = TRUE,
                           .normalization = &quot;log2&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/LowN_upcer.pdf&quot;,
     width = 12, height = 2)
 p
@@ -1200,114 +1298,188 @@ dev.off()</code></pre>
 class="section level3">
 <h3>Following up on additional examples flagged in heatmap</h3>
 <pre class="r"><code># following up on additional examples from heatmap
+# Diauxic Shift 1-2, plasticity divergers have slight negative correlation Low Pi -0.2?
+gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; par == 2) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+p &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
+                          .cts2 = collapsed$par[gene_idxs,],
+                          .info1 = info,
+                          .info2 = info,
+                          .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>length(gene_idxs)</code></pre>
+<pre><code>## [1] 55</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/HAP4-1-2-1.png" width="672" /></p>
+<p>Plot for supplemental figure:</p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/HAP4-1-2.pdf&quot;,
+    width = 12, height = 2)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># following up on additional examples from heatmap
 # Low Nitrogen 1-2, plasticity divergers have strongest negative correlation in Cold? -.97?
 gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; cer == 1 &amp; par == 2) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
-plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+p &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                           .cts2 = collapsed$par[gene_idxs,],
                           .info1 = info,
-                          .info2 = info,,
-                          .method = &quot;line&quot;,
-                          .show_points = FALSE,
-                          .show_confidence_intervals = TRUE,
+                          .info2 = info,
                           .normalization = &quot;log2&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<p><img src="Fig_environmental_patterns_files/figure-html/LowN-1-2-1.png" width="672" /></p>
-<pre class="r"><code>length(gene_idxs) # yes, but LowN has the fewest reversals</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>length(gene_idxs)</code></pre>
 <pre><code>## [1] 52</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/LowN-1-2-1.png" width="672" /></p>
+<p>Plot for supplemental figure:</p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/LowN-1-2.pdf&quot;,
+    width = 12, height = 2)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Why does LowPi have correlation of 0.95 for these 52 genes? The
+average looks middling Conclusion: it was a result of taking log2 before
+the average. We want to take average before log2, as log2 is just for
+visualization purposes not analysis Leaving this chunk here for now in
+case it is helpful</p>
+<pre class="r"><code>gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; cer == 1 &amp; par == 2) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+getplasticityCorr(.gene_idxs = gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.9484853</code></pre>
+<pre class="r"><code>test_condition_vec &lt;- info |&gt; filter(experiment == &quot;LowPi&quot;) |&gt; 
+    dplyr::select(condition) |&gt; pull()
+# means
+test_cer_vec &lt;- collapsed$cer[gene_idxs, test_condition_vec] |&gt;
+  colMeans(na.rm = TRUE)
+test_par_vec &lt;- collapsed$par[gene_idxs, test_condition_vec] |&gt;
+  colMeans(na.rm = TRUE)
+test_cer_vec_scaled &lt;- collapsed$cer[gene_idxs, test_condition_vec] |&gt;
+  t() |&gt; 
+  scale() |&gt; 
+  t() |&gt; 
+  colMeans(na.rm = TRUE)
+test_par_vec_scaled &lt;- collapsed$par[gene_idxs, test_condition_vec] |&gt; 
+  t() |&gt; 
+  scale() |&gt; 
+  t() |&gt; 
+  colMeans(na.rm = TRUE)
+# sds
+test_cer_sd &lt;- collapsed$cer[gene_idxs, test_condition_vec] |&gt;
+  apply(MARGIN = 2, FUN = sd)
+test_par_sd &lt;- collapsed$par[gene_idxs, test_condition_vec] |&gt;
+  apply(MARGIN = 2, FUN = sd)
+test_cer_sd_scaled &lt;- collapsed$cer[gene_idxs, test_condition_vec] |&gt;
+  t() |&gt; 
+  scale() |&gt; 
+  t() |&gt; 
+  apply(MARGIN = 2, FUN = sd)
+test_par_sd_scaled &lt;- collapsed$par[gene_idxs, test_condition_vec] |&gt;
+  t() |&gt; 
+  scale() |&gt; 
+  t() |&gt; 
+  apply(MARGIN = 2, FUN = sd)
+plotdf &lt;- bind_rows(tibble(species = &quot;cer&quot;,
+                           expr = test_cer_vec,
+                           scaled_expr = test_cer_vec_scaled,
+                           sd = test_cer_sd,
+                           scaled_sd = test_cer_sd_scaled,
+                           timepoint = parse_number(test_condition_vec)),
+                    tibble(species = &quot;par&quot;,
+                           expr = test_par_vec,
+                           scaled_expr = test_par_vec_scaled,
+                           sd = test_par_sd,
+                           scaled_sd = test_par_sd_scaled,
+                           timepoint = parse_number(test_condition_vec)))
+#View(plotdf)
+# scaled
+p_scale &lt;- ggplot(plotdf, aes(x = timepoint, y = scaled_expr)) + 
+  geom_line(aes(color = species)) + 
+  geom_ribbon(aes(ymax = scaled_expr + scaled_sd, 
+                  ymin = scaled_expr - scaled_sd, 
+                  fill = species), alpha = 0.3)
+# log2
+p_log &lt;- ggplot(plotdf, aes(x = timepoint, y = log2(expr))) + 
+  geom_line(aes(color = species)) +
+  geom_ribbon(aes(ymax = log2(expr + sd/sqrt(length(gene_idxs))), 
+                  ymin = log2(expr - sd/sqrt(length(gene_idxs))), 
+                  fill = species), alpha = 0.3)
+ggarrange(p_scale, p_log, nrow = 1, ncol = 2)</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/low-Pi95-1.png" width="672" /></p>
+<pre class="r"><code>cor(test_cer_vec, test_par_vec) # should be 0.95</code></pre>
+<pre><code>##           [,1]
+## [1,] 0.9484853</code></pre>
+<pre class="r"><code>p_log &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, info$experiment == &quot;LowPi&quot;],
+                          .cts2 = collapsed$par[gene_idxs, info$experiment == &quot;LowPi&quot;],
+                          .info1 = filter(info, experiment == &quot;LowPi&quot;),
+                          .info2 = filter(info, experiment == &quot;LowPi&quot;),,
+                          .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>length(gene_idxs)</code></pre>
+<pre><code>## [1] 52</code></pre>
+<pre class="r"><code>p_scalebasic &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, info$experiment == &quot;LowPi&quot;],
+                          .cts2 = collapsed$par[gene_idxs, info$experiment == &quot;LowPi&quot;],
+                          .info1 = filter(info, experiment == &quot;LowPi&quot;),
+                          .info2 = filter(info, experiment == &quot;LowPi&quot;),,
+                          .normalization = &quot;scale&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>p_scale &lt;- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs, info$experiment == &quot;LowPi&quot;],
+                          .cts2 = collapsed$par[gene_idxs, info$experiment == &quot;LowPi&quot;],
+                          .info1 = filter(info, experiment == &quot;LowPi&quot;),
+                          .info2 = filter(info, experiment == &quot;LowPi&quot;),,
+                          .normalization = &quot;scale&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>ggarrange(p_scale, p_scalebasic, nrow = 1, ncol = 2, common.legend = TRUE)</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/low-Pi95-2.png" width="672" /></p>
 <pre class="r"><code># following up on additional examples from heatmap
 # Diauxic Shift 2-1, plasticity divergers also have strongest negative correlation in Cold?
 gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; par == 1) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
-plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
-                          .cts2 = collapsed$par[gene_idxs,],
-                          .info1 = info,
-                          .info2 = info,,
-                          .method = &quot;line&quot;,
-                          .show_points = FALSE,
-                          .show_confidence_intervals = TRUE,
-                          .normalization = &quot;log2&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<p><img src="Fig_environmental_patterns_files/figure-html/HAP4-2-1-1.png" width="672" /></p>
+p &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
+                                    .cts2 = collapsed$par[gene_idxs,],
+                                    .info1 = info,
+                                    .info2 = info,
+                                    .normalization = &quot;log2&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>length(gene_idxs)</code></pre>
 <pre><code>## [1] 289</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/HAP4-2-1-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/HAP4-2-1.pdf&quot;,
+    width = 12, height = 2)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
 <pre class="r"><code># following up on additional examples from heatmap
 # HUShock 2-1, plasticity divergers also have strongest negative correlation in LowPi?
 gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; cer == 2 &amp; par == 1) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
-plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
+p &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                           .cts2 = collapsed$par[gene_idxs,],
                           .info1 = info,
-                          .info2 = info,,
-                          .method = &quot;line&quot;,
-                          .show_points = FALSE,
-                          .show_confidence_intervals = TRUE,
+                          .info2 = info,
                           .normalization = &quot;log2&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<p><img src="Fig_environmental_patterns_files/figure-html/CC-2-1-1.png" width="672" /></p>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>length(gene_idxs)</code></pre>
 <pre><code>## [1] 567</code></pre>
-<p>Finally as a contrast, a pair with high correlation:</p>
-<pre class="r"><code># following up on additional examples from heatmap
-# HAP4 1-2, plasticity divergers have strong positive correlation Low Nitrogen.
-gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; par == 2) |&gt; 
-  dplyr::select(gene_name) |&gt; pull()
-plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
-                          .cts2 = collapsed$par[gene_idxs,],
-                          .info1 = info,
-                          .info2 = info,,
-                          .method = &quot;line&quot;,
-                          .show_points = FALSE,
-                          .show_confidence_intervals = TRUE,
-                          .normalization = &quot;log2&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<p><img src="Fig_environmental_patterns_files/figure-html/HAP4-1-2-1.png" width="672" /></p>
-<pre class="r"><code>length(gene_idxs)</code></pre>
-<pre><code>## [1] 55</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_environmental_patterns_files/figure-html/CC-2-1-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/Supplement/CC-2-1.pdf&quot;,
+    width = 12, height = 2)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
 </div>
 </div>
 <div id="supplemental-figures" class="section level1">
@@ -1392,18 +1564,8 @@ gene_idx &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
   dplyr::select(gene_name) |&gt; pull() |&gt; sample(1)
 # plotEnvironments(.gene_idxs = &quot;YMR221C&quot;) # first example we found, strong CC level divergence
 plotEnvironments(.gene_idxs = gene_idx)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/example-criss-cross-1.png" width="672" /></p>
 <pre class="r"><code># Figure: plasticity-diverging genes have higher expression at TP0 in decreasing species
 
@@ -1518,8 +1680,8 @@ plotdf_full &lt;- left_join(x = pivot_longer(dplyr::select(plotdf, gene_name, ex
 <p>Plotting</p>
 <pre class="r"><code>plotdf_means &lt;- group_by(plotdf_full, timepoint, higher_or_lower) |&gt;
   summarise(mean_scaled_expr = mean(scaled_expr))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>p_home &lt;- ggplot(plotdf_means, aes(x = factor(timepoint,
                                               levels = c(&quot;tp0&quot;, &quot;tplast&quot;),
                                               labels = c(&quot;first&quot;, &quot;last&quot;)),
@@ -1607,8 +1769,8 @@ plotdf_full &lt;- left_join(x = pivot_longer(dplyr::select(plotdf, gene_name, ex
 <p>Plotting</p>
 <pre class="r"><code>plotdf_means &lt;- group_by(plotdf_full, timepoint, higher_or_lower) |&gt;
   summarise(mean_scaled_expr = mean(scaled_expr))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;timepoint&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>p_other &lt;- ggplot(plotdf_means, aes(x = factor(timepoint,
                                                levels = c(&quot;tp0&quot;, &quot;tplast&quot;),
                                                labels = c(&quot;first&quot;, &quot;last&quot;)),
@@ -1673,7 +1835,7 @@ getTP0NormDifferenceAverage &lt;- function(.gene_vec, .experiment_vec, .decreasi
 getTP0NormDifferenceAverage(.gene_vec = sample(finaldf$gene_name, 3),
                             .experiment_vec = sample(finaldf$experiment, 3),
                             .decreasing_species_vec = sample(c(&quot;cer&quot;, &quot;par&quot;), replace = TRUE, 3))</code></pre>
-<pre><code>## [1] -0.2220307</code></pre>
+<pre><code>## [1] 0.1197672</code></pre>
 <p>Random simulation with 100 iterations:</p>
 <pre class="r"><code>tp0df &lt;- finaldf |&gt; filter(plasticity == &quot;diverged&quot; &amp;
                              level == &quot;conserved&quot; &amp;

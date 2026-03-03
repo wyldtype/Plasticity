@@ -884,20 +884,6 @@ p
 dev.off()
 ```
 
-Finally as a contrast, a pair with high correlation:
-
-```{r HAP4-1-2}
-# following up on additional examples from heatmap
-# HAP4 1-2, plasticity divergers have strong positive correlation Low Nitrogen.
-gene_idxs <- finaldf |> filter(experiment == "HAP4" & cer == 1 & par == 2) |> 
-  dplyr::select(gene_name) |> pull()
-plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
-                          .cts2 = collapsed$par[gene_idxs,],
-                          .info1 = info,
-                          .info2 = info,
-                          .normalization = "log2")
-length(gene_idxs)
-```
 
 # Supplemental figures
 
@@ -1147,7 +1133,7 @@ plotdf$tplast_par <- purrr::map(c(1:nrow(plotdf)), .f = \(i) {
 
 Calling which species was expressed higher at tp0:
 
-```{r higher-tp0-non-home}
+```{r higher-tp0-non-home, cache=TRUE}
 plotdf$higher_tp0 <- if_else(plotdf$tp0_cer > plotdf$tp0_par,
                              true = plotdf$tp0_cer, 
                              false = plotdf$tp0_par)

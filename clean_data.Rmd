@@ -22,7 +22,7 @@ Reading in quantified RNAseq counts as individual *.ReadsPerGene.out.tab files, 
 ```{r read-tagseq, cache=TRUE}
 tagseq <- list.files("data_files/tagseq_counts/", full.names = TRUE) |> 
   map(read_table, col_names = FALSE, show_col_types = FALSE) |> 
-  map(.f = select, X1, X3) |> # X1 are gene names, X3 is the sense strand read count
+  map(.f = dplyr::select, X1, X3) |> # X1 are gene names, X3 is the sense strand read count
   purrr::reduce(.f = \(x, y) full_join(x = x, y = y, by = "X1"))
 
 colnames(tagseq) <- c("gene", gsub("_ReadsPerGene.out.tab", "", list.files("data_files/tagseq_counts/", full.names = FALSE)))
@@ -179,15 +179,15 @@ par_genedf <- plotdf |> filter(organism == "parSample" &
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
 hist(par_genedf$avg_pct_cer, breaks = 50)
 abline(v = 0.1, col = "red")
-cer_biased_genes <- par_genedf |> filter(avg_pct_cer > 0.1) |> select(gene) |> pull()
-par_biased_genes <- cer_genedf |> filter(avg_pct_cer < 0.9) |> select(gene) |> pull()
+cer_biased_genes <- par_genedf |> filter(avg_pct_cer > 0.1) |> dplyr::select(gene) |> pull()
+par_biased_genes <- cer_genedf |> filter(avg_pct_cer < 0.9) |> dplyr::select(gene) |> pull()
 both_biased_genes <- intersect(cer_biased_genes, par_biased_genes)
 cer_biased_genes <- setdiff(cer_biased_genes, par_biased_genes)
 par_biased_genes <- setdiff(par_biased_genes, cer_biased_genes)
 # any common genes of note?
 sgd_lookup <- read_tsv("data_files/downloaded_genomes_and_features/SGD_features.tab",
                        col_names = FALSE) |> 
-  select(X4, X5) |> unique() |> drop_na()
+  dplyr::select(X4, X5) |> unique() |> drop_na()
 # cer biased
 sgd_lookup[sgd_lookup$X4 %in% cer_biased_genes,] |> 
   print(n = length(cer_biased_genes))
@@ -284,10 +284,10 @@ fay <- list.files("data_files/fay_counts/", full.names = TRUE) |>
   map2(.y = fay_filenames,
        .f = \(x, y) {
          if (grepl("R1", y)) {
-           output <- select(x, X1, X2)
+           output <- dplyr::select(x, X1, X2)
            return(output)}
          if (grepl("R2", y)) {
-           output <- select(x, X1, X3)
+           output <- dplyr::select(x, X1, X3)
            return(output)}
        }) |> # X1 are gene names, X2 is sense strand read count for R1, X3 is the sense strand for R2
   purrr::reduce(.f = \(x, y) full_join(x = x, y = y, by = "X1"))
@@ -333,7 +333,7 @@ ggplot(pivot_wider(sampdf, id_cols = c("sample_name", "allele"),
 fay_sampdf <- read.xlsx("data_files/downloaded_from_Fay2023/Supporting_Tables.xlsx",
                         sheet = 4, startRow = 2, colNames = TRUE)
 sampdf <- fay_sampdf |> 
-  select(Sample, Sc_gene_reads, Sp_gene_reads) |>
+  dplyr::select(Sample, Sc_gene_reads, Sp_gene_reads) |>
   pivot_longer(cols = c("Sc_gene_reads", "Sp_gene_reads"),
                names_to = "allele", values_to = "lib_size_fay") |> 
   mutate(allele = if_else(allele == "Sc_gene_reads",
@@ -408,8 +408,8 @@ rm(fay_cer_R1R2, fay_par_R1R2)
 # setting rownames to gene names for each count matrix
 rownames(fay_cer) <- common_genes
 rownames(fay_par) <- common_genes
-tagseq_cer <- tagseq_cer |> select(!gene) |> as.matrix()
-tagseq_par <- tagseq_par |> select(!gene) |> as.matrix()
+tagseq_cer <- tagseq_cer |> dplyr::select(-gene) |> as.matrix()
+tagseq_par <- tagseq_par |> dplyr::select(-gene) |> as.matrix()
 rownames(tagseq_cer) <- common_genes
 rownames(tagseq_par) <- common_genes
 ```
@@ -477,7 +477,7 @@ sum(colnames(counts_tagseq) == info_tagseq$sample_name)
 # reading in sample info
 info_fay <- read.xlsx("data_files/downloaded_from_Fay2023/Supporting_Tables.xlsx",
                       sheet = 4, startRow = 2) |> 
-  select(Sample, Condition, Time, Strains) |> 
+  dplyr::select(Sample, Condition, Time, Strains) |> 
   dplyr::rename("sample_name"="Sample", "experiment"="Condition",
          "time_point_num"="Time", "parents_or_hybrid"="Strains") |> 
   mutate(experiment = gsub("cold", "Cold", experiment)) |> 
@@ -599,7 +599,7 @@ info_tagseq$condition <- paste(info_tagseq$genotype,
 # NOT when the living yeast sample was collected
 # (only like 65 samples total have a collection date within 24 hours 
 # for all 3 samples, and that's mostly because a lot of samples were collected on those dates)
-info_tagseq <- select(info_tagseq, !collection_date)
+info_tagseq <- dplyr::select(info_tagseq, -collection_date)
 
 ### cleaning up some sample info column values in fay info prior to combining
 setdiff(colnames(info_tagseq), colnames(info_fay))
@@ -614,7 +614,7 @@ info_fay$well_flask_ID <- c("rep1", "rep2")
 counts_fay <- counts_fay[,info_fay$sample_name] # also rearranging counts, because we index their columns by sample name
 table(info_fay$condition, info_fay$well_flask_ID) # should have 4 entries for each rep: cer/par/hyc/hyp
 setdiff(colnames(info_fay), colnames(info_tagseq))
-info_fay <- select(info_fay, !parents_or_hybrid)
+info_fay <- dplyr::select(info_fay, -parents_or_hybrid)
 
 # last checks
 setequal(colnames(info_tagseq), colnames(info_fay))
@@ -665,9 +665,9 @@ standardizeGS2018ID("G8_G12_GS2018")
 
 # before applying
 sample_info |> filter(organism %in% c("cer", "par") & grepl("GS2018", well_flask_ID)) |> 
-  select(well_flask_ID) |> table() 
+  dplyr::select(well_flask_ID) |> table() 
 sample_info |> filter(organism == "hyb" & grepl("GS2018", well_flask_ID)) |> 
-  select(well_flask_ID) |> table() 
+  dplyr::select(well_flask_ID) |> table() 
 
 # applying to GS2018 samples
 GS2018_idxs <- grepl("GS2018", sample_info$well_flask_ID)
@@ -676,9 +676,9 @@ sample_info$well_flask_ID[GS2018_idxs] <- sapply(sample_info$well_flask_ID[GS201
 
 # after applying
 sample_info |> filter(organism %in% c("cer", "par") & grepl("GS2018", well_flask_ID)) |> 
-  select(well_flask_ID) |> table() 
+  dplyr::select(well_flask_ID) |> table() 
 sample_info |> filter(organism == "hyb" & grepl("GS2018", well_flask_ID)) |> 
-  select(well_flask_ID) |> table() 
+  dplyr::select(well_flask_ID) |> table() 
 # hybrids should have 6, 2 alleles x 3 timepoints, Parents have just 3 timepoints. Except for H1, which is missing a timepoint
 # giving the GS2018s their proper well IDs in sample_info
 
@@ -689,10 +689,10 @@ sample_info$well_flask_ID <- gsub("_GS.*", "", sample_info$well_flask_ID)
 sample_info$new_id <- map2(sample_info$well_flask_ID, 
              sample_info$sample_name, \(i, s) {
                ex <- sample_info |> filter(sample_name == s) |> 
-                 select(experiment) |> pull()
+                 dplyr::select(experiment) |> pull()
                if (ex == "LowN") {
                  org <- sample_info |> filter(sample_name == s) |> 
-                   select(organism) |> pull()
+                   dplyr::select(organism) |> pull()
                  is_duplicate <- sample_info |> 
                    filter(experiment == "LowN" & 
                             organism == org &
@@ -722,7 +722,7 @@ sample_info |>
 
 # updating well_flask_ID 
 sample_info$well_flask_ID <- sample_info$new_id
-sample_info <- select(sample_info, -"new_id")
+sample_info <- dplyr::select(sample_info, -"new_id")
 
 # checking example (two C5_A10s for the 960 timepoint)
 sample_info |> filter(experiment == "LowN" & organism == "par" &
@@ -736,13 +736,13 @@ sample_info |> filter(experiment == "LowN" & organism == "par" &
 # Removeing Cell Cycle timepoints after HU shock b/c Scer and Spar don't
 # have the same periodicity of their cell cycles
 sample_info |> filter(experiment == "CC") |> 
-  select(time_point_str, time_point_num) |> unique() |> arrange(time_point_num)
+  dplyr::select(time_point_str, time_point_num) |> unique() |> arrange(time_point_num)
 keep <- !(sample_info$experiment == "CC" & sample_info$time_point_num > 125)
 sample_info <- sample_info[keep,]
 counts <- counts[,(colnames(counts) %in% sample_info$sample_name)]
 
 # Whittling LowPi to just WT --- not enough of them to warrant the complication of including a second genotype (plus they're only present in -5 and 180 min samples)
-sample_info %>% filter(experiment == "LowPi") %>% select(genotype) %>% table()
+sample_info %>% filter(experiment == "LowPi") %>% dplyr::select(genotype) %>% table()
 # species
 keep <- !(sample_info$experiment == "LowPi" & sample_info$genotype == "PHO4delete")
 sample_info <- sample_info[keep,]
@@ -775,7 +775,7 @@ sort(libsizes)[c(1:20)] # a few of the CC have fairly tiny libraries, and will n
 # are the hybrid reps library sizes correlated between hyc and hyp alleles?
 plotdf <- tibble(sample_name = names(libsizes[grepl("_hy[pc]", names(libsizes))]),
                  libsize = libsizes[grepl("_hy[pc]", names(libsizes))]) |> 
-  left_join(y = select(filter(sample_info, organism == "hyb"), sample_name, experiment), by = "sample_name")
+  left_join(y = dplyr::select(filter(sample_info, organism == "hyb"), sample_name, experiment), by = "sample_name")
 plotdf$allele <- if_else(grepl(pattern = "_hyc_", plotdf$sample_name),
                          true = "cer", false = "par")
 plotdf$sample_name <- gsub("_hy[pc]_", "_hyb_", plotdf$sample_name)
@@ -874,7 +874,7 @@ plotdf <- tibble(libsize = libSizes,
                  expr = as.numeric(counts[gene_idx,]), 
                  gene_name = gene_idx,
                  sample_name = colnames(counts)) |> 
-  left_join(select(sample_info, sample_name, experiment),
+  left_join(dplyr::select(sample_info, sample_name, experiment),
             by = "sample_name")
 ggplot(plotdf, aes(x = libsize, y = expr)) + 
   geom_point(aes(color = experiment)) + geom_vline(xintercept = 100000, col = "red") + theme_classic() + ggtitle(gene_idx)
@@ -945,9 +945,9 @@ gene_lens_spar$gene_name <- sapply(gene_lens_spar$gene_name, \(g) {
 sum(gene_lens_spar$end > gene_lens_spar$start)
 sum(gene_lens_spar$end < gene_lens_spar$start)
 gene_lens_spar$length <- gene_lens_spar$end - gene_lens_spar$start
-gene_lens_scer <- gene_lens_scer |> select(gene_name, length) |> 
+gene_lens_scer <- gene_lens_scer |> dplyr::select(gene_name, length) |> 
   filter(gene_name %in% common_genes) |> unique()
-gene_lens_spar <- gene_lens_spar |> select(gene_name, length) |> 
+gene_lens_spar <- gene_lens_spar |> dplyr::select(gene_name, length) |> 
   filter(gene_name %in% common_genes) |> unique()
 # check that duplicated genes have about the same length before removing duplicates
 gene_lens_scer[gene_lens_scer$gene_name %in% gene_lens_scer$gene_name[duplicated(gene_lens_scer$gene_name)],] |> 
@@ -965,8 +965,8 @@ gene_lens_spar <- gene_lens_spar |> arrange(gene_name, desc(length))
 gene_lens_spar <- gene_lens_spar[!duplicated(gene_lens_spar$gene_name),]
 gene_lens_spar |> filter(gene_name %in% two_lengths_spar)
 # how many genes have significantly different lengths in both species?
-plotdf <- left_join(x = dplyr::rename(select(gene_lens_scer, gene_name, length), "Scer"="length"),
-                    y = dplyr::rename(select(gene_lens_spar, gene_name, length), "Spar"="length"),
+plotdf <- left_join(x = dplyr::rename(dplyr::select(gene_lens_scer, gene_name, length), "Scer"="length"),
+                    y = dplyr::rename(dplyr::select(gene_lens_spar, gene_name, length), "Spar"="length"),
                     by = "gene_name")
 ggplot(plotdf, aes(x = Scer, y = Spar)) + geom_point()
 # most are the same exact length, a few have slightly different lengths
@@ -1050,14 +1050,14 @@ dim(sample_info)
 dim(counts_allele)
 dim(counts_unnorm_allele)
 dim(sample_info_allele)
-sample_info |> select(sample_name, organism, allele) |> slice_sample(n = 10)
-sample_info_allele |> select(sample_name, organism, allele) |> slice_sample(n = 10)
+sample_info |> dplyr::select(sample_name, organism, allele) |> slice_sample(n = 10)
+sample_info_allele |> dplyr::select(sample_name, organism, allele) |> slice_sample(n = 10)
 # checking that every hybrid sample name has exactly one cer and one par row
-sample_info_allele |> select(sample_name, organism, allele) |> 
+sample_info_allele |> dplyr::select(sample_name, organism, allele) |> 
   group_by(sample_name) |> 
   summarise(ncernpar = unique(table(allele))) |> 
-  select(ncernpar) |> table()
-sample_info_allele |> select(allele) |> table()
+  dplyr::select(ncernpar) |> table()
+sample_info_allele |> dplyr::select(allele) |> table()
 ```
 
 ## Visualizing expression

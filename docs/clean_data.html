@@ -357,13 +357,15 @@ al. 2023</p>
 <pre><code>## Loading required package: tidyr</code></pre>
 <pre><code>## Loading required package: purrr</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
+<pre><code>## Need help getting started? Try the R Graphics Cookbook:
+## https://r-graphics.org</code></pre>
 <pre><code>## Loading required package: ggpubr</code></pre>
 <pre><code>## Loading required package: openxlsx</code></pre>
 <pre><code>## Loading required package: matrixStats</code></pre>
-<pre><code>##       readr       tidyr       purrr     ggplot2 
-##        TRUE        TRUE        TRUE        TRUE 
-##      ggpubr    openxlsx matrixStats 
-##        TRUE        TRUE        TRUE</code></pre>
+<pre><code>##       readr       tidyr       purrr     ggplot2      ggpubr 
+##        TRUE        TRUE        TRUE        TRUE        TRUE 
+##    openxlsx matrixStats 
+##        TRUE        TRUE</code></pre>
 <pre><code>## 
 ## Attaching package: &#39;dplyr&#39;</code></pre>
 <pre><code>## The following object is masked from &#39;package:matrixStats&#39;:
@@ -383,7 +385,7 @@ class="section level2">
 *.ReadsPerGene.out.tab files, one file per sample</p>
 <pre class="r"><code>tagseq &lt;- list.files(&quot;data_files/tagseq_counts/&quot;, full.names = TRUE) |&gt; 
   map(read_table, col_names = FALSE, show_col_types = FALSE) |&gt; 
-  map(.f = select, X1, X3) |&gt; # X1 are gene names, X3 is the sense strand read count
+  map(.f = dplyr::select, X1, X3) |&gt; # X1 are gene names, X3 is the sense strand read count
   purrr::reduce(.f = \(x, y) full_join(x = x, y = y, by = &quot;X1&quot;))
 
 colnames(tagseq) &lt;- c(&quot;gene&quot;, gsub(&quot;_ReadsPerGene.out.tab&quot;, &quot;&quot;, list.files(&quot;data_files/tagseq_counts/&quot;, full.names = FALSE)))
@@ -449,16 +451,16 @@ test_cpm &lt;- countsPerMillionAllele(.cts_cer = tagseq_cer[,-1],
 ((test_count/(colSums(tagseq_cer[,-1], na.rm = TRUE) + 
                 colSums(tagseq_par[,-1], na.rm = TRUE))[test_colIdx])*1e6) %&gt;% 
   round() # what it should be</code></pre>
-<pre><code>##   WT_TP1_cer_WTs_D1_G6_GS2018
-## 1                         512</code></pre>
+<pre><code>##   WT_19_cer_SCtoLowPi_rep1
+## 1                       20</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   WT_TP1_cer_WTs_D1_G6_GS2018
-##                         &lt;dbl&gt;
-## 1                         467</code></pre>
+##   WT_19_cer_SCtoLowPi_rep1
+##                      &lt;dbl&gt;
+## 1                       10</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## WT_TP1_cer_WTs_D1_G6_GS2018 
-##                         512</code></pre>
+<pre><code>## WT_19_cer_SCtoLowPi_rep1 
+##                       20</code></pre>
 <p>Now we can calculate percent reads mapping to each allele in parental
 samples</p>
 <pre class="r"><code># 1) normalize to counts per million based on total 
@@ -511,8 +513,8 @@ ggplot(filter(plotdf, gene %in% sample_genes),
 <pre class="r"><code>sampdf &lt;- plotdf |&gt; filter(organism %in% c(&quot;cerSample&quot;, &quot;parSample&quot;)) |&gt; 
   group_by(sample_name, organism) |&gt; 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;sample_name&#39;. You
-## can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;sample_name&#39;. You can override
+## using the `.groups` argument.</code></pre>
 <pre class="r"><code>sampdf |&gt; filter(organism == &quot;cerSample&quot;) |&gt; arrange(avg_pct_cer)</code></pre>
 <pre><code>## # A tibble: 220 × 3
 ## # Groups:   sample_name [220]
@@ -595,19 +597,19 @@ abline(v = 0.9, col = &quot;red&quot;)</code></pre>
 hist(par_genedf$avg_pct_cer, breaks = 50)
 abline(v = 0.1, col = &quot;red&quot;)</code></pre>
 <p><img src="clean_data_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
-<pre class="r"><code>cer_biased_genes &lt;- par_genedf |&gt; filter(avg_pct_cer &gt; 0.1) |&gt; select(gene) |&gt; pull()
-par_biased_genes &lt;- cer_genedf |&gt; filter(avg_pct_cer &lt; 0.9) |&gt; select(gene) |&gt; pull()
+<pre class="r"><code>cer_biased_genes &lt;- par_genedf |&gt; filter(avg_pct_cer &gt; 0.1) |&gt; dplyr::select(gene) |&gt; pull()
+par_biased_genes &lt;- cer_genedf |&gt; filter(avg_pct_cer &lt; 0.9) |&gt; dplyr::select(gene) |&gt; pull()
 both_biased_genes &lt;- intersect(cer_biased_genes, par_biased_genes)
 cer_biased_genes &lt;- setdiff(cer_biased_genes, par_biased_genes)
 par_biased_genes &lt;- setdiff(par_biased_genes, cer_biased_genes)
 # any common genes of note?
 sgd_lookup &lt;- read_tsv(&quot;data_files/downloaded_genomes_and_features/SGD_features.tab&quot;,
                        col_names = FALSE) |&gt; 
-  select(X4, X5) |&gt; unique() |&gt; drop_na()</code></pre>
+  dplyr::select(X4, X5) |&gt; unique() |&gt; drop_na()</code></pre>
 <pre><code>## Rows: 16454 Columns: 16
-## ── Column specification ─────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────
 ## Delimiter: &quot;\t&quot;
-## chr  (12): X1, X2, X3, X4, X5, X6, X7, X8, X9, X12, X...
+## chr  (12): X1, X2, X3, X4, X5, X6, X7, X8, X9, X12, X15, X16
 ## dbl   (3): X10, X11, X13
 ## date  (1): X14
 ## 
@@ -893,8 +895,8 @@ plotdf_vshyb &lt;- plotdf |&gt; group_by(gene, organism, bias) |&gt;
   pivot_wider(id_cols = c(&quot;gene&quot;, &quot;bias&quot;), 
               values_from = c(&quot;mean_counts_cer&quot;, &quot;mean_counts_par&quot;),
               names_from = organism)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;gene&#39;, &#39;organism&#39;.
-## You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;gene&#39;, &#39;organism&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code># two ways to calculate read counts for each gene in the parents:
 #    1) sum the hits for the cer allele and the par allele (after all we know that all these reads came from one allele or the other)
 #    2) only count the hits for the correct parent&#39;s allele
@@ -927,48 +929,36 @@ reads mapping to correct parent allele and remove any biased genes after
 adding Fay et al. 2023 samples and filtering for low expression.</p>
 <p>Here are our lists of based genes/samples:</p>
 <pre class="r"><code>cer_biased_genes</code></pre>
-<pre><code>##  [1] &quot;YAL054C&quot;         &quot;YAL067C&quot;        
-##  [3] &quot;YAR035W&quot;         &quot;YAR071W/YHR215W&quot;
-##  [5] &quot;YBR072W&quot;         &quot;YBR093C&quot;        
-##  [7] &quot;YBR132C&quot;         &quot;YBR285W&quot;        
-##  [9] &quot;YCR010C&quot;         &quot;YCR030C&quot;        
-## [11] &quot;YDR110W&quot;         &quot;YDR213W&quot;        
-## [13] &quot;YDR254W&quot;         &quot;YDR343C/YDR342C&quot;
-## [15] &quot;YER046W&quot;         &quot;YER065C&quot;        
-## [17] &quot;YFL014W&quot;         &quot;YFL030W&quot;        
-## [19] &quot;YGL096W&quot;         &quot;YGL208W&quot;        
-## [21] &quot;YGL222C&quot;         &quot;YGR236C&quot;        
-## [23] &quot;YHR033W&quot;         &quot;YHR096C&quot;        
-## [25] &quot;YHR136C&quot;         &quot;YIL014C-A&quot;      
-## [27] &quot;YIL057C&quot;         &quot;YIL111W&quot;        
-## [29] &quot;YIL121W&quot;         &quot;YJR096W&quot;        
-## [31] &quot;YKL218C&quot;         &quot;YKR039W&quot;        
-## [33] &quot;YLR270W&quot;         &quot;YLR337C&quot;        
-## [35] &quot;YML123C&quot;         &quot;YMR133W&quot;        
-## [37] &quot;YMR175W&quot;         &quot;YNL142W&quot;        
-## [39] &quot;YOL158C&quot;         &quot;YOR161C&quot;        
-## [41] &quot;YOR173W&quot;         &quot;YPL223C&quot;        
-## [43] &quot;YPL274W&quot;         &quot;YPR006C&quot;        
-## [45] &quot;YPR194C&quot;</code></pre>
+<pre><code>##  [1] &quot;YAL054C&quot;         &quot;YAL067C&quot;         &quot;YAR035W&quot;        
+##  [4] &quot;YAR071W/YHR215W&quot; &quot;YBR072W&quot;         &quot;YBR093C&quot;        
+##  [7] &quot;YBR132C&quot;         &quot;YBR285W&quot;         &quot;YCR010C&quot;        
+## [10] &quot;YCR030C&quot;         &quot;YDR110W&quot;         &quot;YDR213W&quot;        
+## [13] &quot;YDR254W&quot;         &quot;YDR343C/YDR342C&quot; &quot;YER046W&quot;        
+## [16] &quot;YER065C&quot;         &quot;YFL014W&quot;         &quot;YFL030W&quot;        
+## [19] &quot;YGL096W&quot;         &quot;YGL208W&quot;         &quot;YGL222C&quot;        
+## [22] &quot;YGR236C&quot;         &quot;YHR033W&quot;         &quot;YHR096C&quot;        
+## [25] &quot;YHR136C&quot;         &quot;YIL014C-A&quot;       &quot;YIL057C&quot;        
+## [28] &quot;YIL111W&quot;         &quot;YIL121W&quot;         &quot;YJR096W&quot;        
+## [31] &quot;YKL218C&quot;         &quot;YKR039W&quot;         &quot;YLR270W&quot;        
+## [34] &quot;YLR337C&quot;         &quot;YML123C&quot;         &quot;YMR133W&quot;        
+## [37] &quot;YMR175W&quot;         &quot;YNL142W&quot;         &quot;YOL158C&quot;        
+## [40] &quot;YOR161C&quot;         &quot;YOR173W&quot;         &quot;YPL223C&quot;        
+## [43] &quot;YPL274W&quot;         &quot;YPR006C&quot;         &quot;YPR194C&quot;</code></pre>
 <pre class="r"><code>par_biased_genes</code></pre>
-<pre><code>##  [1] &quot;YAL063C&quot;   &quot;YAR050W&quot;   &quot;YBR294W&quot;   &quot;YCL018W&quot;  
-##  [5] &quot;YCL048W-A&quot; &quot;YCR098C&quot;   &quot;YDL037C&quot;   &quot;YDL227C&quot;  
-##  [9] &quot;YDR363W&quot;   &quot;YEL020C&quot;   &quot;YEL021W&quot;   &quot;YEL022W&quot;  
-## [13] &quot;YEL060C&quot;   &quot;YER011W&quot;   &quot;YFL051C&quot;   &quot;YFR053C&quot;  
-## [17] &quot;YGL107C&quot;   &quot;YGL184C&quot;   &quot;YGL255W&quot;   &quot;YGR142W&quot;  
-## [21] &quot;YGR183C&quot;   &quot;YGR213C&quot;   &quot;YHR203C&quot;   &quot;YIL164C&quot;  
-## [25] &quot;YIL169C&quot;   &quot;YIR017C&quot;   &quot;YIR019C&quot;   &quot;YIR028W&quot;  
-## [29] &quot;YJL052W&quot;   &quot;YJL088W&quot;   &quot;YJL153C&quot;   &quot;YJR010W&quot;  
-## [33] &quot;YJR048W&quot;   &quot;YJR095W&quot;   &quot;YKL071W&quot;   &quot;YKR046C&quot;  
-## [37] &quot;YKR097W&quot;   &quot;YLL055W&quot;   &quot;YLL056C&quot;   &quot;YLL057C&quot;  
-## [41] &quot;YLR046C&quot;   &quot;YLR174W&quot;   &quot;YLR205C&quot;   &quot;YLR307C-A&quot;
-## [45] &quot;YLR411W&quot;   &quot;YML043C&quot;   &quot;YMR095C&quot;   &quot;YMR107W&quot;  
-## [49] &quot;YMR169C&quot;   &quot;YMR303C&quot;   &quot;YNL117W&quot;   &quot;YOL052C-A&quot;
-## [53] &quot;YOL058W&quot;   &quot;YOL152W&quot;   &quot;YOL155C&quot;   &quot;YOR348C&quot;  
-## [57] &quot;YPL014W&quot;   &quot;YPL171C&quot;   &quot;YPR193C&quot;</code></pre>
+<pre><code>##  [1] &quot;YAL063C&quot;   &quot;YAR050W&quot;   &quot;YBR294W&quot;   &quot;YCL018W&quot;   &quot;YCL048W-A&quot;
+##  [6] &quot;YCR098C&quot;   &quot;YDL037C&quot;   &quot;YDL227C&quot;   &quot;YDR363W&quot;   &quot;YEL020C&quot;  
+## [11] &quot;YEL021W&quot;   &quot;YEL022W&quot;   &quot;YEL060C&quot;   &quot;YER011W&quot;   &quot;YFL051C&quot;  
+## [16] &quot;YFR053C&quot;   &quot;YGL107C&quot;   &quot;YGL184C&quot;   &quot;YGL255W&quot;   &quot;YGR142W&quot;  
+## [21] &quot;YGR183C&quot;   &quot;YGR213C&quot;   &quot;YHR203C&quot;   &quot;YIL164C&quot;   &quot;YIL169C&quot;  
+## [26] &quot;YIR017C&quot;   &quot;YIR019C&quot;   &quot;YIR028W&quot;   &quot;YJL052W&quot;   &quot;YJL088W&quot;  
+## [31] &quot;YJL153C&quot;   &quot;YJR010W&quot;   &quot;YJR048W&quot;   &quot;YJR095W&quot;   &quot;YKL071W&quot;  
+## [36] &quot;YKR046C&quot;   &quot;YKR097W&quot;   &quot;YLL055W&quot;   &quot;YLL056C&quot;   &quot;YLL057C&quot;  
+## [41] &quot;YLR046C&quot;   &quot;YLR174W&quot;   &quot;YLR205C&quot;   &quot;YLR307C-A&quot; &quot;YLR411W&quot;  
+## [46] &quot;YML043C&quot;   &quot;YMR095C&quot;   &quot;YMR107W&quot;   &quot;YMR169C&quot;   &quot;YMR303C&quot;  
+## [51] &quot;YNL117W&quot;   &quot;YOL052C-A&quot; &quot;YOL058W&quot;   &quot;YOL152W&quot;   &quot;YOL155C&quot;  
+## [56] &quot;YOR348C&quot;   &quot;YPL014W&quot;   &quot;YPL171C&quot;   &quot;YPR193C&quot;</code></pre>
 <pre class="r"><code>both_biased_genes</code></pre>
-<pre><code>## [1] &quot;YCL048W-A&quot; &quot;YDR363W&quot;   &quot;YJL052W&quot;   &quot;YMR107W&quot;  
-## [5] &quot;YOL052C-A&quot;</code></pre>
+<pre><code>## [1] &quot;YCL048W-A&quot; &quot;YDR363W&quot;   &quot;YJL052W&quot;   &quot;YMR107W&quot;   &quot;YOL052C-A&quot;</code></pre>
 <pre class="r"><code>biased_samples</code></pre>
 <pre><code>## [1] &quot;WT_12_cer_CellCycle_rep1&quot; &quot;WT_15_par_HAP4andWTonYPD&quot;
 ## [3] &quot;WT_28_cer_CellCycle_rep2&quot; &quot;WT_34_par_CellCycle_rep2&quot;
@@ -985,10 +975,10 @@ fay &lt;- list.files(&quot;data_files/fay_counts/&quot;, full.names = TRUE) |&gt
   map2(.y = fay_filenames,
        .f = \(x, y) {
          if (grepl(&quot;R1&quot;, y)) {
-           output &lt;- select(x, X1, X2)
+           output &lt;- dplyr::select(x, X1, X2)
            return(output)}
          if (grepl(&quot;R2&quot;, y)) {
-           output &lt;- select(x, X1, X3)
+           output &lt;- dplyr::select(x, X1, X3)
            return(output)}
        }) |&gt; # X1 are gene names, X2 is sense strand read count for R1, X3 is the sense strand for R2
   purrr::reduce(.f = \(x, y) full_join(x = x, y = y, by = &quot;X1&quot;))
@@ -1037,7 +1027,7 @@ ggplot(pivot_wider(sampdf, id_cols = c(&quot;sample_name&quot;, &quot;allele&quo
 fay_sampdf &lt;- read.xlsx(&quot;data_files/downloaded_from_Fay2023/Supporting_Tables.xlsx&quot;,
                         sheet = 4, startRow = 2, colNames = TRUE)
 sampdf &lt;- fay_sampdf |&gt; 
-  select(Sample, Sc_gene_reads, Sp_gene_reads) |&gt;
+  dplyr::select(Sample, Sc_gene_reads, Sp_gene_reads) |&gt;
   pivot_longer(cols = c(&quot;Sc_gene_reads&quot;, &quot;Sp_gene_reads&quot;),
                names_to = &quot;allele&quot;, values_to = &quot;lib_size_fay&quot;) |&gt; 
   mutate(allele = if_else(allele == &quot;Sc_gene_reads&quot;,
@@ -1064,8 +1054,7 @@ lm(lib_size ~ lib_size_fay, data = sampdf) |&gt; summary()</code></pre>
 ## (Intercept)  -1.615e+04  9.355e+03  -1.727   0.0867 .  
 ## lib_size_fay  8.553e-01  3.168e-03 269.985   &lt;2e-16 ***
 ## ---
-## Signif. codes:  
-## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 77290 on 126 degrees of freedom
 ## Multiple R-squared:  0.9983, Adjusted R-squared:  0.9983 
@@ -1115,49 +1104,49 @@ random_gene &lt;- sample(c(1:nrow(fay_cer)), 1)
 # what it was
 fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S32_R1
+##   S25_R1
 ##    &lt;dbl&gt;
-## 1     54</code></pre>
+## 1     40</code></pre>
 <pre class="r"><code>fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S32_R2
+##   S25_R2
 ##    &lt;dbl&gt;
-## 1     65</code></pre>
+## 1     38</code></pre>
 <pre class="r"><code># what it should be
 (fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)] +
   fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)])/2</code></pre>
-<pre><code>##   S32_R1
-## 1   59.5</code></pre>
+<pre><code>##   S25_R1
+## 1     39</code></pre>
 <pre class="r"><code># what it is
 fay_cer[random_gene, random_Sample]</code></pre>
-<pre><code>## [1] 59.5</code></pre>
+<pre><code>## [1] 39</code></pre>
 <pre class="r"><code># par
 # what it was
 fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S32_R1
+##   S25_R1
 ##    &lt;dbl&gt;
-## 1    747</code></pre>
+## 1    196</code></pre>
 <pre class="r"><code>fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)]</code></pre>
 <pre><code>## # A tibble: 1 × 1
-##   S32_R2
+##   S25_R2
 ##    &lt;dbl&gt;
-## 1    779</code></pre>
+## 1    224</code></pre>
 <pre class="r"><code># what it should be
 (fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)] +
     fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)])/2</code></pre>
-<pre><code>##   S32_R1
-## 1    763</code></pre>
+<pre><code>##   S25_R1
+## 1    210</code></pre>
 <pre class="r"><code># what it is
 fay_par[random_gene, random_Sample]</code></pre>
-<pre><code>## [1] 763</code></pre>
+<pre><code>## [1] 210</code></pre>
 <pre class="r"><code>rm(fay_cer_R1R2, fay_par_R1R2)
 
 # setting rownames to gene names for each count matrix
 rownames(fay_cer) &lt;- common_genes
 rownames(fay_par) &lt;- common_genes
-tagseq_cer &lt;- tagseq_cer |&gt; select(!gene) |&gt; as.matrix()
-tagseq_par &lt;- tagseq_par |&gt; select(!gene) |&gt; as.matrix()
+tagseq_cer &lt;- tagseq_cer |&gt; dplyr::select(-gene) |&gt; as.matrix()
+tagseq_par &lt;- tagseq_par |&gt; dplyr::select(-gene) |&gt; as.matrix()
 rownames(tagseq_cer) &lt;- common_genes
 rownames(tagseq_par) &lt;- common_genes</code></pre>
 </div>
@@ -1231,7 +1220,7 @@ sum(colnames(counts_tagseq) == info_tagseq$sample_name)</code></pre>
 # reading in sample info
 info_fay &lt;- read.xlsx(&quot;data_files/downloaded_from_Fay2023/Supporting_Tables.xlsx&quot;,
                       sheet = 4, startRow = 2) |&gt; 
-  select(Sample, Condition, Time, Strains) |&gt; 
+  dplyr::select(Sample, Condition, Time, Strains) |&gt; 
   dplyr::rename(&quot;sample_name&quot;=&quot;Sample&quot;, &quot;experiment&quot;=&quot;Condition&quot;,
          &quot;time_point_num&quot;=&quot;Time&quot;, &quot;parents_or_hybrid&quot;=&quot;Strains&quot;) |&gt; 
   mutate(experiment = gsub(&quot;cold&quot;, &quot;Cold&quot;, experiment)) |&gt; 
@@ -1263,10 +1252,9 @@ table(info_fay$organism, info_fay$allele)</code></pre>
 ##   par   0  16</code></pre>
 <pre class="r"><code># combining allele-specific count matrices same as tagseq
 colnames(fay_cer)</code></pre>
-<pre><code>##  [1] &quot;S1&quot;  &quot;S2&quot;  &quot;S3&quot;  &quot;S4&quot;  &quot;S5&quot;  &quot;S6&quot;  &quot;S7&quot;  &quot;S8&quot; 
-##  [9] &quot;S25&quot; &quot;S26&quot; &quot;S27&quot; &quot;S28&quot; &quot;S29&quot; &quot;S30&quot; &quot;S31&quot; &quot;S32&quot;
-## [17] &quot;S33&quot; &quot;S34&quot; &quot;S35&quot; &quot;S36&quot; &quot;S37&quot; &quot;S38&quot; &quot;S39&quot; &quot;S40&quot;
-## [25] &quot;S57&quot; &quot;S58&quot; &quot;S59&quot; &quot;S60&quot; &quot;S61&quot; &quot;S62&quot; &quot;S63&quot; &quot;S64&quot;</code></pre>
+<pre><code>##  [1] &quot;S1&quot;  &quot;S2&quot;  &quot;S3&quot;  &quot;S4&quot;  &quot;S5&quot;  &quot;S6&quot;  &quot;S7&quot;  &quot;S8&quot;  &quot;S25&quot; &quot;S26&quot; &quot;S27&quot;
+## [12] &quot;S28&quot; &quot;S29&quot; &quot;S30&quot; &quot;S31&quot; &quot;S32&quot; &quot;S33&quot; &quot;S34&quot; &quot;S35&quot; &quot;S36&quot; &quot;S37&quot; &quot;S38&quot;
+## [23] &quot;S39&quot; &quot;S40&quot; &quot;S57&quot; &quot;S58&quot; &quot;S59&quot; &quot;S60&quot; &quot;S61&quot; &quot;S62&quot; &quot;S63&quot; &quot;S64&quot;</code></pre>
 <pre class="r"><code>counts_fay &lt;- apply(info_fay, 1, \(x) {
   sample_name &lt;- x[&quot;sample_name&quot;]
   sample_name_counts &lt;- strsplit(sample_name, &quot;_&quot;)[[1]][1]
@@ -1373,12 +1361,11 @@ info_tagseq$condition &lt;- paste(info_tagseq$genotype,
 # NOT when the living yeast sample was collected
 # (only like 65 samples total have a collection date within 24 hours 
 # for all 3 samples, and that&#39;s mostly because a lot of samples were collected on those dates)
-info_tagseq &lt;- select(info_tagseq, !collection_date)
+info_tagseq &lt;- dplyr::select(info_tagseq, -collection_date)
 
 ### cleaning up some sample info column values in fay info prior to combining
 setdiff(colnames(info_tagseq), colnames(info_fay))</code></pre>
-<pre><code>## [1] &quot;genotype&quot;       &quot;time_point_str&quot; &quot;well_flask_ID&quot; 
-## [4] &quot;condition&quot;</code></pre>
+<pre><code>## [1] &quot;genotype&quot;       &quot;time_point_str&quot; &quot;well_flask_ID&quot;  &quot;condition&quot;</code></pre>
 <pre class="r"><code>info_fay$genotype &lt;- &quot;WT&quot;
 info_fay$time_point_str &lt;- info_fay$time_point_num |&gt; as.character()
 info_fay$condition &lt;- paste(info_fay$genotype,
@@ -1411,7 +1398,7 @@ table(info_fay$condition, info_fay$well_flask_ID) # should have 4 entries for ea
 ##   WT_Heat_60    4    4</code></pre>
 <pre class="r"><code>setdiff(colnames(info_fay), colnames(info_tagseq))</code></pre>
 <pre><code>## [1] &quot;parents_or_hybrid&quot;</code></pre>
-<pre class="r"><code>info_fay &lt;- select(info_fay, !parents_or_hybrid)
+<pre class="r"><code>info_fay &lt;- dplyr::select(info_fay, -parents_or_hybrid)
 
 # last checks
 setequal(colnames(info_tagseq), colnames(info_fay))</code></pre>
@@ -1433,9 +1420,9 @@ cat(&quot;percent sample info columns in same order as count data (before matchi
                         experiment, genotype) |&gt; 
   summarise(nreps = n()) |&gt; filter((organism != &quot;hyb&quot; &amp; nreps == 1) |
                                      organism == &quot;hyb&quot; &amp; nreps == 2) |&gt; nrow()</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;organism&#39;,
-## &#39;time_point_str&#39;, &#39;well_flask_ID&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;organism&#39;, &#39;time_point_str&#39;,
+## &#39;well_flask_ID&#39;, &#39;experiment&#39;. You can override using the `.groups`
+## argument.</code></pre>
 <pre><code>## [1] 734</code></pre>
 <pre class="r"><code>nrow(sample_info) - sum(sample_info$organism == &quot;hyb&quot;)/2 # should be the same</code></pre>
 <pre><code>## [1] 734</code></pre>
@@ -1444,9 +1431,8 @@ sample_info |&gt; filter(experiment == &quot;LowN&quot;) |&gt; group_by(organism
                                                         well_flask_ID,
                                                         genotype) |&gt; 
   summarise(nreps = n()) |&gt; filter(nreps == 3)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;organism&#39;,
-## &#39;well_flask_ID&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;organism&#39;, &#39;well_flask_ID&#39;. You
+## can override using the `.groups` argument.</code></pre>
 <pre><code>## # A tibble: 3 × 4
 ## # Groups:   organism, well_flask_ID [3]
 ##   organism well_flask_ID genotype nreps
@@ -1458,9 +1444,8 @@ sample_info |&gt; filter(experiment == &quot;LowN&quot;) |&gt; group_by(organism
                                                         well_flask_ID,
                                                         genotype) |&gt; 
   summarise(nreps = n()) |&gt; filter(nreps != 3)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;organism&#39;,
-## &#39;well_flask_ID&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;organism&#39;, &#39;well_flask_ID&#39;. You
+## can override using the `.groups` argument.</code></pre>
 <pre><code>## # A tibble: 195 × 4
 ## # Groups:   organism, well_flask_ID [195]
 ##    organism well_flask_ID genotype nreps
@@ -1496,67 +1481,55 @@ standardizeGS2018ID(&quot;G8_G12_GS2018&quot;)</code></pre>
 <pre><code>## [1] &quot;G2_G12_GS2018&quot;</code></pre>
 <pre class="r"><code># before applying
 sample_info |&gt; filter(organism %in% c(&quot;cer&quot;, &quot;par&quot;) &amp; grepl(&quot;GS2018&quot;, well_flask_ID)) |&gt; 
-  select(well_flask_ID) |&gt; table() </code></pre>
+  dplyr::select(well_flask_ID) |&gt; table() </code></pre>
 <pre><code>## well_flask_ID
-##  A1_G6_GS2018  A2_G6_GS2018  A7_G6_GS2018  A8_G6_GS2018 
-##             2             2             1             1 
-##  B1_G6_GS2018  B2_G6_GS2018  B7_G6_GS2018  B8_G6_GS2018 
-##             2             2             1             1 
-##  C1_G6_GS2018  C2_G6_GS2018  C7_G6_GS2018  C8_G6_GS2018 
-##             2             2             1             1 
-##  D1_G6_GS2018  D2_G6_GS2018  D7_G6_GS2018  D8_G6_GS2018 
-##             2             2             1             1 
-## E1_G12_GS2018 E2_G12_GS2018 E7_G12_GS2018 E8_G12_GS2018 
-##             2             2             1             1 
-## F1_G12_GS2018 F2_G12_GS2018 F7_G12_GS2018 F8_G12_GS2018 
-##             2             2             1             1 
-## G1_G12_GS2018 G2_G12_GS2018 G7_G12_GS2018 G8_G12_GS2018 
-##             2             2             1             1 
-## H1_G12_GS2018 H2_G12_GS2018 H7_G12_GS2018 H8_G12_GS2018 
-##             1             2             1             1</code></pre>
+##  A1_G6_GS2018  A2_G6_GS2018  A7_G6_GS2018  A8_G6_GS2018  B1_G6_GS2018 
+##             2             2             1             1             2 
+##  B2_G6_GS2018  B7_G6_GS2018  B8_G6_GS2018  C1_G6_GS2018  C2_G6_GS2018 
+##             2             1             1             2             2 
+##  C7_G6_GS2018  C8_G6_GS2018  D1_G6_GS2018  D2_G6_GS2018  D7_G6_GS2018 
+##             1             1             2             2             1 
+##  D8_G6_GS2018 E1_G12_GS2018 E2_G12_GS2018 E7_G12_GS2018 E8_G12_GS2018 
+##             1             2             2             1             1 
+## F1_G12_GS2018 F2_G12_GS2018 F7_G12_GS2018 F8_G12_GS2018 G1_G12_GS2018 
+##             2             2             1             1             2 
+## G2_G12_GS2018 G7_G12_GS2018 G8_G12_GS2018 H1_G12_GS2018 H2_G12_GS2018 
+##             2             1             1             1             2 
+## H7_G12_GS2018 H8_G12_GS2018 
+##             1             1</code></pre>
 <pre class="r"><code>sample_info |&gt; filter(organism == &quot;hyb&quot; &amp; grepl(&quot;GS2018&quot;, well_flask_ID)) |&gt; 
-  select(well_flask_ID) |&gt; table() </code></pre>
+  dplyr::select(well_flask_ID) |&gt; table() </code></pre>
 <pre><code>## well_flask_ID
-## A10_G12_GS2018 A11_G12_GS2018 A12_G12_GS2018 
-##              2              2              2 
-##  A3_G12_GS2018  A4_G12_GS2018  A5_G12_GS2018 
-##              4              4              4 
-##  A6_G12_GS2018  A9_G12_GS2018 B10_G12_GS2018 
-##              4              2              2 
-## B11_G12_GS2018 B12_G12_GS2018  B3_G12_GS2018 
-##              2              2              4 
-##  B4_G12_GS2018  B5_G12_GS2018  B6_G12_GS2018 
-##              4              4              4 
-##  B9_G12_GS2018 C10_G12_GS2018 C11_G12_GS2018 
-##              2              2              2 
-## C12_G12_GS2018  C3_G12_GS2018  C4_G12_GS2018 
-##              2              4              4 
-##  C5_G12_GS2018  C6_G12_GS2018  C9_G12_GS2018 
-##              4              4              2 
-## D10_G12_GS2018 D11_G12_GS2018 D12_G12_GS2018 
-##              2              2              2 
-##  D3_G12_GS2018  D4_G12_GS2018  D5_G12_GS2018 
-##              4              4              4 
-##  D6_G12_GS2018  D9_G12_GS2018 E10_WT2_GS2018 
-##              4              2              2 
-## E11_WT2_GS2018 E12_WT2_GS2018  E3_WT2_GS2018 
-##              2              2              4 
-##  E4_WT2_GS2018  E5_WT2_GS2018  E6_WT2_GS2018 
-##              4              4              4 
-##  E9_WT2_GS2018 F10_WT2_GS2018 F11_WT2_GS2018 
-##              2              2              2 
-## F12_WT2_GS2018  F3_WT2_GS2018  F4_WT2_GS2018 
-##              2              4              4 
-##  F5_WT2_GS2018  F6_WT2_GS2018  F9_WT2_GS2018 
-##              4              4              2 
-## G10_WT2_GS2018 G11_WT2_GS2018 G12_WT2_GS2018 
-##              2              2              2 
-##  G3_WT2_GS2018  G4_WT2_GS2018  G5_WT2_GS2018 
-##              4              4              4 
-##  G6_WT2_GS2018  G9_WT2_GS2018 H10_WT2_GS2018 
-##              4              2              2 
-##  H3_WT2_GS2018  H4_WT2_GS2018  H9_WT2_GS2018 
-##              4              4              2</code></pre>
+## A10_G12_GS2018 A11_G12_GS2018 A12_G12_GS2018  A3_G12_GS2018 
+##              2              2              2              4 
+##  A4_G12_GS2018  A5_G12_GS2018  A6_G12_GS2018  A9_G12_GS2018 
+##              4              4              4              2 
+## B10_G12_GS2018 B11_G12_GS2018 B12_G12_GS2018  B3_G12_GS2018 
+##              2              2              2              4 
+##  B4_G12_GS2018  B5_G12_GS2018  B6_G12_GS2018  B9_G12_GS2018 
+##              4              4              4              2 
+## C10_G12_GS2018 C11_G12_GS2018 C12_G12_GS2018  C3_G12_GS2018 
+##              2              2              2              4 
+##  C4_G12_GS2018  C5_G12_GS2018  C6_G12_GS2018  C9_G12_GS2018 
+##              4              4              4              2 
+## D10_G12_GS2018 D11_G12_GS2018 D12_G12_GS2018  D3_G12_GS2018 
+##              2              2              2              4 
+##  D4_G12_GS2018  D5_G12_GS2018  D6_G12_GS2018  D9_G12_GS2018 
+##              4              4              4              2 
+## E10_WT2_GS2018 E11_WT2_GS2018 E12_WT2_GS2018  E3_WT2_GS2018 
+##              2              2              2              4 
+##  E4_WT2_GS2018  E5_WT2_GS2018  E6_WT2_GS2018  E9_WT2_GS2018 
+##              4              4              4              2 
+## F10_WT2_GS2018 F11_WT2_GS2018 F12_WT2_GS2018  F3_WT2_GS2018 
+##              2              2              2              4 
+##  F4_WT2_GS2018  F5_WT2_GS2018  F6_WT2_GS2018  F9_WT2_GS2018 
+##              4              4              4              2 
+## G10_WT2_GS2018 G11_WT2_GS2018 G12_WT2_GS2018  G3_WT2_GS2018 
+##              2              2              2              4 
+##  G4_WT2_GS2018  G5_WT2_GS2018  G6_WT2_GS2018  G9_WT2_GS2018 
+##              4              4              4              2 
+## H10_WT2_GS2018  H3_WT2_GS2018  H4_WT2_GS2018  H9_WT2_GS2018 
+##              2              4              4              2</code></pre>
 <pre class="r"><code># applying to GS2018 samples
 GS2018_idxs &lt;- grepl(&quot;GS2018&quot;, sample_info$well_flask_ID)
 sample_info$well_flask_ID[GS2018_idxs] &lt;- sapply(sample_info$well_flask_ID[GS2018_idxs],
@@ -1564,35 +1537,31 @@ sample_info$well_flask_ID[GS2018_idxs] &lt;- sapply(sample_info$well_flask_ID[GS
 
 # after applying
 sample_info |&gt; filter(organism %in% c(&quot;cer&quot;, &quot;par&quot;) &amp; grepl(&quot;GS2018&quot;, well_flask_ID)) |&gt; 
-  select(well_flask_ID) |&gt; table() </code></pre>
+  dplyr::select(well_flask_ID) |&gt; table() </code></pre>
 <pre><code>## well_flask_ID
-##  A1_G6_GS2018  A2_G6_GS2018  B1_G6_GS2018  B2_G6_GS2018 
-##             3             3             3             3 
-##  C1_G6_GS2018  C2_G6_GS2018  D1_G6_GS2018  D2_G6_GS2018 
-##             3             3             3             3 
-## E1_G12_GS2018 E2_G12_GS2018 F1_G12_GS2018 F2_G12_GS2018 
-##             3             3             3             3 
-## G1_G12_GS2018 G2_G12_GS2018 H1_G12_GS2018 H2_G12_GS2018 
-##             3             3             2             3</code></pre>
+##  A1_G6_GS2018  A2_G6_GS2018  B1_G6_GS2018  B2_G6_GS2018  C1_G6_GS2018 
+##             3             3             3             3             3 
+##  C2_G6_GS2018  D1_G6_GS2018  D2_G6_GS2018 E1_G12_GS2018 E2_G12_GS2018 
+##             3             3             3             3             3 
+## F1_G12_GS2018 F2_G12_GS2018 G1_G12_GS2018 G2_G12_GS2018 H1_G12_GS2018 
+##             3             3             3             3             2 
+## H2_G12_GS2018 
+##             3</code></pre>
 <pre class="r"><code>sample_info |&gt; filter(organism == &quot;hyb&quot; &amp; grepl(&quot;GS2018&quot;, well_flask_ID)) |&gt; 
-  select(well_flask_ID) |&gt; table() </code></pre>
+  dplyr::select(well_flask_ID) |&gt; table() </code></pre>
 <pre><code>## well_flask_ID
-## A3_G12_GS2018 A4_G12_GS2018 A5_G12_GS2018 A6_G12_GS2018 
-##             6             6             6             6 
-## B3_G12_GS2018 B4_G12_GS2018 B5_G12_GS2018 B6_G12_GS2018 
-##             6             6             6             6 
-## C3_G12_GS2018 C4_G12_GS2018 C5_G12_GS2018 C6_G12_GS2018 
-##             6             6             6             6 
-## D3_G12_GS2018 D4_G12_GS2018 D5_G12_GS2018 D6_G12_GS2018 
-##             6             6             6             6 
-## E3_WT2_GS2018 E4_WT2_GS2018 E5_WT2_GS2018 E6_WT2_GS2018 
-##             6             6             6             6 
-## F3_WT2_GS2018 F4_WT2_GS2018 F5_WT2_GS2018 F6_WT2_GS2018 
-##             6             6             6             6 
-## G3_WT2_GS2018 G4_WT2_GS2018 G5_WT2_GS2018 G6_WT2_GS2018 
-##             6             6             6             6 
-## H3_WT2_GS2018 H4_WT2_GS2018 
-##             6             6</code></pre>
+## A3_G12_GS2018 A4_G12_GS2018 A5_G12_GS2018 A6_G12_GS2018 B3_G12_GS2018 
+##             6             6             6             6             6 
+## B4_G12_GS2018 B5_G12_GS2018 B6_G12_GS2018 C3_G12_GS2018 C4_G12_GS2018 
+##             6             6             6             6             6 
+## C5_G12_GS2018 C6_G12_GS2018 D3_G12_GS2018 D4_G12_GS2018 D5_G12_GS2018 
+##             6             6             6             6             6 
+## D6_G12_GS2018 E3_WT2_GS2018 E4_WT2_GS2018 E5_WT2_GS2018 E6_WT2_GS2018 
+##             6             6             6             6             6 
+## F3_WT2_GS2018 F4_WT2_GS2018 F5_WT2_GS2018 F6_WT2_GS2018 G3_WT2_GS2018 
+##             6             6             6             6             6 
+## G4_WT2_GS2018 G5_WT2_GS2018 G6_WT2_GS2018 H3_WT2_GS2018 H4_WT2_GS2018 
+##             6             6             6             6             6</code></pre>
 <pre class="r"><code># hybrids should have 6, 2 alleles x 3 timepoints, Parents have just 3 timepoints. Except for H1, which is missing a timepoint
 # giving the GS2018s their proper well IDs in sample_info
 
@@ -1603,10 +1572,10 @@ sample_info$well_flask_ID &lt;- gsub(&quot;_GS.*&quot;, &quot;&quot;, sample_inf
 sample_info$new_id &lt;- map2(sample_info$well_flask_ID, 
              sample_info$sample_name, \(i, s) {
                ex &lt;- sample_info |&gt; filter(sample_name == s) |&gt; 
-                 select(experiment) |&gt; pull()
+                 dplyr::select(experiment) |&gt; pull()
                if (ex == &quot;LowN&quot;) {
                  org &lt;- sample_info |&gt; filter(sample_name == s) |&gt; 
-                   select(organism) |&gt; pull()
+                   dplyr::select(organism) |&gt; pull()
                  is_duplicate &lt;- sample_info |&gt; 
                    filter(experiment == &quot;LowN&quot; &amp; 
                             organism == org &amp;
@@ -1633,25 +1602,23 @@ sample_info |&gt;
   summarise(n_per_condition = n()) |&gt; 
   filter((organism != &quot;hyb&quot; &amp; n_per_condition &gt; 1) |
            (organism == &quot;hyb&quot; &amp; n_per_condition &gt; 2)) # should be empty</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;new_id&#39;,
-## &#39;organism&#39;, &#39;experiment&#39;, &#39;time_point_str&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;new_id&#39;, &#39;organism&#39;,
+## &#39;experiment&#39;, &#39;time_point_str&#39;. You can override using the `.groups`
+## argument.</code></pre>
 <pre><code>## # A tibble: 0 × 6
-## # Groups:   new_id, organism, experiment, time_point_str
-## #   [0]
-## # ℹ 6 variables: new_id &lt;chr&gt;, organism &lt;chr&gt;,
-## #   experiment &lt;chr&gt;, time_point_str &lt;chr&gt;,
-## #   genotype &lt;chr&gt;, n_per_condition &lt;int&gt;</code></pre>
+## # Groups:   new_id, organism, experiment, time_point_str [0]
+## # ℹ 6 variables: new_id &lt;chr&gt;, organism &lt;chr&gt;, experiment &lt;chr&gt;,
+## #   time_point_str &lt;chr&gt;, genotype &lt;chr&gt;, n_per_condition &lt;int&gt;</code></pre>
 <pre class="r"><code># updating well_flask_ID 
 sample_info$well_flask_ID &lt;- sample_info$new_id
-sample_info &lt;- select(sample_info, -&quot;new_id&quot;)
+sample_info &lt;- dplyr::select(sample_info, -&quot;new_id&quot;)
 
 # checking example (two C5_A10s for the 960 timepoint)
 sample_info |&gt; filter(experiment == &quot;LowN&quot; &amp; organism == &quot;par&quot; &amp;
                         genotype == &quot;GCN4delete&quot;)</code></pre>
-<pre><code>## [1] sample_name    organism       genotype      
-## [4] experiment     time_point_str well_flask_ID 
-## [7] allele         time_point_num condition     
+<pre><code>## [1] sample_name    organism       genotype       experiment    
+## [5] time_point_str well_flask_ID  allele         time_point_num
+## [9] condition     
 ## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
 <pre class="r"><code># should have additional tag P1 or P2 on the C5_A10s</code></pre>
 </div>
@@ -1661,7 +1628,7 @@ class="section level2">
 <pre class="r"><code># Removeing Cell Cycle timepoints after HU shock b/c Scer and Spar don&#39;t
 # have the same periodicity of their cell cycles
 sample_info |&gt; filter(experiment == &quot;CC&quot;) |&gt; 
-  select(time_point_str, time_point_num) |&gt; unique() |&gt; arrange(time_point_num)</code></pre>
+  dplyr::select(time_point_str, time_point_num) |&gt; unique() |&gt; arrange(time_point_num)</code></pre>
 <pre><code>##    time_point_str time_point_num
 ## 1      0 min, YPD              0
 ## 2       5 min, HU              5
@@ -1711,7 +1678,7 @@ sample_info &lt;- sample_info[keep,]
 counts &lt;- counts[,(colnames(counts) %in% sample_info$sample_name)]
 
 # Whittling LowPi to just WT --- not enough of them to warrant the complication of including a second genotype (plus they&#39;re only present in -5 and 180 min samples)
-sample_info %&gt;% filter(experiment == &quot;LowPi&quot;) %&gt;% select(genotype) %&gt;% table()</code></pre>
+sample_info %&gt;% filter(experiment == &quot;LowPi&quot;) %&gt;% dplyr::select(genotype) %&gt;% table()</code></pre>
 <pre><code>## genotype
 ##  WT 
 ## 116</code></pre>
@@ -1722,12 +1689,12 @@ counts &lt;- counts[,(colnames(counts) %in% sample_info$sample_name)]
 
 # our 46 TF deletions
 TFdel_lookup &lt;- read_delim(&quot;data_files/downloaded_genomes_and_features/yeastract_46TFs.csv&quot;, col_names = FALSE, col_select = c(1,2), delim = &quot;;&quot;) # gets some warnings, but so far has been fine</code></pre>
-<pre><code>## Warning: One or more parsing issues, call `problems()` on your
-## data frame for details, e.g.:
+<pre><code>## Warning: One or more parsing issues, call `problems()` on your data frame for
+## details, e.g.:
 ##   dat &lt;- vroom(...)
 ##   problems(dat)</code></pre>
 <pre><code>## Rows: 46 Columns: 2
-## ── Column specification ─────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────
 ## Delimiter: &quot;;&quot;
 ## chr (2): X1, X2
 ## 
@@ -1749,8 +1716,7 @@ class="section level2">
 <pre class="r"><code># Exploring library sizes (un-normalized)
 libsizes &lt;- colSums(counts) # these counts include all samples, hybrid and parental
 ggplot(tibble(libsize = libsizes), aes(x = libsize)) + geom_histogram()</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with
-## `binwidth`.</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</code></pre>
 <p><img src="clean_data_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 <pre class="r"><code>min(libsizes)</code></pre>
 <pre><code>## [1] 11902.5</code></pre>
@@ -1765,50 +1731,30 @@ colnames(counts)[libsizes &lt; 100000]</code></pre>
 <pre><code>## [1] &quot;WT_02_hyc_CellCycle_rep2&quot; &quot;WT_02_hyp_CellCycle_rep2&quot;
 ## [3] &quot;S64_cer&quot;                  &quot;S26_par&quot;</code></pre>
 <pre class="r"><code>sort(libsizes)[c(1:20)] # a few of the CC have fairly tiny libraries, and will need to be removed before normalizing (or else you get ridiculously high outlier counts from small counts --- ex) (5/7000)*1e6 = 714 whereas (5/200000)*1e6 = 25)</code></pre>
-<pre><code>##                      S26_par 
-##                      11902.5 
-##     WT_02_hyp_CellCycle_rep2 
-##                      58573.0 
-##                      S64_cer 
-##                      59374.5 
-##     WT_02_hyc_CellCycle_rep2 
-##                      65759.0 
-##                      S63_cer 
-##                     102982.0 
-##     WT_15_hyp_HAP4andWTonYPD 
-##                     115707.0 
-##     WT_TP2_par_P5_E2_G6_GS13 
-##                     117042.0 
-##     WT_15_hyc_HAP4andWTonYPD 
-##                     121544.0 
-##                      S28_cer 
-##                     125482.5 
-##     WT_08_hyp_CellCycle_rep1 
-##                     143210.0 
-## WT_TP1_hyp_WTs_D3_G12_GS2018 
-##                     149644.0 
-## WT_TP1_hyc_WTs_D3_G12_GS2018 
-##                     150618.0 
-## WT_TP1_hyp_WTs_D6_G12_GS2018 
-##                     155927.0 
-## WT_TP1_hyc_WTs_D6_G12_GS2018 
-##                     158863.0 
-##      WT_TP2_cer_C3_H2_G6_GS8 
-##                     173358.0 
-##     WT_01_hyp_CellCycle_rep1 
-##                     174148.0 
-##     WT_08_hyc_CellCycle_rep1 
-##                     176269.0 
-##     WT_06_hyp_CellCycle_rep1 
-##                     181680.0 
-##     WT_TP2_hyc_H2_E6_G12_GS4 
-##                     190009.0 
-##     WT_22_par_SCtoLowPi_rep1 
-##                     191690.0</code></pre>
+<pre><code>##                      S26_par     WT_02_hyp_CellCycle_rep2 
+##                      11902.5                      58573.0 
+##                      S64_cer     WT_02_hyc_CellCycle_rep2 
+##                      59374.5                      65759.0 
+##                      S63_cer     WT_15_hyp_HAP4andWTonYPD 
+##                     102982.0                     115707.0 
+##     WT_TP2_par_P5_E2_G6_GS13     WT_15_hyc_HAP4andWTonYPD 
+##                     117042.0                     121544.0 
+##                      S28_cer     WT_08_hyp_CellCycle_rep1 
+##                     125482.5                     143210.0 
+## WT_TP1_hyp_WTs_D3_G12_GS2018 WT_TP1_hyc_WTs_D3_G12_GS2018 
+##                     149644.0                     150618.0 
+## WT_TP1_hyp_WTs_D6_G12_GS2018 WT_TP1_hyc_WTs_D6_G12_GS2018 
+##                     155927.0                     158863.0 
+##      WT_TP2_cer_C3_H2_G6_GS8     WT_01_hyp_CellCycle_rep1 
+##                     173358.0                     174148.0 
+##     WT_08_hyc_CellCycle_rep1     WT_06_hyp_CellCycle_rep1 
+##                     176269.0                     181680.0 
+##     WT_TP2_hyc_H2_E6_G12_GS4     WT_22_par_SCtoLowPi_rep1 
+##                     190009.0                     191690.0</code></pre>
 <pre class="r"><code># are the hybrid reps library sizes correlated between hyc and hyp alleles?
 plotdf &lt;- tibble(sample_name = names(libsizes[grepl(&quot;_hy[pc]&quot;, names(libsizes))]),
                  libsize = libsizes[grepl(&quot;_hy[pc]&quot;, names(libsizes))]) |&gt; 
-  left_join(y = select(filter(sample_info, organism == &quot;hyb&quot;), sample_name, experiment), by = &quot;sample_name&quot;)
+  left_join(y = dplyr::select(filter(sample_info, organism == &quot;hyb&quot;), sample_name, experiment), by = &quot;sample_name&quot;)
 plotdf$allele &lt;- if_else(grepl(pattern = &quot;_hyc_&quot;, plotdf$sample_name),
                          true = &quot;cer&quot;, false = &quot;par&quot;)
 plotdf$sample_name &lt;- gsub(&quot;_hy[pc]_&quot;, &quot;_hyb_&quot;, plotdf$sample_name)
@@ -1823,8 +1769,8 @@ ggplot(plotdf, aes(x = cer, y = par)) +
   geom_rect(xmin = 0, xmax = 100000, ymin = 0, ymax = 100000, color = &quot;blue&quot;, alpha = 0) +
   geom_vline(xintercept = 100000, color = &quot;blue&quot;, alpha = 0.5) +
   geom_hline(yintercept = 100000, color = &quot;blue&quot;, alpha = 0.5)</code></pre>
-<pre><code>## Warning: Removed 32 rows containing missing values or values
-## outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 32 rows containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
 <p><img src="clean_data_files/figure-html/unnamed-chunk-11-2.png" width="672" /></p>
 <pre class="r"><code># (the samples within the blue box will be removed by our library size threshold below)
 # and no other samples should be below the blue lines but not within the blue box
@@ -1845,8 +1791,8 @@ plotdf &lt;- tibble(libsize_cer = colSums(counts[, grepl(&quot;_cer&quot;, colna
                  libsize_hyp = colSums(counts[, grepl(&quot;_hyp&quot;, colnames(counts))])[sample(c(1:400), 400)]) %&gt;%
   pivot_longer(cols = c(libsize_cer, libsize_par, libsize_hyc, libsize_hyp))
 ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name)) </code></pre>
-<pre><code>## Warning: Removed 457 rows containing non-finite outside the scale
-## range (`stat_boxplot()`).</code></pre>
+<pre><code>## Warning: Removed 457 rows containing non-finite outside the scale range
+## (`stat_boxplot()`).</code></pre>
 <p><img src="clean_data_files/figure-html/unnamed-chunk-11-4.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)))</code></pre>
 <pre><code>## 
@@ -1861,8 +1807,8 @@ ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quo
 ## mean in group libsize_cer mean in group libsize_par 
 ##                  759779.1                 1036816.8</code></pre>
 <pre class="r"><code>ggplot(filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name))</code></pre>
-<pre><code>## Warning: Removed 438 rows containing non-finite outside the scale
-## range (`stat_boxplot()`).</code></pre>
+<pre><code>## Warning: Removed 438 rows containing non-finite outside the scale range
+## (`stat_boxplot()`).</code></pre>
 <p><img src="clean_data_files/figure-html/unnamed-chunk-11-5.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;))) </code></pre>
 <pre><code>## 
@@ -1933,14 +1879,14 @@ test_count &lt;- test_cts[test_rowIdx, test_colIdx]
 test_cpm &lt;- countsPerMillion(test_cts)
 test_cpm_cpm &lt;- countsPerMillion(test_cpm)
 ((test_count/colSums(test_cts, na.rm = TRUE)[test_colIdx])*1e6) %&gt;% round() # what it should be</code></pre>
-<pre><code>## WT_TP2_par_P5_E2_G6_GS13 
-##                        9</code></pre>
+<pre><code>## WT_TP3_par_WTs_B2_G6_GS2018 
+##                           4</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## [1] 1</code></pre>
+<pre><code>## [1] 4</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## [1] 9</code></pre>
+<pre><code>## [1] 4</code></pre>
 <pre class="r"><code>test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (should be the same as test_cpm)</code></pre>
-<pre><code>## [1] 9</code></pre>
+<pre><code>## [1] 4</code></pre>
 <pre class="r"><code># Example of how small libraries skew data, YIL134W in CC before normalizing:
 test_counts &lt;- counts[, (grepl(&quot;_hyc&quot;, colnames(counts)) | 
                            grepl(&quot;_hyp&quot;, colnames(counts))) &amp;
@@ -1966,7 +1912,7 @@ plotdf &lt;- tibble(libsize = libSizes,
                  expr = as.numeric(counts[gene_idx,]), 
                  gene_name = gene_idx,
                  sample_name = colnames(counts)) |&gt; 
-  left_join(select(sample_info, sample_name, experiment),
+  left_join(dplyr::select(sample_info, sample_name, experiment),
             by = &quot;sample_name&quot;)
 ggplot(plotdf, aes(x = libsize, y = expr)) + 
   geom_point(aes(color = experiment)) + geom_vline(xintercept = 100000, col = &quot;red&quot;) + theme_classic() + ggtitle(gene_idx)</code></pre>
@@ -2014,7 +1960,7 @@ gene_lens_scer &lt;- read_tsv(&quot;data_files/downloaded_genomes_and_features/S
   filter(feature == &quot;gene&quot;) |&gt; 
   as_tibble()</code></pre>
 <pre><code>## Rows: 23408 Columns: 4
-## ── Column specification ─────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────
 ## Delimiter: &quot;\t&quot;
 ## chr (2): X3, X9
 ## dbl (2): X4, X5
@@ -2040,7 +1986,7 @@ gene_lens_spar &lt;- read_tsv(&quot;data_files/downloaded_genomes_and_features/C
   filter(feature == &quot;gene&quot;) |&gt; 
   as_tibble()</code></pre>
 <pre><code>## Rows: 23379 Columns: 4
-## ── Column specification ─────────────────────────────────
+## ── Column specification ───────────────────────────────────────────────
 ## Delimiter: &quot;\t&quot;
 ## chr (2): X3, X9
 ## dbl (2): X4, X5
@@ -2056,9 +2002,9 @@ sum(gene_lens_spar$end &gt; gene_lens_spar$start)</code></pre>
 <pre class="r"><code>sum(gene_lens_spar$end &lt; gene_lens_spar$start)</code></pre>
 <pre><code>## [1] 0</code></pre>
 <pre class="r"><code>gene_lens_spar$length &lt;- gene_lens_spar$end - gene_lens_spar$start
-gene_lens_scer &lt;- gene_lens_scer |&gt; select(gene_name, length) |&gt; 
+gene_lens_scer &lt;- gene_lens_scer |&gt; dplyr::select(gene_name, length) |&gt; 
   filter(gene_name %in% common_genes) |&gt; unique()
-gene_lens_spar &lt;- gene_lens_spar |&gt; select(gene_name, length) |&gt; 
+gene_lens_spar &lt;- gene_lens_spar |&gt; dplyr::select(gene_name, length) |&gt; 
   filter(gene_name %in% common_genes) |&gt; unique()
 # check that duplicated genes have about the same length before removing duplicates
 gene_lens_scer[gene_lens_scer$gene_name %in% gene_lens_scer$gene_name[duplicated(gene_lens_scer$gene_name)],] |&gt; 
@@ -2114,8 +2060,8 @@ gene_lens_spar |&gt; filter(gene_name %in% two_lengths_spar)</code></pre>
 ## 3 YDR025W/YBR048W    980
 ## 4 YPL091W           1451</code></pre>
 <pre class="r"><code># how many genes have significantly different lengths in both species?
-plotdf &lt;- left_join(x = dplyr::rename(select(gene_lens_scer, gene_name, length), &quot;Scer&quot;=&quot;length&quot;),
-                    y = dplyr::rename(select(gene_lens_spar, gene_name, length), &quot;Spar&quot;=&quot;length&quot;),
+plotdf &lt;- left_join(x = dplyr::rename(dplyr::select(gene_lens_scer, gene_name, length), &quot;Scer&quot;=&quot;length&quot;),
+                    y = dplyr::rename(dplyr::select(gene_lens_spar, gene_name, length), &quot;Spar&quot;=&quot;length&quot;),
                     by = &quot;gene_name&quot;)
 ggplot(plotdf, aes(x = Scer, y = Spar)) + geom_point()</code></pre>
 <p><img src="clean_data_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
@@ -2161,11 +2107,11 @@ sum(gene_lens_scer$gene_name == rownames(test_cts))/nrow(test_cts) # should be 1
 <pre class="r"><code>test_cpm &lt;- countsPerMillionWithLength(test_cts, test_lens)
 # test_cpm_cpm &lt;- countsPerMillionWithLength(test_cpm, test_lens)
 round(((test_count/test_lens[test_rowIdx])/sum(test_cts[,test_colIdx]/test_lens))*10^6) # what it should be</code></pre>
-<pre><code>## [1] 105</code></pre>
+<pre><code>## [1] 7</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## [1] 100.5</code></pre>
+<pre><code>## [1] 12</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## [1] 105</code></pre>
+<pre><code>## [1] 7</code></pre>
 <pre class="r"><code># test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (unlike the TagSeq normalization, this cannot be run over and over again)
 
 counts_unnorm &lt;- counts
@@ -2215,39 +2161,39 @@ dim(counts)</code></pre>
 <pre><code>## [1] 5359  360</code></pre>
 <pre class="r"><code>dim(sample_info_allele)</code></pre>
 <pre><code>## [1] 360   9</code></pre>
-<pre class="r"><code>sample_info |&gt; select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
-<pre><code>##                    sample_name organism allele
-## 1    WT_TP2_par_P5_F5_G12_GS13      par    par
-## 2      WT_1_par_HAP4andWTonYPD      par    par
-## 3     WT_TP3_cer_C3_G6_G12_GS8      cer    cer
-## 4     WT_18_par_SCtoLowPi_rep1      par    par
-## 5     WT_TP1_cer_C3_A6_G12_GS7      cer    cer
-## 6     WT_TP1_par_P5_E3_G6_GS13      par    par
-## 7  WT_TP2_par_WTs_D8_G6_GS2018      par    par
-## 8     WT_11_cer_SCtoLowPi_rep1      cer    cer
-## 9      WT_6_cer_HAP4andWTonYPD      cer    cer
-## 10    WT_TP1_par_P5_C3_G6_GS13      par    par</code></pre>
-<pre class="r"><code>sample_info_allele |&gt; select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
+<pre class="r"><code>sample_info |&gt; dplyr::select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
+<pre><code>##                     sample_name organism allele
+## 1      WT_TP3_cer_C3_H5_G12_GS8      cer    cer
+## 2      WT_10_par_HAP4andWTonYPD      par    par
+## 3       WT_7_cer_SCtoLowPi_rep1      cer    cer
+## 4   WT_TP3_par_WTs_A2_G6_GS2018      par    par
+## 5      WT_13_cer_SCtoLowPi_rep1      cer    cer
+## 6       WT_TP3_cer_C3_F2_G6_GS8      cer    cer
+## 7  WT_TP1_cer_WTs_H1_G12_GS2018      cer    cer
+## 8     WT_TP1_par_P5_F5_G12_GS13      par    par
+## 9      WT_01_cer_CellCycle_rep1      cer    cer
+## 10                      S58_cer      cer    cer</code></pre>
+<pre class="r"><code>sample_info_allele |&gt; dplyr::select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
 <pre><code>##                      sample_name organism allele
-## 1       WT_14_hyc_SCtoLowPi_rep1      hyb    cer
-## 2                        S34_hyc      hyb    cer
-## 3  WT_TP2_hyc_WTs_D10_G12_GS2018      hyb    cer
-## 4   WT_TP3_hyc_WTs_F4_WT2_GS2018      hyb    cer
-## 5        WT_5_hyp_HAP4andWTonYPD      hyb    par
-## 6   WT_TP1_hyp_WTs_B5_G12_GS2018      hyb    par
-## 7       WT_15_hyc_HAP4andWTonYPD      hyb    cer
-## 8      WT_TP1_hyc_H3_B6_G12_GS12      hyb    cer
-## 9   WT_TP1_hyc_WTs_C6_G12_GS2018      hyb    cer
-## 10                        S8_hyp      hyb    par</code></pre>
+## 1   WT_TP3_hyc_WTs_F4_WT2_GS2018      hyb    cer
+## 2  WT_TP2_hyp_WTs_D10_G12_GS2018      hyb    par
+## 3       WT_02_hyc_CellCycle_rep1      hyb    cer
+## 4        WT_1_hyp_HAP4andWTonYPD      hyb    par
+## 5       WT_26_hyp_SCtoLowPi_rep1      hyb    par
+## 6       WT_10_hyp_SCtoLowPi_rep1      hyb    par
+## 7       WT_13_hyp_SCtoLowPi_rep1      hyb    par
+## 8   WT_TP3_hyc_WTs_F3_WT2_GS2018      hyb    cer
+## 9                         S8_hyc      hyb    cer
+## 10 WT_TP2_hyc_WTs_A10_G12_GS2018      hyb    cer</code></pre>
 <pre class="r"><code># checking that every hybrid sample name has exactly one cer and one par row
-sample_info_allele |&gt; select(sample_name, organism, allele) |&gt; 
+sample_info_allele |&gt; dplyr::select(sample_name, organism, allele) |&gt; 
   group_by(sample_name) |&gt; 
   summarise(ncernpar = unique(table(allele))) |&gt; 
-  select(ncernpar) |&gt; table()</code></pre>
+  dplyr::select(ncernpar) |&gt; table()</code></pre>
 <pre><code>## ncernpar
 ##   1 
 ## 360</code></pre>
-<pre class="r"><code>sample_info_allele |&gt; select(allele) |&gt; table()</code></pre>
+<pre class="r"><code>sample_info_allele |&gt; dplyr::select(allele) |&gt; table()</code></pre>
 <pre><code>## allele
 ## cer par 
 ## 180 180</code></pre>
@@ -2421,6 +2367,28 @@ Those two Scer Heat 30min sample outliers are due to one gene, YFL014W
 longer be outliers), which had ~100000 reads in our in-house alignment
 but an order of magnitude fewer reads in Fay et al. 2023. It is a highly
 expressed gene in heat shock. Good to keep in mind this outlier.</p>
+</div>
+<div id="writing-processed-counts-and-sample-metadata-to-.csv-files"
+class="section level2">
+<h2>Writing processed counts and sample metadata to .csv files</h2>
+<pre class="r"><code>write.csv(counts, &quot;data_files/processed_counts_parent.csv&quot;, 
+          col.names = TRUE, row.names = TRUE)</code></pre>
+<pre><code>## Warning in write.csv(counts, &quot;data_files/processed_counts_parent.csv&quot;,
+## col.names = TRUE, : attempt to set &#39;col.names&#39; ignored</code></pre>
+<pre class="r"><code>write.csv(counts, &quot;data_files/processed_counts_hybrid.csv&quot;, 
+          col.names = TRUE, row.names = TRUE)</code></pre>
+<pre><code>## Warning in write.csv(counts, &quot;data_files/processed_counts_hybrid.csv&quot;,
+## col.names = TRUE, : attempt to set &#39;col.names&#39; ignored</code></pre>
+<pre class="r"><code>write.csv(sample_info, &quot;data_files/sample_metadata_parent.csv&quot;,
+          col.names = TRUE, row.names = FALSE)</code></pre>
+<pre><code>## Warning in write.csv(sample_info,
+## &quot;data_files/sample_metadata_parent.csv&quot;, : attempt to set &#39;col.names&#39;
+## ignored</code></pre>
+<pre class="r"><code>write.csv(sample_info_allele, &quot;data_files/sample_metadata_hybrid.csv&quot;,
+          col.names = TRUE, row.names = FALSE)</code></pre>
+<pre><code>## Warning in write.csv(sample_info_allele,
+## &quot;data_files/sample_metadata_hybrid.csv&quot;, : attempt to set &#39;col.names&#39;
+## ignored</code></pre>
 </div>
 <div id="saving" class="section level2">
 <h2>Saving</h2>

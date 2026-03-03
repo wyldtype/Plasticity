@@ -30,7 +30,7 @@ mod_full <- lm(effect_size_allele ~ effect_size_species, data = finaldf)
 summary(mod_full)
 # R squared genes with consistent effect size and diverged level in at least one environment
 levdiv_genes <-  filter(finaldf, level == "diverged") |> 
-  select(gene_name) |> pull() |> unique()
+  dplyr::select(gene_name) |> pull() |> unique()
 plotdf <- finaldf |> # filter(gene_name %in% levdiv_genes) |> 
   group_by(gene_name) # |> summarise(n_lev_dir = length(sign(effect_size_species))) |> 
   #filter(n_lev_dir == 1)
@@ -282,7 +282,7 @@ plotdf |> mutate(is_trans = is_trans_upcer | is_trans_uppar) |>
             pct_rest = sum(!is_trans)/n())
 # upcer, both cis and trans
 gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 1 & par == 1 & effect_size_species > 0) |> 
-  select(gene_name) |> pull()
+  dplyr::select(gene_name) |> pull()
 p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = "HAP4"), 
                      top = paste(length(gene_idxs), "genes"))
@@ -294,7 +294,7 @@ dev.off()
 # upcer, trans
 gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 1 & 
                       par == 1 & is_trans_upcer) |> 
-  select(gene_name) |> pull()
+  dplyr::select(gene_name) |> pull()
 p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = "HAP4"), 
                      top = paste(length(gene_idxs), "genes"))
@@ -307,7 +307,7 @@ dev.off()
 gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 1 & 
                       par == 1 & !is_trans_upcer & !is_trans_uppar &
                         effect_size_species > 0) |> 
-  select(gene_name) |> pull()
+  dplyr::select(gene_name) |> pull()
 p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = "HAP4"), 
                      top = paste(length(gene_idxs), "genes"))
@@ -327,7 +327,7 @@ plotdf |> group_by(experiment) |>
 # both cis and trans
 gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 2 & 
                         par == 1) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
 p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = "HAP4"), 
                           top = paste(length(gene_idxs), "genes"))
@@ -340,7 +340,7 @@ dev.off()
 # cis
 gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 2 & 
                         par == 1 & is_cis) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
 p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = "HAP4"), 
                           top = paste(length(gene_idxs), "genes"))
@@ -353,7 +353,7 @@ dev.off()
 # trans
 gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 2 & 
                         par == 1 & !is_cis) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
 p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = "HAP4"), 
                           top = paste(length(gene_idxs), "genes"))
@@ -373,7 +373,7 @@ plotlist <- vector(mode = "list", length = 6)
 names(plotlist) <- ExperimentNames
 for (e in ExperimentNames) {
   gene_idxs <- plotdf |> filter(experiment == e) |> 
-  select(gene_name) |> pull()
+  dplyr::select(gene_name) |> pull()
   plotlist[[e]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
                                              .quartet = TRUE,
                                              .experiment_name = e),
@@ -391,7 +391,7 @@ plotlist <- vector(mode = "list", length = 6)
 names(plotlist) <- ExperimentNames
 for (e in ExperimentNames) {
   gene_idxs <- plotdf |> filter(experiment == e) |> 
-  select(gene_name) |> pull()
+  dplyr::select(gene_name) |> pull()
   plotlist[[e]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
                                              .quartet = TRUE,
                                              .experiment_name = e),
@@ -410,7 +410,7 @@ plotlist <- vector(mode = "list", length = 6)
 names(plotlist) <- ExperimentNames
 for (e in ExperimentNames) {
   gene_idxs <- plotdf |> filter(experiment == e) |> 
-  select(gene_name) |> pull()
+  dplyr::select(gene_name) |> pull()
   plotlist[[e]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
                                              .quartet = TRUE,
                                              .experiment_name = e,
@@ -429,7 +429,7 @@ plotlist <- vector(mode = "list", length = 6)
 names(plotlist) <- ExperimentNames
 for (e in ExperimentNames) {
   gene_idxs <- plotdf |> filter(experiment == e) |> 
-  select(gene_name) |> pull()
+  dplyr::select(gene_name) |> pull()
   plotlist[[e]] <- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
                                              .quartet = TRUE,
                                              .experiment_name = e,
@@ -451,7 +451,7 @@ Quick quantification of number of genes with large expression divergence (level 
 ```{r compensatory-level}
 ### level
 plotdf <- finaldf |> filter(level == "conserved") |> 
-  select(gene_name, experiment, effect_size_species, effect_size_allele)
+  dplyr::select(gene_name, experiment, effect_size_species, effect_size_allele)
 # establishing parental range (2-tailed)
 #low_bounds <- mean(plotdf$effect_size_species) - 2*sd(plotdf$effect_size_species)
 #high_bounds <- mean(plotdf$effect_size_species) + 2*sd(plotdf$effect_size_species)
@@ -465,7 +465,7 @@ plot_counts <- plotdf |>
             nComp_Spar = sum(effect_size_allele < 0),
             n = n())
 LongExperimentNamesMod <- map(ExperimentNames, \(e) {
-  nGenes <- plot_counts |> filter(experiment == e) |> select(n) |> pull() |> sum()
+  nGenes <- plot_counts |> filter(experiment == e) |> dplyr::select(n) |> pull() |> sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], "\nn = ", nGenes))})
 p <- ggplot(plotdf, aes(x = effect_size_species, fill = experiment)) +
   geom_density() +
@@ -503,7 +503,7 @@ sum(is.na(finaldf$cor_parents))
 ### plasticity
 plotdf <- finaldf |> filter(!is.na(cor_hybrid) & !is.na(cor_parents)) |> 
   filter(plasticity == "conserved" & cor_parents > 0.75) |> # using a threshold to make it more comparable to level
-  select(gene_name, experiment, cor_parents, cor_hybrid)
+  dplyr::select(gene_name, experiment, cor_parents, cor_hybrid)
 # establishing parental range (1-tailed)
 #low_bounds <- mean(plotdf$cor_parents) - 2*sd(plotdf$cor_parents)
 low_bounds <- 0.5
@@ -512,7 +512,7 @@ plot_counts <- plotdf |>
   group_by(experiment, plasticity_compensatory) |> 
   summarise(n = n())
 LongExperimentNamesMod <- map(ExperimentNames, \(e) {
-  nGenes <- plot_counts |> filter(experiment == e) |> select(n) |> pull() |> sum()
+  nGenes <- plot_counts |> filter(experiment == e) |> dplyr::select(n) |> pull() |> sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], "\nn = ", nGenes))})
 p <- ggplot(plotdf, aes(x = cor_parents, fill = experiment)) +
   geom_density() +
@@ -548,7 +548,7 @@ sum(is.na(finaldf$ABC_parents))
 ### plasticity
 plotdf <- finaldf |> filter(!is.na(ABC_hybrid) & !is.na(ABC_parents)) |> 
   filter(plasticity == "conserved" & ABC_parents < 0.25) |> # using a threshold to make it more comparable to level
-  select(gene_name, experiment, ABC_parents, ABC_hybrid)
+  dplyr::select(gene_name, experiment, ABC_parents, ABC_hybrid)
 # establishing parental range (1-tailed)
 #low_bounds <- mean(plotdf$ABC_parents) - 2*sd(plotdf$ABC_parents)
 high_bounds <- 0.5
@@ -557,7 +557,7 @@ plot_counts <- plotdf |>
   group_by(experiment, plasticity_compensatory) |> 
   summarise(n = n())
 LongExperimentNamesMod <- map(ExperimentNames, \(e) {
-  nGenes <- plot_counts |> filter(experiment == e) |> select(n) |> pull() |> sum()
+  nGenes <- plot_counts |> filter(experiment == e) |> dplyr::select(n) |> pull() |> sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], "\nn = ", nGenes))})
 p <- ggplot(plotdf, aes(x = ABC_parents, fill = experiment)) +
   geom_density() +
@@ -597,7 +597,7 @@ names(plotlist) <- ExperimentNames
 LongExperimentNamesMod <- gsub("Hydroxyurea Shock", "Hydroxyurea\nShock", LongExperimentNames)
 for (e in ExperimentNames) {
   plotdf <- finaldf |> filter(experiment == e & plasticity == "diverged") |> 
-    select(gene_name, experiment, cor_parents, cor_hybrid) |> 
+    dplyr::select(gene_name, experiment, cor_parents, cor_hybrid) |> 
     pivot_longer(cols = c("cor_parents", "cor_hybrid"), 
                  names_to = "parent_or_hybrid",
                  values_to = "cor")
@@ -715,7 +715,7 @@ plotdf |> group_by(experiment) |>
 # cis
 gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 2 & 
                         par == 1 & is_cis) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
 p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = "HAP4"), 
                           top = paste(length(gene_idxs), "genes"))
@@ -728,7 +728,7 @@ dev.off()
 # trans
 gene_idxs <- filter(plotdf, experiment == "HAP4" & cer == 2 & 
                         par == 1 & !is_cis) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
 p <- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = "HAP4"), 
                           top = paste(length(gene_idxs), "genes"))

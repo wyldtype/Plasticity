@@ -30,7 +30,7 @@ library(purrr)
 
 ```{r clustdf}
 # dataframe of nClust = 2, 3, and 4 clustering results
-clustdf <- select(finaldf, gene_name, experiment, level, cer, par) |>
+clustdf <- dplyr::select(finaldf, gene_name, experiment, level, cer, par) |>
   dplyr::rename(c("cer2"="cer", "par2"="par", "gene_ID"="gene_name")) |>
   left_join(dplyr::rename(clusterdf3, c("cer3"="cer", "par3"="par")),
             by = c("gene_ID", "experiment")) |>
@@ -54,9 +54,9 @@ plotClusterPatternByExperiment <- function(.df, .experiment, .title = NULL) {
   plotdf <- summarise(group_by(.df, time_point_num, label),
                       mean_expr = mean(expr, na.rm = TRUE))
   plotdf$label <- as.factor(plotdf$label)
-  color_plt <- palettedf |> filter(experiment == .experiment) |> select(palette) |> pull()
+  color_plt <- palettedf |> filter(experiment == .experiment) |> dplyr::select(palette) |> pull()
   if (is.null(.title)) {
-    .title <- palettedf |> filter(experiment == .experiment) |> select(long_name) |> pull()
+    .title <- palettedf |> filter(experiment == .experiment) |> dplyr::select(long_name) |> pull()
   }
   ggplot(plotdf, aes(x = time_point_num, y = log2(mean_expr + 1))) +
     geom_line(aes(group = label, color = label), linewidth = 4) +
@@ -125,12 +125,12 @@ getClusterQCHeatmap <- function(.e) {
   plot_cer <- clustdf |> filter(experiment == .e) |>
     pivot_longer(cols = c("cer2", "cer3", "cer4"),
                  names_to = "nclust", values_to = "cer") |>
-    select(gene_ID, level, nclust, cer)
+    dplyr::select(gene_ID, level, nclust, cer)
   plot_cer$nclust <- gsub("cer", "", plot_cer$nclust)
   plot_par <- clustdf |> filter(experiment == .e) |>
     pivot_longer(cols = c("par2", "par3", "par4"),
                  names_to = "nclust", values_to = "par") |>
-    select(gene_ID, level, nclust, par)
+    dplyr::select(gene_ID, level, nclust, par)
   plot_par$nclust <- gsub("par", "", plot_par$nclust)
 
   plotdf <- full_join(plot_cer, plot_par,
@@ -153,7 +153,7 @@ getClusterQCHeatmap <- function(.e) {
     }
   }) |> unlist()
 
-  plot_mat_e <- plotdf |> select(gene_ID, nclust, group4) |>
+  plot_mat_e <- plotdf |> dplyr::select(gene_ID, nclust, group4) |>
     pivot_wider(id_cols = gene_ID, names_from = nclust,
                 values_from = group4) |> t()
   colnames(plot_mat_e) <- plot_mat_e[1,]
@@ -242,7 +242,7 @@ Conclusion: nClust=2 is most conservative, a near perfect subset of nClust=3/4
 ## Comparing dispersion thresholds
 
 ```{r dispdf}
-dispdf <- select(finaldf, gene_name, experiment, level, cer, par) |>
+dispdf <- dplyr::select(finaldf, gene_name, experiment, level, cer, par) |>
   dplyr::rename(c("cer3disp"="cer", "par3disp"="par", "gene_ID"="gene_name")) |>
   left_join(dplyr::rename(clusterdf_1disp, c("cer1disp"="cer", "par1disp"="par")),
             by = c("gene_ID", "experiment")) |>
@@ -295,12 +295,12 @@ getDispersionQCHeatmap <- function(.e) {
   plot_cer <- dispdf |> filter(experiment == .e) |>
     pivot_longer(cols = c("cer3disp", "cer1disp", "cer5disp"),
                  names_to = "dispersion", values_to = "cer") |>
-    select(gene_ID, level, dispersion, cer)
+    dplyr::select(gene_ID, level, dispersion, cer)
   plot_cer$dispersion <- gsub("cer", "", plot_cer$dispersion)
   plot_par <- dispdf |> filter(experiment == .e) |>
     pivot_longer(cols = c("par3disp", "par1disp", "par5disp"),
                  names_to = "dispersion", values_to = "par") |>
-    select(gene_ID, level, dispersion, par)
+    dplyr::select(gene_ID, level, dispersion, par)
   plot_par$dispersion <- gsub("par", "", plot_par$dispersion)
 
   plotdf <- full_join(plot_cer, plot_par,
@@ -323,7 +323,7 @@ getDispersionQCHeatmap <- function(.e) {
     }
   }) |> unlist()
 
-  plot_mat_e <- plotdf |> select(gene_ID, dispersion, group4) |>
+  plot_mat_e <- plotdf |> dplyr::select(gene_ID, dispersion, group4) |>
     pivot_wider(id_cols = gene_ID, names_from = dispersion,
                 values_from = group4) |> t()
   colnames(plot_mat_e) <- plot_mat_e[1,]
@@ -419,7 +419,7 @@ plotdf_sums
 Dispersion = 1 (less likely to call a gene static than the main paper):
 
 ```{r sometimes-static-1disp}
-finaldf_1disp <- select(finaldf, -cer, -par) |> 
+finaldf_1disp <- dplyr::select(finaldf, -cer, -par) |> 
   left_join(clusterdf_1disp, by = c("gene_name"="gene_ID", "experiment"))
 plotdf <- finaldf_1disp |>
   group_by(experiment, cer, par) |> 
@@ -481,7 +481,7 @@ plotdf_sums
 Dispersion = 5 (less likely to call a gene static than the main paper):
 
 ```{r sometimes-static-5disp}
-finaldf_5disp <- select(finaldf, -cer, -par) |> 
+finaldf_5disp <- dplyr::select(finaldf, -cer, -par) |> 
   left_join(clusterdf_5disp, by = c("gene_name"="gene_ID", "experiment"))
 plotdf <- finaldf_5disp |>
   group_by(experiment, cer, par) |> 

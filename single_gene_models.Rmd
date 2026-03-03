@@ -91,12 +91,12 @@ plotSingleGeneModelExample <- function(.genedf, .gene_name, .fitted_vals = FALSE
     genedf_collapsed <- movavg
   }
   plotdf <- .genedf %>% mutate(fittedvals = .mod$fitted.values) %>% 
-    select(allele, time_point_num, fittedvals) %>% 
+    dplyr::select(allele, time_point_num, fittedvals) %>% 
     unique() |> 
     left_join(y = genedf_collapsed, by = c("time_point_num", "allele")) |> 
-    pivot_longer(cols = c(expr, fittedvals)) %>% 
-    pivot_wider(id_cols = c(time_point_num, name), 
-                names_from = allele, values_from = value)
+    pivot_longer(cols = c("expr", "fittedvals")) %>% 
+    pivot_wider(id_cols = c("time_point_num", "name"), 
+                names_from = "allele", values_from = "value")
   if (!.log2) {
     slope <- 1/fold_change # inverse b/c Scer is conventionally put on the x axis but also conventionally has positive lfc
     norm_func <- identity
@@ -113,9 +113,9 @@ plotSingleGeneModelExample <- function(.genedf, .gene_name, .fitted_vals = FALSE
     norm_func <- log2
     units_text <- "(log2(cpm))"
   }
-  max_expr <-  filter(plotdf, name != "fittedvals") |> select(cer, par) |> 
+  max_expr <-  filter(plotdf, name != "fittedvals") |> dplyr::select(cer, par) |> 
     unlist() |> as.numeric() |> max(na.rm = TRUE) |> norm_func()
-  min_expr <-  filter(plotdf, name != "fittedvals") |> select(cer, par) |> 
+  min_expr <-  filter(plotdf, name != "fittedvals") |> dplyr::select(cer, par) |> 
     unlist() |> as.numeric() |> min(na.rm = TRUE) |> norm_func()
   cat("min and max expression:", max_expr, min_expr, "\n")
   if (.fitted_vals) {
@@ -250,60 +250,63 @@ test
 ## Full model fitting
 
 ```{r model-fitting, cache=TRUE, warning=FALSE}
-# applying to each experiment (takes ~1-2 min per dataset)
-spmods <- map2(spcts, spinfo, fitDatasetModels)
-spmods <- map2(spmods, spcts, function(x, y) {
-  names(x) <- rownames(y)
-  return(x)
-})
-
-# applying parseDfFromModslist to spmods
-spdfs <- lapply(spmods, parseDfFromModslist)
-
-# adding experiment name column so the 4 datasets can be combined
-spdfs <- map2(spdfs, names(spdfs), function(x, y) {
-  x$experiment <- y
-  return(x)
-})
-spdf <- purrr::reduce(.f = bind_rows, spdfs)
-
-# renaming coefficient so that the species models can be added to allele models in aldf below
-spdf$coefficient <- "species"
-
-# applying to each experiment (takes ~1-2 min per dataset)
-almods <- map2(alcts, alinfo, fitDatasetModels)
-almods <- map2(almods, alcts, function(x, y) {
-  names(x) <- rownames(y)
-  return(x)
-})
-
-# applying parseDfFromModslist and parseAvgCompsFromModslist to spmods
-aldfs <- lapply(almods, parseDfFromModslist)
-
-# cleaning some column values so aldfs and alavgs can be combined into one df
-# adding experiment name column
-aldfs <- map2(aldfs, names(aldfs), function(x, y) {
-  x$experiment <- y
-  return(x)
-})
-
-aldf <- purrr::reduce(.f = bind_rows, aldfs)
-# renaming coefficient
-aldf$coefficient <- "allele"
-
-spaldf <- full_join(aldf, spdf, by = c("gene_name", "experiment", "coefficient", "effect_size", "pvalue"))
-
-# slightly different nGenes in each experiment b/c different genes were filtered out by low expression in the data script
-spaldf %>% filter(coefficient == "species") %>% select(experiment) %>% table()
-spaldf %>% filter(coefficient == "allele") %>% select(experiment) %>% table()
-```
-
-```{r genedf}
-# creating genedf, where each row is one gene
-# (this isn't used much in the final code version, but it is used in a few places, so keeping it for continuity)
-genedf <-  spaldf |> 
-  pivot_wider(names_from = c("experiment", "coefficient"), values_from = c("effect_size", "pvalue"), id_cols = c("gene_name"))
-table(genedf$gene_name) |> table() # checking that every gene is only represented once in genedf
+if (!file.exists("data_files/single_gene_models.RData")) {
+  # applying to each experiment (takes ~1-2 min per dataset)
+  spmods <- map2(spcts, spinfo, fitDatasetModels)
+  spmods <- map2(spmods, spcts, function(x, y) {
+    names(x) <- rownames(y)
+    return(x)
+  })
+  
+  # applying parseDfFromModslist to spmods
+  spdfs <- lapply(spmods, parseDfFromModslist)
+  
+  # adding experiment name column so the 4 datasets can be combined
+  spdfs <- map2(spdfs, names(spdfs), function(x, y) {
+    x$experiment <- y
+    return(x)
+  })
+  spdf <- purrr::reduce(.f = bind_rows, spdfs)
+  
+  # renaming coefficient so that the species models can be added to allele models in aldf below
+  spdf$coefficient <- "species"
+  
+  # applying to each experiment (takes ~1-2 min per dataset)
+  almods <- map2(alcts, alinfo, fitDatasetModels)
+  almods <- map2(almods, alcts, function(x, y) {
+    names(x) <- rownames(y)
+    return(x)
+  })
+  
+  # applying parseDfFromModslist and parseAvgCompsFromModslist to spmods
+  aldfs <- lapply(almods, parseDfFromModslist)
+  
+  # cleaning some column values so aldfs and alavgs can be combined into one df
+  # adding experiment name column
+  aldfs <- map2(aldfs, names(aldfs), function(x, y) {
+    x$experiment <- y
+    return(x)
+  })
+  
+  aldf <- purrr::reduce(.f = bind_rows, aldfs)
+  # renaming coefficient
+  aldf$coefficient <- "allele"
+  
+  spaldf <- full_join(aldf, spdf, by = c("gene_name", "experiment", "coefficient", "effect_size", "pvalue"))
+  
+  # slightly different nGenes in each experiment b/c different genes were filtered out by low expression in the data script
+  spaldf %>% filter(coefficient == "species") %>% dplyr::select(experiment) %>% table()
+  spaldf %>% filter(coefficient == "allele") %>% dplyr::select(experiment) %>% table()
+  
+  # creating genedf, where each row is one gene
+  # (this isn't used much in the final code version, but it is used in a few places, so keeping it for continuity)
+  genedf <-  spaldf |> 
+    pivot_wider(names_from = c("experiment", "coefficient"), values_from = c("effect_size", "pvalue"), id_cols = c("gene_name"))
+  table(genedf$gene_name) |> table() # checking that every gene is only represented once in genedf
+}
+if (file.exists("data_files/single_gene_models.RData")) {
+  load(file = "data_files/single_gene_models.RData")
+}
 ```
 
 ## Saving
@@ -392,12 +395,12 @@ getGeneDf <- function(.gene_name, .mode = c("parents", "hybrid"),
     return(NULL)
   }
   genedf <- bind_rows(bind_cols(tibble(expr = cts_cer), 
-                                select(info_cer, experiment, time_point_num, allele)), 
+                                dplyr::select(info_cer, experiment, time_point_num, allele)), 
                       bind_cols(tibble(expr = cts_par), 
-                                select(info_par, experiment, time_point_num, allele))) |> 
+                                dplyr::select(info_par, experiment, time_point_num, allele))) |> 
     summarise(expr = mean(expr), .by = c("experiment", "time_point_num", "allele")) |> 
     pivot_wider(id_cols = c("experiment", "time_point_num"),
-                names_from = allele, values_from = expr)
+                names_from = "allele", values_from = "expr")
   return(drop_na(genedf))
 }
 # tests for getGeneDf

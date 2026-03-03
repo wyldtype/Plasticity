@@ -353,12 +353,10 @@ scripts (also as Supplementary Table 1)</p>
 <pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, 
          &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr 
-##        TRUE        TRUE        TRUE        TRUE 
-##       readr  data.table     ggplot2  data.table 
-##        TRUE        TRUE        TRUE        TRUE 
-## matrixStats 
-##        TRUE</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
+##        TRUE        TRUE        TRUE        TRUE        TRUE 
+##  data.table     ggplot2  data.table matrixStats 
+##        TRUE        TRUE        TRUE        TRUE</code></pre>
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)</code></pre>
 <p>Defining our color schemes and category names to be used throughout
 the paper figures</p>
@@ -430,19 +428,18 @@ omit_list &lt;- c(&quot;YLR078C&quot;, &quot;YLR077W&quot;, &quot;YLR074C&quot;,
                &quot;YNL247W&quot;, &quot;YNL244C&quot;)
 finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; gene_name %in% omit_list)</code></pre>
 <pre><code>## # A tibble: 8 × 8
-##   gene_name experiment effect_size_allele
-##   &lt;chr&gt;     &lt;chr&gt;                   &lt;dbl&gt;
-## 1 YLR072W   CC                       8.76
-## 2 YLR073C   CC                       9.16
-## 3 YLR074C   CC                       9.85
-## 4 YLR075W   CC                       8.26
-## 5 YLR077W   CC                      42.4 
-## 6 YLR078C   CC                      42.9 
-## 7 YNL247W   CC                      12.0 
-## 8 YNL244C   CC                       8.70
-## # ℹ 5 more variables: effect_size_species &lt;dbl&gt;,
-## #   padj_allele &lt;dbl&gt;, padj_species &lt;dbl&gt;, cer &lt;dbl&gt;,
-## #   par &lt;dbl&gt;</code></pre>
+##   gene_name experiment effect_size_allele effect_size_species
+##   &lt;chr&gt;     &lt;chr&gt;                   &lt;dbl&gt;               &lt;dbl&gt;
+## 1 YLR072W   CC                       8.76             -0.0546
+## 2 YLR073C   CC                       9.16              0.424 
+## 3 YLR074C   CC                       9.85             -0.0309
+## 4 YLR075W   CC                       8.26             -0.469 
+## 5 YLR077W   CC                      42.4               0.930 
+## 6 YLR078C   CC                      42.9               0.469 
+## 7 YNL247W   CC                      12.0               0.429 
+## 8 YNL244C   CC                       8.70             -0.717 
+## # ℹ 4 more variables: padj_allele &lt;dbl&gt;, padj_species &lt;dbl&gt;,
+## #   cer &lt;dbl&gt;, par &lt;dbl&gt;</code></pre>
 <pre class="r"><code>dim(finaldf)</code></pre>
 <pre><code>## [1] 25264     8</code></pre>
 <pre class="r"><code>finaldf &lt;- finaldf |&gt; filter(!(experiment == &quot;CC&quot; &amp; gene_name %in% omit_list))
@@ -501,16 +498,16 @@ table(finaldf$plasticity, finaldf$level, useNA = &quot;always&quot;) # checking 
 <pre><code>## [1] 25256</code></pre>
 <pre class="r"><code>nrow(finaldf) # mutually exclusive group categories</code></pre>
 <pre><code>## [1] 25256</code></pre>
-<pre class="r"><code>finaldf |&gt; filter(plasticity == &quot;diverged&quot;) |&gt; select(experiment) |&gt; table()</code></pre>
+<pre class="r"><code>finaldf |&gt; filter(plasticity == &quot;diverged&quot;) |&gt; dplyr::select(all_of(&quot;experiment&quot;)) |&gt; table()</code></pre>
 <pre><code>## experiment
 ##    CC  Cold  HAP4  Heat  LowN LowPi 
 ##  1766  1786  1455  1743  1305  1745</code></pre>
-<pre class="r"><code>finaldf |&gt; filter(level == &quot;diverged&quot;) |&gt; select(experiment) |&gt; table()</code></pre>
+<pre class="r"><code>finaldf |&gt; filter(level == &quot;diverged&quot;) |&gt; dplyr::select(all_of(&quot;experiment&quot;)) |&gt; table()</code></pre>
 <pre><code>## experiment
 ##    CC  Cold  HAP4  Heat  LowN LowPi 
 ##  1532  1563  1238  1415  1657  1587</code></pre>
 <p>Tables of number of timepoints per experiment for paper figure:</p>
-<pre class="r"><code>sample_info |&gt; select(experiment, time_point_str) |&gt; 
+<pre class="r"><code>sample_info |&gt; dplyr::select(all_of(c(&quot;experiment&quot;, &quot;time_point_str&quot;))) |&gt; 
   unique() |&gt; 
   group_by(experiment) |&gt; 
   summarise(n = n())</code></pre>
@@ -563,6 +560,56 @@ finaldf$cor_spar &lt;- map2(finaldf$gene_name, finaldf$experiment, getCorelation
                          .cts2 = collapsed$par,
                          .info1 = info_allele,
                          .info2 = info) |&gt; unlist()</code></pre>
+<p>Alternative to correlation: area between curves</p>
+<pre class="r"><code># calculate Area Between Curves, abc
+# takes mean difference between each row in cts1 - each row in cts2
+# @input: 2 vectors of counts of one gene in one environment, 
+# between which ABC will be calculated
+# @output: vector of length nrow(counts matrix) giving each gene&#39;s area between curves
+# Note: If this doesn&#39;t seem to be capturing the clustering results
+# (i.e. if conserved plasticity genes don&#39;t have reliably smaller ABCs)
+# we might want to try making this
+# take &quot;rectangles&quot; between curves to account for timepoints being different distances apart. But this would weight later timepoints more heavily,
+# which currently seems to be the opposite of what would help accuracy
+calculateAreaBetweenCurves &lt;- function(.cts1, .cts2) {
+  # scaling counts so a level difference doesn&#39;t affect ABC
+  .cts1_scaled &lt;- scale(.cts1)
+  .cts2_scaled &lt;- scale(.cts2)
+  abc_vec &lt;- abs(.cts1_scaled - .cts2_scaled)
+  return(mean(abc_vec, na.rm = TRUE)) # aka mean scaled absolute difference
+}
+### tests for calculateAreaBetweenCurves
+# random gene with conserved plasticity
+test_idx_conserved &lt;- finaldf |&gt; filter(plasticity == &quot;conserved&quot; &amp; cor_parents &gt; .5) |&gt; dplyr::select(all_of(c(&quot;gene_name&quot;, &quot;experiment&quot;))) |&gt; slice_sample(n = 1)
+test_common_cols &lt;- info |&gt; filter(experiment == test_idx_conserved$experiment) |&gt; dplyr::select(all_of(&quot;condition&quot;)) |&gt; pull()
+calculateAreaBetweenCurves(.cts1 = collapsed$cer[test_idx_conserved$gene_name, test_common_cols], 
+                           .cts2 = collapsed$par[test_idx_conserved$gene_name, test_common_cols]) # should be small</code></pre>
+<pre><code>## [1] 0.1099994</code></pre>
+<pre class="r"><code># random gene with diverged plasticity
+test_idx_diverged &lt;- finaldf |&gt; filter(plasticity == &quot;diverged&quot; &amp; cor_parents &lt; -.5) |&gt; dplyr::select(all_of(c(&quot;gene_name&quot;, &quot;experiment&quot;))) |&gt; slice_sample(n = 1)
+test_common_cols &lt;- info |&gt; filter(experiment == test_idx_diverged$experiment) |&gt; dplyr::select(all_of(&quot;condition&quot;)) |&gt; pull()
+calculateAreaBetweenCurves(.cts1 = collapsed$cer[test_idx_diverged$gene_name, test_common_cols], 
+                           .cts2 = collapsed$par[test_idx_diverged$gene_name, test_common_cols]) # should be large</code></pre>
+<pre><code>## [1] 1.476367</code></pre>
+<p>Adding area between curves columns to finaldf</p>
+<pre class="r"><code># Scer vs Spar
+finaldf$ABC_parents &lt;- map2(finaldf$gene_name, 
+                            finaldf$experiment, 
+                            .f = \(g, e) {
+                              common_cols &lt;- info |&gt; filter(experiment == e) |&gt;
+                                dplyr::select(all_of(&quot;condition&quot;)) |&gt; pull()
+                              calculateAreaBetweenCurves(.cts1 = collapsed$cer[g, common_cols],
+                                                         .cts2 = collapsed$par[g, common_cols])
+                            }) |&gt; unlist()
+# Hyc vs Hyp
+finaldf$ABC_hybrid &lt;- map2(finaldf$gene_name, finaldf$experiment, 
+                           .f = \(g, e) {
+                             common_cols &lt;- info_allele |&gt; 
+                               filter(experiment == e) |&gt;
+                               dplyr::select(all_of(&quot;condition&quot;)) |&gt; pull()
+                             calculateAreaBetweenCurves(.cts1 = collapsed_allele$cer[g, common_cols],
+                                                        .cts2 = collapsed_allele$par[g, common_cols])
+                           }) |&gt; unlist()</code></pre>
 <p>Calculating the mean and var of each gene’s expression across both
 species, which is mainly relevant in a couple Supplemental/QC plots</p>
 <p>mean:</p>
@@ -620,11 +667,11 @@ ggplot(plotdf, aes(x = effect_size_species)) +
 
 # effect of bias on plasticity divergence
 p_none &lt;- plotdf |&gt; filter(bias == &quot;none&quot;) |&gt; 
-  select(cer, par) |&gt; table()
+  dplyr::select(all_of(c(&quot;cer&quot;, &quot;par&quot;))) |&gt; table()
 p_cer &lt;- plotdf |&gt; filter(bias == &quot;cer&quot;) |&gt; 
-  select(cer, par) |&gt; table()
+  dplyr::select(all_of(c(&quot;cer&quot;, &quot;par&quot;))) |&gt; table()
 p_par &lt;- plotdf |&gt; filter(bias == &quot;par&quot;) |&gt; 
-  select(cer, par) |&gt; table()
+  dplyr::select(all_of(c(&quot;cer&quot;, &quot;par&quot;))) |&gt; table()
 
 round(p_none/sum(p_none), digits = 2)</code></pre>
 <pre><code>##    par
@@ -673,15 +720,14 @@ finaldf |&gt; group_by(experiment) |&gt;
             n_genes = n()*2) |&gt; 
   mutate(pct_low_var = (n_cer_lowvar + n_par_lowvar)/n_genes)</code></pre>
 <pre><code>## # A tibble: 6 × 5
-##   experiment n_cer_lowvar n_par_lowvar n_genes
-##   &lt;chr&gt;             &lt;int&gt;        &lt;int&gt;   &lt;dbl&gt;
-## 1 CC                  315          617    7904
-## 2 Cold               1585         2148    8102
-## 3 HAP4                971          850    8572
-## 4 Heat                833         1207    8344
-## 5 LowN               1300         1196    8824
-## 6 LowPi               372          253    8766
-## # ℹ 1 more variable: pct_low_var &lt;dbl&gt;</code></pre>
+##   experiment n_cer_lowvar n_par_lowvar n_genes pct_low_var
+##   &lt;chr&gt;             &lt;int&gt;        &lt;int&gt;   &lt;dbl&gt;       &lt;dbl&gt;
+## 1 CC                  315          617    7904      0.118 
+## 2 Cold               1585         2148    8102      0.461 
+## 3 HAP4                971          850    8572      0.212 
+## 4 Heat                833         1207    8344      0.244 
+## 5 LowN               1300         1196    8824      0.283 
+## 6 LowPi               372          253    8766      0.0713</code></pre>
 <div
 id="how-the-choice-of-effect-size-threshold-influence-level-divergence"
 class="section level3">
@@ -747,7 +793,7 @@ dev.off()</code></pre>
 threshold</p>
 <pre class="r"><code># removing effect size threshold we don&#39;t use
 finaldf &lt;- filter(finaldf, eff_threshold == &quot;level&quot;) |&gt; 
-  select(-eff_threshold)</code></pre>
+  dplyr::select(-all_of(&quot;eff_threshold&quot;))</code></pre>
 </div>
 <div id="group-codes" class="section level3">
 <h3>Group codes</h3>
@@ -815,7 +861,7 @@ class="section level2">
 <p>Renaming some column names and selecting specific finaldf columns for
 the supplementary table, so that it appears as close to the workflow
 figure as possible</p>
-<pre class="r"><code>supp_tab1 &lt;- finaldf |&gt; select(gene_name, experiment, effect_size_species, padj_species, cer, par, level, plasticity) |&gt;
+<pre class="r"><code>supp_tab1 &lt;- finaldf |&gt; dplyr::select(all_of(c(&quot;gene_name&quot;, &quot;experiment&quot;, &quot;effect_size_species&quot;, &quot;padj_species&quot;, &quot;cer&quot;, &quot;par&quot;, &quot;level&quot;, &quot;plasticity&quot;))) |&gt;
   dplyr::rename(c(&quot;gene&quot;=&quot;gene_name&quot;, &quot;log2_fold_change&quot;=&quot;effect_size_species&quot;,
                   &quot;padj&quot;=&quot;padj_species&quot;, &quot;cluster_Scer&quot;=&quot;cer&quot;, &quot;cluster_Spar&quot;=&quot;par&quot;))
 # changing cluster names for clarity
@@ -835,6 +881,36 @@ supp_tab1$cluster_Spar &lt;-
                           true = &quot;increasing&quot;,
                           false = &quot;decreasing&quot;))
 write_delim(supp_tab1, delim = &quot;,&quot;, file = &quot;data_files/Supplementary_Table1.csv&quot;,
+            col_names = TRUE)</code></pre>
+<p>Supplementary Table 2, including F1 hybrid log2 fold changes and
+correlations:</p>
+<pre class="r"><code>rm(supp_tab1)
+supp_tab2 &lt;- finaldf |&gt; dplyr::select(all_of(c(&quot;gene_name&quot;, &quot;experiment&quot;, &quot;effect_size_species&quot;, &quot;padj_species&quot;, &quot;effect_size_allele&quot;, &quot;padj_allele&quot;, &quot;cor_hybrid&quot;, &quot;cor_parents&quot;, &quot;ABC_hybrid&quot;, &quot;ABC_parents&quot;, &quot;cer&quot;, &quot;par&quot;, &quot;level&quot;, &quot;plasticity&quot;))) |&gt;
+  dplyr::rename(c(&quot;gene&quot;=&quot;gene_name&quot;, 
+                  &quot;log2_fold_change_parents&quot;=&quot;effect_size_species&quot;,
+                  &quot;padj_parents&quot;=&quot;padj_species&quot;,
+                  &quot;log2_fold_change_hybrid&quot;=&quot;effect_size_allele&quot;,
+                  &quot;padj_hybrid&quot;=&quot;padj_allele&quot;, 
+                  &quot;scaled_mean_difference_parents&quot;=&quot;ABC_parents&quot;,
+                  &quot;scaled_mean_difference_hybrid&quot;=&quot;ABC_hybrid&quot;,
+                  &quot;cluster_Scer&quot;=&quot;cer&quot;, &quot;cluster_Spar&quot;=&quot;par&quot;))
+# changing cluster names for clarity
+# 0 = &quot;static&quot;
+# 1 = &quot;increasing&quot;
+# 2 = &quot;decreasing&quot;
+supp_tab2$cluster_Scer &lt;-
+  if_else(supp_tab2$cluster_Scer == 0,
+          true = &quot;static&quot;,
+          false = if_else(supp_tab2$cluster_Scer == 1,
+                          true = &quot;increasing&quot;,
+                          false = &quot;decreasing&quot;))
+supp_tab2$cluster_Spar &lt;-
+  if_else(supp_tab2$cluster_Spar == 0,
+          true = &quot;static&quot;,
+          false = if_else(supp_tab2$cluster_Spar == 1,
+                          true = &quot;increasing&quot;,
+                          false = &quot;decreasing&quot;))
+write_delim(supp_tab2, delim = &quot;,&quot;, file = &quot;data_files/Supplementary_Table2.csv&quot;,
             col_names = TRUE)</code></pre>
 </div>
 <div id="gene-ontology-enrichment" class="section level2">

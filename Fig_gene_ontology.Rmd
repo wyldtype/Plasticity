@@ -17,6 +17,11 @@ nGenes <- finaldf$gene_name |> unique() |> length() # for exact tests
 goslim <- filter(goslim, GO_aspect == "P")
 ```
 
+```{r package-issues}
+environmentName(environment(select)) # should be dplyr
+environmentName(environment(degree)) # should be igraph
+```
+
 ## Print gene lists for Saccharomyces Genome Database (SGD)
 
 ```{r printGeneList}
@@ -38,12 +43,12 @@ printGeneList <- function(.gene_idxs, .folder = "gene_ontology/gene_lists/",
 ```{r getGOSlimDf}
 getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/results/",
                         .min_hits = 5) {
-  test_table <- goslim |> filter(ORF %in% .idxs) |> select(GOslim_term) |> table()
+  test_table <- goslim |> filter(ORF %in% .idxs) |> dplyr::select(GOslim_term) |> table()
   test_table <- test_table[test_table >= .min_hits]
   testdf <- tibble("term" = names(test_table),
                    "group_count" = as.numeric(test_table))
   testdf$overall_count <- purrr::map(testdf$term, \(x) {
-    ct <- goslim |> filter(GOslim_term == x) |> select(ORF) |> 
+    ct <- goslim |> filter(GOslim_term == x) |> dplyr::select(ORF) |> 
       pull() |> unique() |> length()
     return(ct)
   }) |> unlist()
@@ -57,7 +62,7 @@ getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/result
   testdf$sig <- testdf$exact_pval < 0.001
   testdf$genes <- purrr::map(testdf$term, \(x) {
     termgenes <- goslim |> filter(ORF %in% .idxs & GOslim_term == x) |> 
-      select(ORF) |> pull() |> unique()
+      dplyr::select(ORF) |> pull() |> unique()
     return(purrr::reduce(termgenes, paste, sep = " "))
   }) |> unlist()
   
@@ -86,7 +91,7 @@ for (i in 1:nrow(griddf)) {
   gene_idxs <- filter(finaldf, experiment == e &
                         cer == cer_clust &
                         par == par_clust) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
   slimlist[[i]] <- getGOSlimDf(.idxs = gene_idxs,
                                .group_name = paste0(e, cer_clust, par_clust))
 }
@@ -102,7 +107,7 @@ Manually selecting groups of terms related to broader but meaningful biological 
 # @output: character vector of all the genes associated with those terms in that ccm, each gene only appearing once
 getCombinedTermGenes <- function(.df, .term_vec) {
   .df |> filter(term %in% .term_vec) |> 
-    select(genes) |> pull() |> purrr::map(.f = strsplit, split = " ") |> 
+    dplyr::select(genes) |> pull() |> purrr::map(.f = strsplit, split = " ") |> 
     unlist() |> unique()
 }
 ```
@@ -311,49 +316,49 @@ Counting number of genes in each plasticity group that are associated with terms
 ```{r combining-terms}
 # HAP4, 1-2, chaperone and transport
 term_genes <- getCombinedTermGenes(slimlist$HAP4_1, .term_vec = c(term_chaperone, term_transport))
-all_genes <- finaldf |> filter(experiment == "HAP4" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "HAP4" & cer == 1 & par == 2) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # HAP4, 2-1, DNA repair and golgi/vessicle transport
 term_genes <- getCombinedTermGenes(slimlist$HAP4_2, .term_vec = c(term_DNArepairMetabolismBinding, term_vacuoleGolgiTransport))
-all_genes <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # CC, 1-2, respiration and metabolism
 term_genes <- getCombinedTermGenes(slimlist$CC_1, .term_vec = c(term_cellularRespiration, term_metabolism))
-all_genes <- finaldf |> filter(experiment == "CC" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "CC" & cer == 1 & par == 2) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # CC, 2-1, ribosome and tRNA processing
 term_genes <- getCombinedTermGenes(slimlist$CC_2, .term_vec = c(term_ribosome, term_tRNA))
-all_genes <- finaldf |> filter(experiment == "CC" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "CC" & cer == 2 & par == 1) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # LowN, 1-2, protein folding and translation
 term_genes <- getCombinedTermGenes(slimlist$LowN_1, .term_vec = c(term_chaperone, term_translation))
-all_genes <- finaldf |> filter(experiment == "LowN" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "LowN" & cer == 1 & par == 2) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # LowN, 2-1, lipid/amino acid/tRNA synthesis
 term_genes <- getCombinedTermGenes(slimlist$LowN_2, .term_vec = term_bioMoleculeSynthesis)
-all_genes <- finaldf |> filter(experiment == "LowN" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "LowN" & cer == 2 & par == 1) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # LowPi, 1-2, stress and protein folding
 term_genes <- getCombinedTermGenes(slimlist$LowPi_1, .term_vec = c(term_stress, term_chaperone))
-all_genes <- finaldf |> filter(experiment == "LowPi" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "LowPi" & cer == 1 & par == 2) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
@@ -363,35 +368,35 @@ term_genes <- getCombinedTermGenes(slimlist$LowPi_2, .term_vec = c(term_ribosome
 term_genes_cc <- getCombinedTermGenes(slimlist$CC_2, .term_vec = c(term_ribosome, term_tRNA))
 length(intersect(term_genes, term_genes_cc)) # comparing to CC 2-1 which had the same term enrichment
 length(union(term_genes, term_genes_cc)) # some overlap
-all_genes <- finaldf |> filter(experiment == "LowPi" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "LowPi" & cer == 2 & par == 1) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # Heat, 1-2, translation, RNA processing, ribosome
 term_genes <- getCombinedTermGenes(slimlist$Heat_1, .term_vec = c(term_translation, term_RNAprocessing, term_ribosome))
-all_genes <- finaldf |> filter(experiment == "Heat" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "Heat" & cer == 1 & par == 2) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # Heat, 2-1, transcription, small molecule synthesis
 term_genes <- getCombinedTermGenes(slimlist$Heat_2, .term_vec = c(term_transcription, term_tRNA, term_bioMoleculeSynthesis))
-all_genes <- finaldf |> filter(experiment == "Heat" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "Heat" & cer == 2 & par == 1) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # Cold, 1-2, translation, ribosome, and cellular nitrogen compound metabolic process
 term_genes <- getCombinedTermGenes(slimlist$Cold_1, .term_vec = c(term_translation, term_RNAprocessing, term_ribosome, "cellular nitrogen compound metabolic process"))
-all_genes <- finaldf |> filter(experiment == "Cold" & cer == 1 & par == 2) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "Cold" & cer == 1 & par == 2) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)
 
 # Cold, 2-1, translation, transport
 term_genes <- getCombinedTermGenes(slimlist$Cold_2, .term_vec = c(term_translation, term_transport))
-all_genes <- finaldf |> filter(experiment == "Cold" & cer == 2 & par == 1) |> select(gene_name) |> pull()
+all_genes <- finaldf |> filter(experiment == "Cold" & cer == 2 & par == 1) |> dplyr::select(gene_name) |> pull()
 sum(term_genes %in% all_genes)/length(term_genes)
 sum(term_genes %in% all_genes)
 length(all_genes)

@@ -358,7 +358,7 @@ eff_thresh &lt;- log2(1.5)
 # extreme cor and log2 fold change values to extract the most
 # cis plasticity divergers and most trans level divergers for
 # avg expression figures
-cis_dyn_thresh &lt;- -0.25 
+cis_plast_thresh &lt;- -0.25 
 trans_lev_thresh &lt;- log2(2)</code></pre>
 <div id="log2-fold-changes-between-parents-and-hybrid-are-correlated"
 class="section level2">
@@ -375,110 +375,727 @@ summary(mod_full)</code></pre>
 ## -18.053  -0.288   0.002   0.289  36.082 
 ## 
 ## Coefficients:
-##                      Estimate Std. Error t value
-## (Intercept)         -0.085010   0.005148  -16.51
-## effect_size_species  0.618360   0.004284  144.33
-##                     Pr(&gt;|t|)    
-## (Intercept)           &lt;2e-16 ***
-## effect_size_species   &lt;2e-16 ***
+##                      Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)         -0.085010   0.005148  -16.51   &lt;2e-16 ***
+## effect_size_species  0.618360   0.004284  144.33   &lt;2e-16 ***
 ## ---
-## Signif. codes:  
-## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 0.816 on 25254 degrees of freedom
 ## Multiple R-squared:  0.452,  Adjusted R-squared:  0.452 
 ## F-statistic: 2.083e+04 on 1 and 25254 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code># R squared genes with consistent effect size and diverged level in at least one environment
 levdiv_genes &lt;-  filter(finaldf, level == &quot;diverged&quot;) |&gt; 
-  select(gene_name) |&gt; pull() |&gt; unique()
-plotdf &lt;- finaldf |&gt; filter(gene_name %in% levdiv_genes) |&gt; 
-  group_by(gene_name) |&gt; summarise(n_lev_dir = length(sign(effect_size_species))) |&gt; 
-  filter(n_lev_dir == 1)
-mod &lt;- lm(effect_size_allele ~ effect_size_species, data = filter(finaldf, gene_name %in% plotdf$gene_name))
+  dplyr::select(gene_name) |&gt; pull() |&gt; unique()
+plotdf &lt;- finaldf |&gt; # filter(gene_name %in% levdiv_genes) |&gt; 
+  group_by(gene_name) # |&gt; summarise(n_lev_dir = length(sign(effect_size_species))) |&gt; 
+  #filter(n_lev_dir == 1)
+mod &lt;- lm(effect_size_allele ~ effect_size_species, data = filter(finaldf, gene_name %in% levdiv_genes))
 summary(mod) # more correlated for genes with the most consistent level divergence across envrironments</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = effect_size_allele ~ effect_size_species, data = filter(finaldf, 
-##     gene_name %in% plotdf$gene_name))
+##     gene_name %in% levdiv_genes))
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -2.7550 -0.5028  0.0341  0.4596  3.8635 
+## -21.420  -0.282   0.011   0.298  36.187 
 ## 
 ## Coefficients:
-##                     Estimate Std. Error t value Pr(&gt;|t|)
-## (Intercept)          -0.2588     0.1270  -2.038   0.0453
-## effect_size_species   0.5236     0.0440  11.899   &lt;2e-16
-##                        
-## (Intercept)         *  
-## effect_size_species ***
+##                      Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)         -0.084936   0.004474  -18.98   &lt;2e-16 ***
+## effect_size_species  0.524735   0.004716  111.27   &lt;2e-16 ***
 ## ---
-## Signif. codes:  
-## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 1.075 on 70 degrees of freedom
-## Multiple R-squared:  0.6692, Adjusted R-squared:  0.6645 
-## F-statistic: 141.6 on 1 and 70 DF,  p-value: &lt; 2.2e-16</code></pre>
+## Residual standard error: 0.6152 on 19129 degrees of freedom
+## Multiple R-squared:  0.3929, Adjusted R-squared:  0.3929 
+## F-statistic: 1.238e+04 on 1 and 19129 DF,  p-value: &lt; 2.2e-16</code></pre>
 <pre class="r"><code># looping through each experiment
 library(ggExtra)
 plotlist &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
 names(plotlist) &lt;- ExperimentNames
 for (e in ExperimentNames) {
-  plotdf &lt;- finaldf |&gt; filter(experiment == e &amp; level == &quot;diverged&quot;)
+  e_color &lt;- colordf[colordf$limits == e,]$type
+  plotdf &lt;- finaldf |&gt; filter(experiment == e) # &amp; level == &quot;diverged&quot;)
   mod_e &lt;- lm(effect_size_allele ~ effect_size_species, data = plotdf)
   plotlist[[e]] &lt;- ggMarginal(ggplot(plotdf, aes(x = effect_size_species,
                                  y = effect_size_allele)) +
                geom_vline(xintercept = 0, alpha = 0.5) +
                geom_hline(yintercept = 0, alpha = 0.5) +
                geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
-               geom_point(aes(color = experiment)) +
-               geom_text(x = -2, y = 4.5, 
-                         label = paste0(&quot;R^2 = &quot;, round(summary(mod_e)$r.squared,
-                                                        digits = 3))) +
-               scale_color_discrete(limits = colordf[colordf$scheme == &quot;experiment&quot;,]$limits,
-                                    type = colordf[colordf$scheme == &quot;experiment&quot;,]$type) +
+               geom_point(aes(color = level == &quot;diverged&quot;), alpha = 0.25, shape = 19) +
+               # geom_text(x = -2, y = 4.5, 
+               #           label = paste0(&quot;R^2 = &quot;, round(summary(mod_e)$r.squared,
+               #                                          digits = 3))) +
+               scale_color_discrete(limits = c(TRUE, FALSE),
+                                                     type = c(&quot;black&quot;, e_color)) +
                xlim(c(-5, 5)) +
                ylim(c(-5, 5)) +
                xlab(&quot;&quot;) +
                ylab(&quot;&quot;) +
-               ggtitle(LongExperimentNames[which(ExperimentNames == e)]) +
+               ggtitle(paste(LongExperimentNames[which(ExperimentNames == e)],
+                       paste0(&quot;,\nR^2 = &quot;, round(summary(mod_e)$r.squared,
+                                                digits = 3)))) +
                theme_classic() +
                theme(legend.position = &quot;none&quot;),
              groupColour = TRUE, groupFill = TRUE)
 }</code></pre>
-<pre><code>## Warning: Removed 8 rows containing missing values or values
-## outside the scale range (`geom_point()`).
-## Removed 8 rows containing missing values or values
-## outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 4 rows containing missing values or values
-## outside the scale range (`geom_point()`).
-## Removed 4 rows containing missing values or values
-## outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 3 rows containing missing values or values
-## outside the scale range (`geom_point()`).
-## Removed 3 rows containing missing values or values
-## outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values
-## outside the scale range (`geom_point()`).
-## Removed 1 row containing missing values or values
-## outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 10 rows containing missing values or values
-## outside the scale range (`geom_point()`).
-## Removed 10 rows containing missing values or values
-## outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 12 rows containing missing values or values
-## outside the scale range (`geom_point()`).
-## Removed 12 rows containing missing values or values
-## outside the scale range (`geom_point()`).</code></pre>
+<p>Outputting plots to PDF:</p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/l2fc_eachEnvironment.pdf&quot;,
-    width = 5, height = 8)
-ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code>ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/l2fc-correlated-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/level-explained-pdf-1.png" width="672" /></p>
+<p>Lumping all environments into one figure for main paper:</p>
+<pre class="r"><code>  plotdf &lt;- finaldf |&gt; slice_sample(n = 10000)
+  mod &lt;- lm(effect_size_allele ~ effect_size_species, data = finaldf)
+  plotdf$diverged &lt;- if_else(plotdf$level == &quot;diverged&quot;,
+                             true = &quot;diverged&quot;, false = &quot;conserved&quot;)
+  p &lt;- ggMarginal(ggplot(plotdf, aes(x = effect_size_species,
+                                     y = effect_size_allele)) +
+                    geom_vline(xintercept = 0, alpha = 0.5) +
+                    geom_hline(yintercept = 0, alpha = 0.5) +
+                    geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
+                    geom_point(aes(shape = diverged, color = diverged)) +
+                    scale_shape_manual(values = c(&quot;diverged&quot; = 8, 
+                                                  &quot;conserved&quot; = 1)) +
+                    scale_color_manual(values = c(&quot;diverged&quot; = &quot;black&quot;, 
+                                                  &quot;conserved&quot; = &quot;grey80&quot;)) +
+                    xlim(c(-5, 5)) +
+                    ylim(c(-5, 5)) +
+                    xlab(&quot;log2 fold change between parental species&quot;) +
+                    ylab(&quot;log2 fold change between hybrid alleles&quot;) +
+                    ggtitle(paste0(&quot;R^2 = &quot;, round(summary(mod)$r.squared,
+                                                      digits = 3))) +
+                    theme_classic() +
+                    theme(legend.position = &quot;none&quot;),
+             groupColour = TRUE, groupFill = TRUE)
+  p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/level-explained-all-environments-1.png" width="672" /></p>
+<p>outputting to PDF</p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/l2fc_allEnvironments.pdf&quot;,
+    width = 4, height = 4)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
 </div>
+<div
+id="less-of-the-plasticity-divergence-observed-between-parents-is-explained-by-the-hybrid"
+class="section level2">
+<h2>Less of the plasticity divergence observed between parents is
+explained by the hybrid</h2>
+<pre class="r"><code># R squared for effect sizes between parents and hybrid for all genes
+mod_full &lt;- lm(cor_hybrid ~ cor_parents, data = finaldf)
+summary(mod_full)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = cor_hybrid ~ cor_parents, data = finaldf)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.7753 -0.1996  0.1645  0.2551  0.8447 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 0.464172   0.003483   133.3   &lt;2e-16 ***
+## cor_parents 0.313090   0.005245    59.7   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.4369 on 25243 degrees of freedom
+##   (11 observations deleted due to missingness)
+## Multiple R-squared:  0.1237, Adjusted R-squared:  0.1237 
+## F-statistic:  3564 on 1 and 25243 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>plotdf &lt;- finaldf
+
+# looping through each experiment
+library(ggExtra)
+plotlist &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
+names(plotlist) &lt;- ExperimentNames
+for (e in ExperimentNames) {
+  e_color &lt;- colordf[colordf$limits == e,]$type
+  plotdf &lt;- finaldf |&gt; filter(experiment == e)
+  mod_e &lt;- lm(cor_hybrid ~ cor_parents, data = plotdf)
+  plotlist[[e]] &lt;- ggMarginal(ggplot(plotdf, aes(x = cor_parents,
+                                                 y = cor_hybrid)) +
+                                geom_vline(xintercept = 0, alpha = 0.5) +
+                                geom_hline(yintercept = 0, alpha = 0.5) +
+                                geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
+                                geom_point(aes(color = plasticity == &quot;diverged&quot;), alpha = 0.25, shape = 19) +
+                                # geom_text(x = -0.5, y = 0.8, 
+                                #           label = paste0(&quot;R^2 = &quot;, round(summary(mod_e)$r.squared,
+                                #                                          digits = 3))) +
+                                scale_color_discrete(limits = c(TRUE, FALSE),
+                                                     type = c(&quot;black&quot;, e_color)) +
+               xlim(c(-1, 1)) +
+               ylim(c(-1, 1)) +
+               xlab(&quot;&quot;) +
+               ylab(&quot;&quot;) +
+               ggtitle(paste(LongExperimentNames[which(ExperimentNames == e)],
+                       paste0(&quot;,\nR^2 = &quot;, round(summary(mod_e)$r.squared,
+                                                digits = 3)))) +
+               theme_classic() +
+               theme(legend.position = &quot;none&quot;),
+             groupColour = TRUE, groupFill = TRUE)
+}</code></pre>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/cor_eachEnvironment.pdf&quot;,
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code>ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/plasticity-unexplained-pdf-1.png" width="672" /></p>
+<p>Lumping all environments into one figure for main paper:</p>
+<pre class="r"><code>  plotdf &lt;- finaldf |&gt; slice_sample(n = 10000)
+  mod &lt;- lm(cor_hybrid ~ cor_parents, data = finaldf)
+  plotdf$diverged &lt;- if_else(plotdf$plasticity == &quot;diverged&quot;,
+                             true = &quot;diverged&quot;, false = &quot;conserved&quot;)
+  p &lt;- ggMarginal(ggplot(plotdf, aes(x = cor_parents,
+                                     y = cor_hybrid)) +
+                    geom_vline(xintercept = 0, alpha = 0.5) +
+                    geom_hline(yintercept = 0, alpha = 0.5) +
+                    geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
+                    geom_point(aes(shape = diverged, color = diverged)) +
+                    scale_shape_manual(values = c(&quot;diverged&quot; = 8, 
+                                                  &quot;conserved&quot; = 1)) +
+                    scale_color_manual(values = c(&quot;diverged&quot; = &quot;black&quot;, 
+                                                  &quot;conserved&quot; = &quot;grey80&quot;)) +
+                    xlim(c(-1, 1)) +
+                    ylim(c(-1, 1)) +
+                    xlab(&quot;correlation between parental species&quot;) +
+                    ylab(&quot;correlation between hybrid alleles&quot;) +
+                    ggtitle(paste0(&quot;R^2 = &quot;, round(summary(mod)$r.squared,
+                                                      digits = 3))) +
+                    theme_classic() +
+                    theme(legend.position = &quot;none&quot;),
+             groupColour = TRUE, groupFill = TRUE)
+  p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/plasticity-unexplained-all-environments-1.png" width="672" /></p>
+<p>outputting to PDF</p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/cor_allEnvironments.pdf&quot;,
+    width = 4, height = 4)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div
+id="alternative-measurement-of-plasticity-similarity-area-between-curves"
+class="section level2">
+<h2>Alternative measurement of plasticity similarity: Area Between
+Curves</h2>
+<p>Repeating parents vs hybrid R^2 plot with a different measure of
+plasticity conservation: area between curves. Should better account for
+lowly varying but conserved genes</p>
+<pre class="r"><code># R squared for effect sizes between parents and hybrid for all genes
+mod_full &lt;- lm(ABC_hybrid ~ ABC_parents, data = finaldf)
+summary(mod_full)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = ABC_hybrid ~ ABC_parents, data = finaldf)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.97363 -0.25561 -0.06582  0.24151  1.35558 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 0.236323   0.004692   50.37   &lt;2e-16 ***
+## ABC_parents 0.451688   0.005557   81.28   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.3633 on 25243 degrees of freedom
+##   (11 observations deleted due to missingness)
+## Multiple R-squared:  0.2074, Adjusted R-squared:  0.2074 
+## F-statistic:  6606 on 1 and 25243 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>plotdf &lt;- finaldf
+
+# looping through each experiment
+library(ggExtra)
+plotlist &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
+names(plotlist) &lt;- ExperimentNames
+for (e in ExperimentNames) {
+  e_color &lt;- colordf[colordf$limits == e,]$type
+  plotdf &lt;- finaldf |&gt; filter(experiment == e)
+  mod_e &lt;- lm(ABC_hybrid ~ ABC_parents, data = plotdf)
+  plotlist[[e]] &lt;- ggMarginal(ggplot(plotdf, aes(x = ABC_parents,
+                                                 y = ABC_hybrid)) +
+                                geom_vline(xintercept = 0, alpha = 0.5) +
+                                geom_hline(yintercept = 0, alpha = 0.5) +
+                                geom_abline(slope = 1, intercept = 0, alpha = 0.5) +
+                                geom_point(aes(color = plasticity == &quot;diverged&quot;), alpha = 0.25, shape = 19) +
+                                # geom_text(x = -0.5, y = 0.8, 
+                                #           label = paste0(&quot;R^2 = &quot;, round(summary(mod_e)$r.squared,
+                                #                                          digits = 3))) +
+                                scale_color_discrete(limits = c(TRUE, FALSE),
+                                                     type = c(&quot;black&quot;, e_color)) +
+               #xlim(c(0, 1)) +
+               #ylim(c(0, 1)) +
+               xlab(&quot;&quot;) +
+               ylab(&quot;&quot;) +
+               ggtitle(paste(LongExperimentNames[which(ExperimentNames == e)],
+                       paste0(&quot;,\nR^2 = &quot;, round(summary(mod_e)$r.squared,
+                                                digits = 3)))) +
+               theme_classic() +
+               theme(legend.position = &quot;none&quot;),
+             groupColour = TRUE, groupFill = TRUE)
+}</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale
+## range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale
+## range (`geom_point()`).
+## Removed 3 rows containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
+## range (`geom_point()`).
+## Removed 1 row containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale
+## range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside the scale
+## range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside the scale
+## range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
+## range (`geom_point()`).
+## Removed 1 row containing missing values or values outside the scale
+## range (`geom_point()`).</code></pre>
+<pre class="r"><code>ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/area-between-curves-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/abc_eachEnvironment.pdf&quot;,
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<div id="area-between-curves-hyc-hyp-vs-hyc-scer-and-hyp-spar"
+class="section level3">
+<h3>Area between curves Hyc-Hyp vs Hyc-Scer and Hyp-Spar</h3>
+<p>Do hybrid alleles have a smaller area between curves to each other
+than to parent?</p>
+<p>Rationale: The average expression shows hybird alleles tend to fall
+together in the middle of the parental expression. But it is possible
+that this is because half the time they match one parent and half the
+time they match the other parent. Is that true? Or are they truly in the
+middle?</p>
+<p>If it is true, the Hyb vs Hyc-Scer plot will show a group of genes
+that have lower abc for Hyc-Scer than they do for Hyb (Hyc-Hyp) a
+different set of genes will show the same for Hyp-Spar</p>
+</div>
+</div>
+<div id="average-expression-examples" class="section level2">
+<h2>Average expression examples</h2>
+<p>Examples of Diauxic Shift environment for main paper:</p>
+<pre class="r"><code>plotdf &lt;- finaldf |&gt; 
+  filter(level == &quot;diverged&quot;) |&gt; 
+  mutate(is_trans_upcer = (effect_size_species &gt; trans_lev_thresh) &amp;
+           (abs(effect_size_allele) &lt; eff_thresh),
+         is_trans_uppar = (effect_size_species &lt; -trans_lev_thresh) &amp;
+           (abs(effect_size_allele) &lt; eff_thresh))
+plotdf |&gt; mutate(is_trans = is_trans_upcer | is_trans_uppar) |&gt; 
+  group_by(experiment) |&gt; 
+  summarise(pct_trans = sum(is_trans)/n(),
+            pct_rest = sum(!is_trans)/n())</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   experiment pct_trans pct_rest
+##   &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;
+## 1 CC             0.173    0.827
+## 2 Cold           0.221    0.779
+## 3 HAP4           0.148    0.852
+## 4 Heat           0.236    0.764
+## 5 LowN           0.135    0.865
+## 6 LowPi          0.242    0.758</code></pre>
+<pre class="r"><code># upcer, both cis and trans
+gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; par == 1 &amp; effect_size_species &gt; 0) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                               .experiment_name = &quot;HAP4&quot;), 
+                     top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_all_HAP411_upcer.pdf&quot;, width = 2.5, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># upcer, trans
+gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; 
+                      par == 1 &amp; is_trans_upcer) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                               .experiment_name = &quot;HAP4&quot;), 
+                     top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-2.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_trans_HAP411_upcer.pdf&quot;, width = 3, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># upcer, cis
+gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; 
+                      par == 1 &amp; !is_trans_upcer &amp; !is_trans_uppar &amp;
+                        effect_size_species &gt; 0) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                               .experiment_name = &quot;HAP4&quot;), 
+                     top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-3.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_cis_HAP411_upcer.pdf&quot;, width = 3, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code>plotdf &lt;- finaldf |&gt; 
+  filter(plasticity == &quot;diverged&quot;) |&gt; 
+  mutate(is_cis = cor_hybrid &lt; cis_plast_thresh)
+plotdf |&gt; group_by(experiment) |&gt; 
+  summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
+            trans = sum(!is_cis, na.rm = TRUE)/n())</code></pre>
+<pre><code>## # A tibble: 6 × 3
+##   experiment    cis trans
+##   &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
+## 1 CC         0.161  0.838
+## 2 Cold       0.103  0.896
+## 3 HAP4       0.148  0.852
+## 4 Heat       0.0321 0.967
+## 5 LowN       0.0858 0.913
+## 6 LowPi      0.105  0.893</code></pre>
+<pre class="r"><code># both cis and trans
+gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; 
+                        par == 1) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                                    .experiment_name = &quot;HAP4&quot;), 
+                          top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_all_HAP421.pdf&quot;,
+        width = 2.5, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># cis
+gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; 
+                        par == 1 &amp; is_cis) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                                    .experiment_name = &quot;HAP4&quot;), 
+                          top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-2.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_cis_HAP421.pdf&quot;,
+        width = 3, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># trans
+gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; 
+                        par == 1 &amp; !is_cis) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
+                                    .experiment_name = &quot;HAP4&quot;), 
+                          top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
+<pre class="r"><code>p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-3.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_trans_HAP421.pdf&quot;,
+        width = 3, height = 3)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>All environments for Supplement:</p>
+<pre class="r"><code># UpScer
+plotdf &lt;- finaldf |&gt; filter(level == &quot;diverged&quot; &amp; effect_size_species &gt; 0)
+plotlist &lt;- vector(mode = &quot;list&quot;, length = 6)
+names(plotlist) &lt;- ExperimentNames
+for (e in ExperimentNames) {
+  gene_idxs &lt;- plotdf |&gt; filter(experiment == e) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+  plotlist[[e]] &lt;- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
+                                             .quartet = TRUE,
+                                             .experiment_name = e),
+                                   top = paste(length(gene_idxs), &quot;genes&quot;))
+}
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-level-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/avg_expr_all_environments_upScer.pdf&quot;,
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># UpSpar
+plotdf &lt;- finaldf |&gt; filter(level == &quot;diverged&quot; &amp; effect_size_species &lt; 0)
+plotlist &lt;- vector(mode = &quot;list&quot;, length = 6)
+names(plotlist) &lt;- ExperimentNames
+for (e in ExperimentNames) {
+  gene_idxs &lt;- plotdf |&gt; filter(experiment == e) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+  plotlist[[e]] &lt;- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
+                                             .quartet = TRUE,
+                                             .experiment_name = e),
+                                   top = paste(length(gene_idxs), &quot;genes&quot;))
+}
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-level-2.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/avg_expr_all_environments_upSpar.pdf&quot;,
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># 1-2
+plotdf &lt;- finaldf |&gt; filter(cer == 1 &amp; par == 2)
+plotlist &lt;- vector(mode = &quot;list&quot;, length = 6)
+names(plotlist) &lt;- ExperimentNames
+for (e in ExperimentNames) {
+  gene_idxs &lt;- plotdf |&gt; filter(experiment == e) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+  plotlist[[e]] &lt;- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
+                                             .quartet = TRUE,
+                                             .experiment_name = e,
+                                             .normalization = &quot;scale&quot;),
+                                   top = paste(length(gene_idxs), &quot;genes&quot;))
+}
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-plasticity-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/avg_expr_all_environments_12.pdf&quot;,
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># 2-1
+plotdf &lt;- finaldf |&gt; filter(cer == 2 &amp; par == 1)
+plotlist &lt;- vector(mode = &quot;list&quot;, length = 6)
+names(plotlist) &lt;- ExperimentNames
+for (e in ExperimentNames) {
+  gene_idxs &lt;- plotdf |&gt; filter(experiment == e) |&gt; 
+  dplyr::select(gene_name) |&gt; pull()
+  plotlist[[e]] &lt;- annotate_figure(plotGenes(.gene_idxs = gene_idxs,
+                                             .quartet = TRUE,
+                                             .experiment_name = e,
+                                             .normalization = &quot;scale&quot;),
+                                   top = paste(length(gene_idxs), &quot;genes&quot;))
+}
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-plasticity-2.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/avg_expr_all_environments_21.pdf&quot;,
+    width = 16, height = 3)
+ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div
+id="compensatory-changes-are-more-common-in-plasticity-than-in-level"
+class="section level2">
+<h2>Compensatory changes are more common in plasticity than in
+level</h2>
+<p>Quick quantification of number of genes with large expression
+divergence (level or plasticity) in the hybrid despite being conserved
+in parents.</p>
+<pre class="r"><code>### level
+plotdf &lt;- finaldf |&gt; filter(level == &quot;conserved&quot;) |&gt; 
+  dplyr::select(gene_name, experiment, effect_size_species, effect_size_allele)
+# establishing parental range (2-tailed)
+#low_bounds &lt;- mean(plotdf$effect_size_species) - 2*sd(plotdf$effect_size_species)
+#high_bounds &lt;- mean(plotdf$effect_size_species) + 2*sd(plotdf$effect_size_species)
+low_bounds &lt;- -eff_thresh*2
+high_bounds &lt;- eff_thresh*2
+plotdf$level_compensatory &lt;- plotdf$effect_size_allele &lt; low_bounds |
+  plotdf$effect_size_allele &gt; high_bounds
+plot_counts &lt;- plotdf |&gt; 
+  group_by(experiment, level_compensatory) |&gt; 
+  summarise(nComp_Scer = sum(effect_size_allele &gt; 0),
+            nComp_Spar = sum(effect_size_allele &lt; 0),
+            n = n())</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
+  nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
+  return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
+<pre><code>## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`</code></pre>
+<pre class="r"><code>p &lt;- ggplot(plotdf, aes(x = effect_size_species, fill = experiment)) +
+  geom_density() +
+  geom_vline(data = filter(plotdf, level_compensatory),
+             aes(xintercept = effect_size_allele), color = &quot;black&quot;) +
+  facet_wrap(~factor(experiment, levels = ExperimentNames,
+                     labels = LongExperimentNamesMod)) +
+  scale_fill_discrete(limits = colordf$limits[colordf$scheme == &quot;experiment&quot;],
+                      type = colordf$type[colordf$scheme == &quot;experiment&quot;]) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == &quot;experiment&quot;],
+                       type = colordf$type[colordf$scheme == &quot;experiment&quot;]) +
+  # nCompensatory, higher in Spar allele
+  geom_label(data = filter(plot_counts, level_compensatory),
+             x = -3, y = 0.75, size = 5, 
+            aes(label = paste0(&quot;n = &quot;, nComp_Spar))) +
+  # nCompensatory, higher in Scer allele
+  geom_label(data = filter(plot_counts, level_compensatory), 
+             x = 3, y = 0.75, size = 5, 
+            aes(label = paste0(&quot;n = &quot;, nComp_Scer))) +
+  theme_classic() +
+  theme(legend.position = &quot;none&quot;,
+        strip.text = element_text(size = 14)) +
+  xlim(c(-5, 5))
+p</code></pre>
+<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 7 rows containing missing values or values outside the scale
+## range (`geom_vline()`).</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/compensatory-level-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/compensatory_level.pdf&quot;,
+    width = 7, height = 4)
+p</code></pre>
+<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 7 rows containing missing values or values outside the scale
+## range (`geom_vline()`).</code></pre>
+<pre class="r"><code>dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<pre class="r"><code># need to drop these genes before quantifying
+sum(is.na(finaldf$cor_hybrid)) </code></pre>
+<pre><code>## [1] 9</code></pre>
+<pre class="r"><code>sum(is.na(finaldf$cor_parents))</code></pre>
+<pre><code>## [1] 7</code></pre>
+<pre class="r"><code>### plasticity
+plotdf &lt;- finaldf |&gt; filter(!is.na(cor_hybrid) &amp; !is.na(cor_parents)) |&gt; 
+  filter(plasticity == &quot;conserved&quot; &amp; cor_parents &gt; 0.75) |&gt; # using a threshold to make it more comparable to level
+  dplyr::select(gene_name, experiment, cor_parents, cor_hybrid)
+# establishing parental range (1-tailed)
+#low_bounds &lt;- mean(plotdf$cor_parents) - 2*sd(plotdf$cor_parents)
+low_bounds &lt;- 0.5
+plotdf$plasticity_compensatory &lt;- plotdf$cor_hybrid &lt; low_bounds
+plot_counts &lt;- plotdf |&gt; 
+  group_by(experiment, plasticity_compensatory) |&gt; 
+  summarise(n = n())</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
+  nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
+  return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
+<pre><code>## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`</code></pre>
+<pre class="r"><code>p &lt;- ggplot(plotdf, aes(x = cor_parents, fill = experiment)) +
+  geom_density() +
+  geom_vline(data = filter(plotdf, plasticity_compensatory),
+             aes(xintercept = cor_hybrid), color = &quot;black&quot;, alpha = 0.25) +
+  facet_wrap(~factor(experiment, levels = ExperimentNames,
+                     labels = LongExperimentNamesMod)) +
+  scale_fill_discrete(limits = colordf$limits[colordf$scheme == &quot;experiment&quot;],
+                      type = colordf$type[colordf$scheme == &quot;experiment&quot;]) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == &quot;experiment&quot;],
+                       type = colordf$type[colordf$scheme == &quot;experiment&quot;]) +
+  # nCompensatory
+  geom_label(data = filter(plot_counts, plasticity_compensatory),
+             x = -0.5, y = 6, size = 6,
+            aes(label = paste0(&quot;n = &quot;, n))) +
+  theme_classic() +
+  theme(legend.position = &quot;none&quot;,
+        strip.text = element_text(size = 14)) +
+  xlim(c(-1.25, 1.25))
+p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/compensatory-plasticity-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/compensatory_plasticity.pdf&quot;,
+    width = 7, height = 4)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+<p>Repeating with Area Between Curves</p>
+<pre class="r"><code># need to drop these genes before quantifying
+sum(is.na(finaldf$ABC_hybrid)) </code></pre>
+<pre><code>## [1] 9</code></pre>
+<pre class="r"><code>sum(is.na(finaldf$ABC_parents))</code></pre>
+<pre><code>## [1] 7</code></pre>
+<pre class="r"><code>### plasticity
+plotdf &lt;- finaldf |&gt; filter(!is.na(ABC_hybrid) &amp; !is.na(ABC_parents)) |&gt; 
+  filter(plasticity == &quot;conserved&quot; &amp; ABC_parents &lt; 0.25) |&gt; # using a threshold to make it more comparable to level
+  dplyr::select(gene_name, experiment, ABC_parents, ABC_hybrid)
+# establishing parental range (1-tailed)
+#low_bounds &lt;- mean(plotdf$ABC_parents) - 2*sd(plotdf$ABC_parents)
+high_bounds &lt;- 0.5
+plotdf$plasticity_compensatory &lt;- plotdf$ABC_hybrid &gt; high_bounds
+plot_counts &lt;- plotdf |&gt; 
+  group_by(experiment, plasticity_compensatory) |&gt; 
+  summarise(n = n())</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override
+## using the `.groups` argument.</code></pre>
+<pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
+  nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
+  return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
+<pre><code>## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`
+## Adding missing grouping variables: `experiment`</code></pre>
+<pre class="r"><code>p &lt;- ggplot(plotdf, aes(x = ABC_parents, fill = experiment)) +
+  geom_density() +
+  geom_vline(data = filter(plotdf, plasticity_compensatory),
+             aes(xintercept = ABC_hybrid), color = &quot;black&quot;, alpha = 0.25) +
+  facet_wrap(~factor(experiment, levels = ExperimentNames,
+                     labels = LongExperimentNamesMod)) +
+  scale_fill_discrete(limits = colordf$limits[colordf$scheme == &quot;experiment&quot;],
+                      type = colordf$type[colordf$scheme == &quot;experiment&quot;]) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == &quot;experiment&quot;],
+                       type = colordf$type[colordf$scheme == &quot;experiment&quot;]) +
+  # nCompensatory
+  geom_label(data = filter(plot_counts, plasticity_compensatory),
+             x = 0.5, y = 6, size = 6,
+            aes(label = paste0(&quot;n = &quot;, n))) +
+  theme_classic() +
+  theme(legend.position = &quot;none&quot;,
+        strip.text = element_text(size = 14))
+p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/compensatory-plasticity-area-between-curves-1.png" width="672" /></p>
+<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/compensatory_plasticityABC.pdf&quot;,
+    width = 7, height = 4)
+p
+dev.off()</code></pre>
+<pre><code>## quartz_off_screen 
+##                 2</code></pre>
+</div>
+<div id="probably-archive-from-here-down" class="section level1">
+<h1>%%%%%%%%%%%%%%%%% probably archive from here down
+%%%%%%%%%%%%%%%%%</h1>
 <div
 id="hybrids-have-more-correlated-plasticity-between-alleles-than-parental-orthologs"
 class="section level2">
@@ -488,9 +1105,10 @@ parental orthologs</h2>
 plotlist &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
 names(plotlist) &lt;- ExperimentNames
 # density plots of parental vs hybrid cor in each environment
+LongExperimentNamesMod &lt;- gsub(&quot;Hydroxyurea Shock&quot;, &quot;Hydroxyurea\nShock&quot;, LongExperimentNames)
 for (e in ExperimentNames) {
   plotdf &lt;- finaldf |&gt; filter(experiment == e &amp; plasticity == &quot;diverged&quot;) |&gt; 
-    select(gene_name, experiment, cor_parents, cor_hybrid) |&gt; 
+    dplyr::select(gene_name, experiment, cor_parents, cor_hybrid) |&gt; 
     pivot_longer(cols = c(&quot;cor_parents&quot;, &quot;cor_hybrid&quot;), 
                  names_to = &quot;parent_or_hybrid&quot;,
                  values_to = &quot;cor&quot;)
@@ -504,66 +1122,67 @@ for (e in ExperimentNames) {
     xlim(c(-1, 1)) +
     xlab(&quot;&quot;) +
     ylab(&quot;&quot;) +
-    ggtitle(LongExperimentNames[which(ExperimentNames == e)]) +
+    ggtitle(LongExperimentNamesMod[which(ExperimentNames == e)]) +
     theme_classic() +
     theme(legend.position = &quot;none&quot;)
 }
 p_null &lt;- ggplot(plotdf) + theme_void()
-pdf(&quot;paper_figures/CisTrans/cor_eachEnvironment.pdf&quot;,
-    width = 8, height = 4)
+pdf(&quot;paper_figures/CisTrans/cor_density_eachEnvironment.pdf&quot;,
+    width = 7.5, height = 4)
 ggarrange(plotlist[[1]], plotlist[[2]],
-          p_null, p_null, plotlist[[3]], plotlist[[4]],
+          plotlist[[3]], plotlist[[4]],
+          p_null, p_null, 
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code>ggarrange(plotlist[[1]], plotlist[[2]],
           p_null, p_null, plotlist[[3]], plotlist[[4]],
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-cor-1.png" width="672" /></p>
 </div>
 <div id="level-divergence-tends-to-be-in-cis" class="section level2">
@@ -619,83 +1238,13 @@ dev.off()</code></pre>
 ##                 2</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/level-pie-chart-1.png" width="672" /></p>
-<p>Average expression of the cis and trans portion of level divergers,
-Diauxic Shift as example:</p>
-<pre class="r"><code>plotdf &lt;- finaldf |&gt; 
-  filter(level == &quot;diverged&quot;) |&gt; 
-  mutate(is_trans_upcer = (effect_size_species &gt; trans_lev_thresh) &amp;
-           (abs(effect_size_allele) &lt; eff_thresh),
-         is_trans_uppar = (effect_size_species &lt; -trans_lev_thresh) &amp;
-           (abs(effect_size_allele) &lt; eff_thresh))
-plotdf |&gt; mutate(is_trans = is_trans_upcer | is_trans_uppar) |&gt; 
-  group_by(experiment) |&gt; 
-  summarise(pct_trans = sum(is_trans)/n(),
-            pct_rest = sum(!is_trans)/n())</code></pre>
-<pre><code>## # A tibble: 6 × 3
-##   experiment pct_trans pct_rest
-##   &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;
-## 1 CC             0.173    0.827
-## 2 Cold           0.221    0.779
-## 3 HAP4           0.148    0.852
-## 4 Heat           0.236    0.764
-## 5 LowN           0.135    0.865
-## 6 LowPi          0.242    0.758</code></pre>
-<pre class="r"><code># upcer, trans
-gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; 
-                      par == 1 &amp; is_trans_upcer) |&gt; 
-  select(gene_name) |&gt; pull()
-p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
-                               .experiment_name = &quot;HAP4&quot;), 
-                     top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/level-avg-expr-1.png" width="672" /></p>
-<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_trans_HAP411_upcer.pdf&quot;, width = 3, height = 3)
-p
-dev.off()</code></pre>
-<pre><code>## quartz_off_screen 
-##                 2</code></pre>
-<pre class="r"><code># upcer, cis
-gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; 
-                      par == 1 &amp; !is_trans_upcer &amp; !is_trans_uppar &amp;
-                        effect_size_species &gt; 0) |&gt; 
-  select(gene_name) |&gt; pull()
-p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
-                               .experiment_name = &quot;HAP4&quot;), 
-                     top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
-<pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/level-avg-expr-2.png" width="672" /></p>
-<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_cis_HAP411_upcer.pdf&quot;, width = 3, height = 3)
-p
-dev.off()</code></pre>
-<pre><code>## quartz_off_screen 
-##                 2</code></pre>
 </div>
 <div id="plasticity-divergence-tends-to-be-in-trans"
 class="section level2">
 <h2>Plasticity divergence tends to be in trans</h2>
 <pre class="r"><code>plotdf &lt;- finaldf |&gt; 
   filter(plasticity == &quot;diverged&quot;) |&gt; 
-  mutate(is_cis = cor_hybrid &lt; cis_dyn_thresh)
+  mutate(is_cis = cor_hybrid &lt; cis_plast_thresh)
 plotdf |&gt; group_by(experiment) |&gt; 
   summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
             trans = sum(!is_cis, na.rm = TRUE)/n())</code></pre>
@@ -737,7 +1286,7 @@ dev.off()</code></pre>
 <p>Average expression of Diauxic Shift example:</p>
 <pre class="r"><code>plotdf &lt;- finaldf |&gt; 
   filter(plasticity == &quot;diverged&quot;) |&gt; 
-  mutate(is_cis = cor_hybrid &lt; cis_dyn_thresh)
+  mutate(is_cis = cor_hybrid &lt; cis_plast_thresh)
 plotdf |&gt; group_by(experiment) |&gt; 
   summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
             trans = sum(!is_cis, na.rm = TRUE)/n())</code></pre>
@@ -753,20 +1302,12 @@ plotdf |&gt; group_by(experiment) |&gt;
 <pre class="r"><code># cis
 gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; 
                         par == 1 &amp; is_cis) |&gt; 
-    select(gene_name) |&gt; pull()
+    dplyr::select(gene_name) |&gt; pull()
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_cis_HAP421.pdf&quot;,
@@ -778,20 +1319,12 @@ dev.off()</code></pre>
 <pre class="r"><code># trans
 gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; 
                         par == 1 &amp; !is_cis) |&gt; 
-    select(gene_name) |&gt; pull()
+    dplyr::select(gene_name) |&gt; pull()
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;,
-## &#39;gene_name&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.
-## `summarise()` has grouped output by &#39;time_point_num&#39;,
-## &#39;experiment&#39;. You can override using the `.groups`
-## argument.
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`
-## Adding missing grouping variables: `time_point_num`,
-## `experiment`</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_trans_HAP421.pdf&quot;,
@@ -800,6 +1333,7 @@ p
 dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
+</div>
 </div>
 
 

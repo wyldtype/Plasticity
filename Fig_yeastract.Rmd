@@ -51,13 +51,13 @@ yeastract_lookup <- read_delim("data_files/downloaded_genomes_and_features/yeast
                                delim = ";", col_names = c("common_protein", 
                                                           "systematic", 
                                                           "common"))
-yeastract_lookup$description <- select(yeastract_lookup, 
+yeastract_lookup$description <- dplyr::select(yeastract_lookup, 
                                        setdiff(colnames(yeastract_lookup),
                                                c("common_protein", 
                                                  "systematic", 
                                                  "common"))) |> 
-  apply(MARGIN = 1, \(x) reduce(x, .f = paste0)) |> as.character()
-yeastract_lookup <- select(yeastract_lookup,
+  apply(MARGIN = 1, \(x) purrr::reduce(x, .f = paste0)) |> as.character()
+yeastract_lookup <- dplyr::select(yeastract_lookup,
                            common_protein,
                            systematic,
                            common,
@@ -84,10 +84,10 @@ readInRegulatoryMatrix <- function(.file_name) {
   mat <- matdf[, -1] |> as.matrix()
   colnames(mat) <- left_join(tibble(common = colnames(mat)),
                              yeastract_lookup, by = "common") |> 
-    select(systematic) |> pull()
+    dplyr::select(systematic) |> pull()
   rownames(mat) <- left_join(tibble(common_protein = unlist(matdf[,1])),
                              yeastract_lookup, by = "common_protein") |> 
-    select(systematic) |> pull()
+    dplyr::select(systematic) |> pull()
   return(mat)
 }
 ```
@@ -203,13 +203,13 @@ regdf <- map2(regmats, names(regmats), .f = \(x, y) {
   return(outdf)
 }) |> purrr::reduce(.f = bind_rows) |> 
   # adding regulator descriptions
-  left_join(select(yeastract_lookup, systematic, common, description),
+  left_join(dplyr::select(yeastract_lookup, systematic, common, description),
                      by = c("target"="systematic")) |> 
   dplyr::rename(c("target_description"="description",
            "target_common"="common")) |> 
-  left_join(select(yeastract_lookup, systematic, common, description),
+  left_join(dplyr::select(yeastract_lookup, systematic, common, description),
             by = c("regulator"="systematic")) |>
-  rename(c("regulator_description"="description",
+  dplyr::rename(c("regulator_description"="description",
            "regulator_common"="common"))
 regdf
 ```
@@ -236,10 +236,10 @@ Given the adjacency matrix, outputs the connected portion of the graph in igraph
 getConnectedGraph <- function(.adj) {
   colnames(.adj) <- left_join(tibble(systematic = colnames(.adj)),
                              yeastract_lookup, by = "systematic") |> 
-    select(common) |> pull()
+    dplyr::select(common) |> pull()
   rownames(.adj) <- left_join(tibble(systematic = rownames(.adj)),
                              yeastract_lookup, by = "systematic") |> 
-    select(common) |> pull()
+    dplyr::select(common) |> pull()
   regnames <- rownames(.adj)[rowSums(.adj) > 0]
   g <- graph_from_adjacency_matrix(.adj)
   sub_g <- subgraph(g, which(igraph::degree(g) > 0))
@@ -324,7 +324,7 @@ Plotting (very large amount of dplyr-ing the plot dataframe):
 ```{r stacked-barplots}
 plotdf <- map(ExperimentNames, \(.e) {
   expr_genes <- filter(finaldf, experiment == .e) |> 
-    select(gene_name) |> pull() |> 
+    dplyr::select(gene_name) |> pull() |> 
     intersect(colnames(regmats$YPD))
   tibble(gene_name = expr_genes,
          in_degree_e = colSums(regmats[[.e]][expr_genes, expr_genes]),
@@ -446,7 +446,7 @@ First making a dataframe of each regulator in each environment and the number of
 # and how many connections do each of them have?
 tfdf <- map(ExperimentNames, \(.e) {
   expr_genes <- filter(finaldf, experiment == .e) |> 
-    select(gene_name) |> pull() |> 
+    dplyr::select(gene_name) |> pull() |> 
     intersect(colnames(regmats$YPD))
   tibble(gene_name = expr_genes,
          out_degree_e = rowSums(regmats[[.e]][expr_genes, expr_genes])) |> 
@@ -589,7 +589,7 @@ plotHomeAndAltEnvironments <- function(.tf_common,
   ### Home environment
   # regulator
   reg_idx <- yeastract_lookup |> filter(common == .tf_common) |>
-    select(all_of("systematic")) |> pull()
+    dplyr::select(all_of("systematic")) |> pull()
   p_regulator <- annotate_figure(plotGenes(.gene_idxs = reg_idx, .quartet = .include_hybrid,
                                            .normalization = "log2",
                                            .plotlims = .plotlims,
@@ -597,7 +597,7 @@ plotHomeAndAltEnvironments <- function(.tf_common,
   # regulon
   if (is.null(.reg_idxs)) {
     regulon_idxs <- filter(regdf, environment == .e & regulator == reg_idx) |> 
-    select(target) |> pull() |> 
+    dplyr::select(target) |> pull() |> 
     intersect(y = finaldf[finaldf$experiment == .e,]$gene_name)
   } else {
     regulon_idxs <- .reg_idxs
@@ -740,7 +740,7 @@ names(plotlist) <- ExperimentNames
 for (e in ExperimentNames) {
   plotdf_e <- plotdf |> filter(experiment == e)
   fisher_mat <- plotdf_e |> 
-    select(nGenes, nInteractions) |> as.matrix()
+    dplyr::select(nGenes, nInteractions) |> as.matrix()
   rownames(fisher_mat) <- plotdf_e$plasticity
   fisher_test <- fisher_mat |> fisher.test()
   fisher_odds <- fisher_test$estimate
@@ -834,17 +834,17 @@ For each large regulon (top 5 in each environment, 2 from cold), we will look at
 plotdf <- tfdf |> group_by(experiment) |> 
   mutate(rank = rank(-out_degree_e, ties.method = "first")) |> 
   ungroup() |> filter(rank <= 5) |> 
-  rename(c("home"="experiment", "tf"="gene_name"))
+  dplyr::rename(c("home"="experiment", "tf"="gene_name"))
 # adding fraction conserved plasticity in each environment
 plotdf_pcts <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
   home_mat <- regmats[[h]]
   h_idxs <- finaldf |> filter(experiment == h) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
   regulon_idxs <- intersect(colnames(home_mat)[home_mat[tf,] > 0], h_idxs)
   outdf <- purrr::map(ExperimentNames, \(e) {
     e_plast_genes <- finaldf |>
       filter(experiment == e & plasticity == "conserved") |>
-      select(gene_name) |> pull()
+      dplyr::select(gene_name) |> pull()
     e_genedf <- tibble(tf = tf,
                        home = h,
                        experiment = e,
@@ -903,17 +903,17 @@ dev.off()
 ## Supplemental Table 3: regulators and their regulons in each environment
 
 ```{r supp3-regulator-regulon}
-plotdf <- tfdf |> rename(c("home"="experiment", "tf"="gene_name"))
+plotdf <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name"))
 # dataframe of fraction conserved plasticity in each environment (same starting code as from regulon-pct-conserved-plasticity)
 consplastdf <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
   home_mat <- regmats[[h]]
   h_idxs <- finaldf |> filter(experiment == h) |> 
-    select(gene_name) |> pull()
+    dplyr::select(gene_name) |> pull()
   regulon_idxs <- intersect(colnames(home_mat)[home_mat[tf,] > 0], h_idxs)
   outdf <- purrr::map(ExperimentNames, \(e) {
     e_plast_genes <- finaldf |>
       filter(experiment == e & plasticity == "conserved") |>
-      select(gene_name) |> pull()
+      dplyr::select(gene_name) |> pull()
     e_genedf <- tibble(tf = tf,
                        home = h,
                        experiment = e,
@@ -924,21 +924,21 @@ consplastdf <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
   return(outdf)
 }) |> purrr::reduce(.f = bind_rows) |> 
   mutate(pct_cons_plast = nConsPlast/n) |> 
-  select(tf, home, experiment, pct_cons_plast) |> 
+  dplyr::select(tf, home, experiment, pct_cons_plast) |> 
   pivot_wider(id_cols = c("tf", "home"),
               names_from = "experiment",
               values_from = "pct_cons_plast",
               names_prefix = "percent_conserved_plasticity_")
-suppTable3 <- tfdf |> rename(c("home"="experiment", "tf"="gene_name", 
+suppTable3 <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name", 
                                "regulon_size"="out_degree_e", 
                                "log2foldChange_parents"="effect_size_species",
                                "log2foldChange_hybrid"="effect_size_allele",
                                "padj_parents"="padj_species",
                                "padj_hybrid"="padj_allele")) |> 
-  left_join(y = select(yeastract_lookup, 
+  left_join(y = dplyr::select(yeastract_lookup, 
                        common, systematic), 
             by = c("tf"="systematic")) |> 
-  select(home, tf, common, regulon_size,
+  dplyr::select(home, tf, common, regulon_size,
          log2foldChange_parents,
          log2foldChange_hybrid,
          padj_parents, padj_hybrid, plasticity, 
@@ -976,17 +976,17 @@ sum(plotdf$nSig != 0)
 nrow(plotdf)
 sum(plotdf$nSig != 0)/nrow(plotdf) # % of regulators with at least one divergent environment, counting regulators with multiple homes multiple times
 plotdf_sig <- filter(chisqdf, adj_pval < 0.05) |> 
-  select(all_of(c("tf", "home"))) |> unique()
+  dplyr::select(all_of(c("tf", "home"))) |> unique()
 plotlist <- map(c(1:nrow(plotdf_sig)), \(i) {
   cat(i, "/", nrow(plotdf_sig), "\n")
   tf <- plotdf_sig$tf[i]
   tf_common <- yeastract_lookup |> filter(systematic == tf) |> 
-    select(all_of("common")) |> pull()
+    dplyr::select(all_of("common")) |> pull()
   e <- plotdf_sig$home[i]
   reg_idxs <- filter(regdf, regulator == tf & environment == e) |>
-    select(all_of("target")) |> pull()
+    dplyr::select(all_of("target")) |> pull()
   countdf <- finaldf |> filter(gene_name %in% reg_idxs) |> 
-    select(all_of(c("gene_name", "experiment", "cer", "par"))) |> 
+    dplyr::select(all_of(c("gene_name", "experiment", "cer", "par"))) |> 
     group_by(experiment, cer, par) |> 
     summarise(n = n()) |> filter(cer != par & experiment != e) |> 
     arrange(desc(n))
@@ -997,14 +997,14 @@ plotlist <- map(c(1:nrow(plotdf_sig)), \(i) {
     left_join(filter(finaldf, experiment == e2),
               by = c("target"="gene_name"))
   gene_idxs <- regulondf |> filter(cer == cer_clust & par == par_clust) |> 
-    select(all_of("target")) |> pull()
+    dplyr::select(all_of("target")) |> pull()
   p <- plotHomeAndAltEnvironments(.tf_common = tf_common,
                                   .reg_idxs = gene_idxs,
                                   .e = e, .e2 = e2, .plotlims = c(0, 12), .include_hybrid = FALSE)
   return(p)
 })
 ggarrange(plotlist = plotlist, ncol = 2,
-          nrow = ceiling(length(plotlist0)/2))
+          nrow = ceiling(length(plotlist)/2))
 # adding blank plot for key in main figure
 p_blank <- ggplot() + theme_void()
 plotlist0 <- c(list(p_blank), plotlist)
