@@ -208,7 +208,7 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
                                            .info1, .info2, 
                                            .name1 = "S. cerevisiae", .name2 = "S. paradoxus",
                                            .color1 = "orange1", .color2 = "blue2",
-                                           .legend = "right",
+                                           .legend = "none",
                                            .normalization = c("none", "log2", "scale", "center"),
                                            .confidence_type = "mean",
                                            .plotlims = NULL,
@@ -364,7 +364,7 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
                                               .color2 = "blue2",
                                               .color3 = "orange4",
                                               .color4 = "blue4",
-                                              .legend = "right",
+                                              .legend = "none",
                                               .normalization,
                                               .confidence_type = "mean",
                                               .plotlims = NULL,
@@ -545,6 +545,7 @@ plotGenes <- function(.gene_idxs,
                       .quartet = FALSE,
                       .plotlims = NULL,
                       .plot_titles = "none",
+                      .legend = "none",
                       .collapsed = TRUE,
                       .experiment_name) {
   if (length(.experiment_name) != 1) {
@@ -592,6 +593,7 @@ plotGenes <- function(.gene_idxs,
                                    .show_points = FALSE,
                                    .show_confidence_intervals = TRUE,
                                    .plotlims = .plotlims,
+                                   .legend = .legend,
                                    .plot_titles = .plot_titles)
   }
   if (.quartet) {
@@ -616,6 +618,7 @@ plotGenes <- function(.gene_idxs,
                                       .show_points = FALSE,
                                       .show_confidence_intervals = TRUE,
                                       .plotlims = .plotlims,
+                                      .legend = .legend,
                                       .plot_titles = .plot_titles)
   }
   return(p)
@@ -647,6 +650,7 @@ plotEnvironments <- function(.gene_idxs,
                              .quartet = FALSE,
                              .plotlims = NULL,
                              .plot_titles = "none",
+                             .legend = "none",
                              .collapsed = TRUE) {
   if (.collapsed) {
     counts_cer <- collapsed$cer[.gene_idxs,, drop = FALSE]
@@ -682,6 +686,7 @@ plotEnvironments <- function(.gene_idxs,
                                    .show_points = FALSE,
                                    .show_confidence_intervals = TRUE,
                                    .plotlims = .plotlims,
+                                   .legend = .legend,
                                    .plot_titles = .plot_titles)
   }
   if (.quartet) {
@@ -706,6 +711,7 @@ plotEnvironments <- function(.gene_idxs,
                                       .show_points = FALSE,
                                       .show_confidence_intervals = TRUE,
                                       .plotlims = .plotlims,
+                                      .legend = .legend,
                                       .plot_titles = .plot_titles)
   }
   return(p)
