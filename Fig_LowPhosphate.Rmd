@@ -145,7 +145,7 @@ pdf(file = paste0("paper_figures/",
                   folder_name, "/conserved_scaled.pdf"), width = 2, height = 2)
 print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                                 .experiment_name = experiment_name,
-                                .plotlims = c(-2, 2), .normalization = "scale") +
+                                .plotlims = c(-2.2, 2.2), .normalization = "scale") +
                         theme(plot.margin = unit(c(0,0.25,0,0), "cm")),
                       top = paste0(length(gene_idxs), " genes")))
 dev.off()
@@ -242,7 +242,7 @@ pdf(file = paste0("paper_figures/",
                   folder_name, "/plasticity_scaled.pdf"), width = 2, height = 2)
 print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                                 .experiment_name = experiment_name,
-                                .plotlims = c(-2, 2), .normalization = "scale") +
+                                .plotlims = c(-2.2, 2.2), .normalization = "scale") +
                         theme(plot.margin = unit(c(0,0.25,0,0), "cm")),
                       top = paste0(length(gene_idxs), " genes")))
 dev.off()
