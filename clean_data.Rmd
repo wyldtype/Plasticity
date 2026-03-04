@@ -167,7 +167,7 @@ p_cerbias <- ggplot(par_genedf, aes(x = log2(mean_expr), y = avg_pct_cer)) +
 ggarrange(p_parbias, p_cerbias, nrow = 1, ncol = 2)
 ```
 
-Conclusion: 10% of reads mapping to wrong species is a good cutoff. These do tend to be genes that are on the lower end of expression level.
+For simplicity, we are measuring all gene allele mappings as "percent of reads mapping to the S.cer allele of the gene". We expect genes from Scer parental samples to have close to 100% of reads mapping to the Scer allele. We expect genes from Spar parental samples to have close to 0% of reads mapping to the Scer allele. The threshold of 10% of reads mapping to wrong species appears to be a good cutoff for identifying genes with biased mappings. These do tend to be genes that are on the lower end of expression level.
 
 What are the common names of these genes?
 
@@ -179,12 +179,12 @@ sgd_lookup <- read_tsv("data_files/downloaded_genomes_and_features/SGD_features.
   dplyr::rename(c("systematic"="X4", "common"="X5"))
 # cer biased
 par_genedf |> filter(gene %in% cer_biased_genes) |> 
-  left_join(y = sgd_lookup, by = c("gene_name"="systematic")) |> 
+  left_join(y = sgd_lookup, by = c("gene"="systematic")) |> 
   arrange(desc(avg_pct_cer)) |> 
   print(n = length(cer_biased_genes))
 # par biased
 cer_genedf |> filter(gene %in% par_biased_genes) |> 
-  left_join(y = sgd_lookup, by = c("gene_name"="systematic")) |> 
+  left_join(y = sgd_lookup, by = c("gene"="systematic")) |> 
   arrange(avg_pct_cer) |> 
   print(n = length(par_biased_genes))
 # both
@@ -192,7 +192,7 @@ bind_rows(cer_genedf |> filter(gene %in% both_biased_genes) |>
             arrange(avg_pct_cer),
           par_genedf |> filter(gene %in% both_biased_genes) |> 
             arrange(desc(avg_pct_cer))) |> 
-  left_join(y = sgd_lookup, by = c("gene_name"="systematic")) |> 
+  left_join(y = sgd_lookup, by = c("gene"="systematic")) |> 
   print(n = length(both_biased_genes)*2)
 ```
 

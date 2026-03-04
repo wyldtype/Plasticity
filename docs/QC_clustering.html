@@ -533,13 +533,13 @@ dim(test)</code></pre>
 <pre class="r"><code>table(test[1,])</code></pre>
 <pre><code>## 
 ##       conserved level and plasticity 
-##                                 2084 
+##                                 2089 
 ## conserved level, diverged plasticity 
-##                                 1013 
+##                                 1015 
 ##        diverged level and plasticity 
-##                                  442 
+##                                  440 
 ## diverged level, conserved plasticity 
-##                                  747</code></pre>
+##                                  742</code></pre>
 <pre class="r"><code>test0 &lt;- test[, c(1:20, 2087:2107, 3092:3112, 3844:3864)]</code></pre>
 <p>Function to plot results:</p>
 <pre class="r"><code># plots the 4-group expression divergence matrix as a heatmap
@@ -746,13 +746,13 @@ dim(test)</code></pre>
 <pre class="r"><code>table(test[1,])</code></pre>
 <pre><code>## 
 ##       conserved level and plasticity 
-##                                 2084 
+##                                 2089 
 ## conserved level, diverged plasticity 
-##                                 1013 
+##                                 1015 
 ##        diverged level and plasticity 
-##                                  442 
+##                                  440 
 ## diverged level, conserved plasticity 
-##                                  747</code></pre>
+##                                  742</code></pre>
 <pre class="r"><code>test0 &lt;- test[, c(1:20, 2087:2107, 3092:3112, 3844:3864)]</code></pre>
 <pre class="r"><code>for (e in ExperimentNames) {
   cat(&quot;working on&quot;, e, &quot;\n&quot;)

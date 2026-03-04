@@ -268,8 +268,8 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
       gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI
     }
     if (.confidence_type == "all") { # 95% of genes fall in this range
-      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr*1.96
-      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr*1.96
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr
     }
   }
   if (.normalization == "log2") {
@@ -283,8 +283,8 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
       gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI)
     }
     if (.confidence_type == "all") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
-      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr*1.96)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr) # log(expr + confidence interval) != log(expression) + log(confidence interval)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr)
     }
   }
   # creating consistent plotlims across all experiments
@@ -343,7 +343,7 @@ plotExpressionProfilePair <- function(.cts1, .cts2,
                                       .show_points = FALSE,
                                       .point_size = 0.1,
                                       .show_confidence_intervals = TRUE,
-                                      .confidence_type = "mean",
+                                      .confidence_type = "default",
                                       .legend = "right",
                                       .normalization,
                                       .plotlims = NULL,
@@ -453,8 +453,8 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
       gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI
     }
     if (.confidence_type == "all") { # 95% of genes fall in this range
-      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr*1.96
-      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr*1.96
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr
     }
   }
   if (.normalization == "log2") {
@@ -468,8 +468,8 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
       gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI)
     }
     if (.confidence_type == "all") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
-      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr*1.96)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr) # log(expr + confidence interval) != log(expression) + log(confidence interval)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr)
     }
   }
   # creating consistent plotlims across all experiments
@@ -533,7 +533,7 @@ plotExpressionProfileQuartet <- function(.cts1, .cts2, .cts3, .cts4,
                                          .color3 = "orange4",
                                          .color4 = "blue4",
                                          .method = "line",
-                                         .confidence_type = "mean",
+                                         .confidence_type = "default",
                                          .legend = "right",
                                          .show_points = FALSE,
                                          .show_confidence_intervals = TRUE,

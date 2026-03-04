@@ -625,9 +625,9 @@ plotExpressionProfilePairBasic &lt;- function(.cts1, .cts2,
                                       .info1, .info2, 
                                       .name1 = &quot;S. cerevisiae&quot;, .name2 = &quot;S. paradoxus&quot;,
                                       .color1 = &quot;orange1&quot;, .color2 = &quot;blue2&quot;,
-                                      .legend = &quot;right&quot;,
+                                      .legend = &quot;none&quot;,
                                       .normalization = c(&quot;none&quot;, &quot;log2&quot;, &quot;scale&quot;, &quot;center&quot;),
-                                      .confidence_type = &quot;mean&quot;,
+                                      .confidence_type = &quot;default&quot;,
                                       .plotlims = NULL,
                                       .plot_titles = &quot;experiment&quot;) {
   if (!setequal(unique(.info1$experiment), unique(.info2$experiment))) {
@@ -648,6 +648,9 @@ plotExpressionProfilePairBasic &lt;- function(.cts1, .cts2,
   # if we are log2-transforming counts, we need to take mean before log2-transforming
   if (.normalization == &quot;scale&quot;) {
     ylabel &lt;- &quot;Expression\n(centered and scaled)&quot;
+    if (.confidence_type == &quot;default&quot;) {
+      .confidence_type &lt;- &quot;all&quot;
+    }
     .cts1 &lt;- .cts1 |&gt; 
       t() |&gt; 
       scale() |&gt; 
@@ -656,6 +659,12 @@ plotExpressionProfilePairBasic &lt;- function(.cts1, .cts2,
       t() |&gt; 
       scale() |&gt; 
       t()
+  }
+  if (.normalization == &quot;none&quot;) {
+    ylabel &lt;- &quot;Expression\n(counts per million)&quot;
+    if (.confidence_type == &quot;default&quot;) {
+      .confidence_type &lt;- &quot;mean&quot;
+    }
   }
   gdf1 &lt;- bind_cols(t(.cts1), info1) |&gt; 
     pivot_longer(cols = rownames(.cts1), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
@@ -670,27 +679,29 @@ plotExpressionProfilePairBasic &lt;- function(.cts1, .cts2,
               sd_expr = sd(expr, na.rm = TRUE)) |&gt; ungroup()
   gdf$CI &lt;- gdf$sd_expr/sqrt(nGenes)
   if (.normalization == &quot;none&quot; | .normalization == &quot;scale&quot;) {
-    ylabel &lt;- &quot;Expression\n(counts per million)&quot;
     gdf$norm_expr &lt;- gdf$mean_expr
     if (.confidence_type == &quot;mean&quot;) { # 95% confidence in the mean (standard error)
       gdf$norm_upperBound &lt;- gdf$mean_expr + gdf$CI
       gdf$norm_lowerBound &lt;- gdf$mean_expr - gdf$CI
     }
-    if (.confidence_type == &quot;all&quot;) { # 95% of genes fall in this range
-      gdf$norm_upperBound &lt;- gdf$mean_expr + gdf$sd_expr*1.96
-      gdf$norm_lowerBound &lt;- gdf$mean_expr - gdf$sd_expr*1.96
+    if (.confidence_type == &quot;all&quot;) { # standard deviation
+      gdf$norm_upperBound &lt;- gdf$mean_expr + gdf$sd_expr
+      gdf$norm_lowerBound &lt;- gdf$mean_expr - gdf$sd_expr
     }
   }
   if (.normalization == &quot;log2&quot;) {
     ylabel &lt;- &quot;Expression (log2)&quot;
+    if (.confidence_type == &quot;default&quot;) {
+      .confidence_type &lt;- &quot;mean&quot;
+    }
     gdf$norm_expr &lt;- log2(gdf$mean_expr)
     if (.confidence_type == &quot;mean&quot;) {
       gdf$norm_upperBound &lt;- log2(gdf$mean_expr + gdf$CI)
       gdf$norm_lowerBound &lt;- log2(gdf$mean_expr - gdf$CI)
     }
     if (.confidence_type == &quot;all&quot;) {
-      gdf$norm_upperBound &lt;- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
-      gdf$norm_lowerBound &lt;- log2(gdf$mean_expr - gdf$sd_expr*1.96)
+      gdf$norm_upperBound &lt;- log2(gdf$mean_expr + gdf$sd_expr) # log(expr + confidence interval) != log(expression) + log(confidence interval)
+      gdf$norm_lowerBound &lt;- log2(gdf$mean_expr - gdf$sd_expr)
     }
   }
   # creating consistent plotlims across all experiments
@@ -709,7 +720,7 @@ plotExpressionProfilePairBasic &lt;- function(.cts1, .cts2,
       theme_classic() +
       scale_color_discrete(type = c(.color1, .color2), labels = c(.name1, .name2)) +
       scale_fill_discrete(type = c(.color1, .color2), labels = c(.name1, .name2)) +
-      theme(legend.title = element_blank()) +
+      theme(legend.title = element_blank(), legend.position = .legend) +
       ylab(&quot;&quot;) +
       xlab(&quot;&quot;) +
       ylim(.plotlims) +
@@ -890,7 +901,7 @@ plotExpressionProfilePair(collapsed$cer[&quot;YHL006C&quot;,, drop = FALSE],
                                               .color2 = &quot;blue2&quot;,
                                               .color3 = &quot;orange4&quot;,
                                               .color4 = &quot;blue4&quot;,
-                                              .legend = &quot;right&quot;,
+                                              .legend = &quot;none&quot;,
                                               .normalization,
                                               .confidence_type = &quot;mean&quot;,
                                               .plotlims = NULL,
@@ -934,6 +945,9 @@ plotExpressionProfilePair(collapsed$cer[&quot;YHL006C&quot;,, drop = FALSE],
       scale() |&gt; 
       t()
   }
+  if (.normalization == &quot;none&quot;) {
+    ylabel &lt;- &quot;Expression\n(counts per million)&quot;
+  }
   gdf1 &lt;- bind_cols(t(.cts1), info1) |&gt; 
     pivot_longer(cols = rownames(.cts1), names_to = &quot;gene_name&quot;, values_to = &quot;expr&quot;)
   gdf1$group_id &lt;- &quot;1&quot;
@@ -953,15 +967,14 @@ plotExpressionProfilePair(collapsed$cer[&quot;YHL006C&quot;,, drop = FALSE],
               sd_expr = sd(expr, na.rm = TRUE)) |&gt; ungroup()
   gdf$CI &lt;- gdf$sd_expr/sqrt(nGenes)
   if (.normalization == &quot;none&quot; | .normalization == &quot;scale&quot;) {
-    ylabel &lt;- &quot;Expression\n(counts per million)&quot;
     gdf$norm_expr &lt;- gdf$mean_expr
     if (.confidence_type == &quot;mean&quot;) { # 95% confidence in the mean (standard error)
       gdf$norm_upperBound &lt;- gdf$mean_expr + gdf$CI
       gdf$norm_lowerBound &lt;- gdf$mean_expr - gdf$CI
     }
     if (.confidence_type == &quot;all&quot;) { # 95% of genes fall in this range
-      gdf$norm_upperBound &lt;- gdf$mean_expr + gdf$sd_expr*1.96
-      gdf$norm_lowerBound &lt;- gdf$mean_expr - gdf$sd_expr*1.96
+      gdf$norm_upperBound &lt;- gdf$mean_expr + gdf$sd_expr
+      gdf$norm_lowerBound &lt;- gdf$mean_expr - gdf$sd_expr
     }
   }
   if (.normalization == &quot;log2&quot;) {
@@ -972,8 +985,8 @@ plotExpressionProfilePair(collapsed$cer[&quot;YHL006C&quot;,, drop = FALSE],
       gdf$norm_lowerBound &lt;- log2(gdf$mean_expr - gdf$CI)
     }
     if (.confidence_type == &quot;all&quot;) {
-      gdf$norm_upperBound &lt;- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
-      gdf$norm_lowerBound &lt;- log2(gdf$mean_expr - gdf$sd_expr*1.96)
+      gdf$norm_upperBound &lt;- log2(gdf$mean_expr + gdf$sd_expr) # log(expr + confidence interval) != log(expression) + log(confidence interval)
+      gdf$norm_lowerBound &lt;- log2(gdf$mean_expr - gdf$sd_expr)
     }
   }
   # creating consistent plotlims across all experiments
@@ -994,7 +1007,7 @@ plotExpressionProfilePair(collapsed$cer[&quot;YHL006C&quot;,, drop = FALSE],
                            labels = c(.name1, .name2, .name3, .name4)) +
       scale_fill_discrete(type = c(.color1, .color2, .color3, .color4), 
                           labels = c(.name1, .name2, .name3, .name4)) +
-      theme(legend.title = element_blank()) +
+      theme(legend.title = element_blank(), legend.position = .legend) +
       ylab(&quot;&quot;) +
       xlab(&quot;&quot;) +
       ylim(.plotlims) +

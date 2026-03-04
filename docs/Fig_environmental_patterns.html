@@ -349,43 +349,6 @@ across all 6 environments</h1>
 
 <pre class="r"><code>sapply(c(&quot;stringr&quot;, &quot;RColorBrewer&quot;, &quot;circlize&quot;, &quot;ggridges&quot;,
          &quot;ComplexHeatmap&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>## Loading required package: stringr</code></pre>
-<pre><code>## Loading required package: RColorBrewer</code></pre>
-<pre><code>## Loading required package: circlize</code></pre>
-<pre><code>## ========================================
-## circlize version 0.4.16
-## CRAN page: https://cran.r-project.org/package=circlize
-## Github page: https://github.com/jokergoo/circlize
-## Documentation: https://jokergoo.github.io/circlize_book/book/
-## 
-## If you use it in published research, please cite:
-## Gu, Z. circlize implements and enhances circular visualization
-##   in R. Bioinformatics 2014.
-## 
-## This message can be suppressed by:
-##   suppressPackageStartupMessages(library(circlize))
-## ========================================</code></pre>
-<pre><code>## Loading required package: ggridges</code></pre>
-<pre><code>## Loading required package: ComplexHeatmap</code></pre>
-<pre><code>## Loading required package: grid</code></pre>
-<pre><code>## ========================================
-## ComplexHeatmap version 2.24.0
-## Bioconductor page: http://bioconductor.org/packages/ComplexHeatmap/
-## Github page: https://github.com/jokergoo/ComplexHeatmap
-## Documentation: http://jokergoo.github.io/ComplexHeatmap-reference
-## 
-## If you use it in published research, please cite either one:
-## - Gu, Z. Complex Heatmap Visualization. iMeta 2022.
-## - Gu, Z. Complex heatmaps reveal patterns and correlations in multidimensional 
-##     genomic data. Bioinformatics 2016.
-## 
-## 
-## The new InteractiveComplexHeatmap package can directly export static 
-## complex heatmaps into an interactive Shiny app with zero effort. Have a try!
-## 
-## This message can be suppressed by:
-##   suppressPackageStartupMessages(library(ComplexHeatmap))
-## ========================================</code></pre>
 <pre><code>##        stringr   RColorBrewer       circlize       ggridges 
 ##           TRUE           TRUE           TRUE           TRUE 
 ## ComplexHeatmap 
@@ -514,21 +477,8 @@ class="section level2">
   pivot_wider(id_cols = c(&quot;gene_name&quot;), names_from = &quot;experiment&quot;,
               values_from = &quot;group4&quot;) |&gt; 
   pivot_longer(cols = ExperimentNames, names_to = &quot;experiment&quot;,
-               values_to = &quot;group5&quot;) # to add NA values for low expression</code></pre>
-<pre><code>## Warning: Using an external vector in selections was deprecated in tidyselect
-## 1.1.0.
-## ℹ Please use `all_of()` or `any_of()` instead.
-##   # Was:
-##   data %&gt;% select(ExperimentNames)
-## 
-##   # Now:
-##   data %&gt;% select(all_of(ExperimentNames))
-## 
-## See &lt;https://tidyselect.r-lib.org/reference/faq-external-vector.html&gt;.
-## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_lifecycle_warnings()` to see where this warning
-## was generated.</code></pre>
-<pre class="r"><code>plotdf$group5 &lt;- if_else(is.na(plotdf$group5), true = &quot;lowly expressed&quot;,
+               values_to = &quot;group5&quot;) # to add NA values for low expression
+plotdf$group5 &lt;- if_else(is.na(plotdf$group5), true = &quot;lowly expressed&quot;,
                          false = plotdf$group5) |&gt; 
   factor(levels = c(&quot;conserved level and plasticity&quot;,
                     &quot;conserved level, diverged plasticity&quot;,
@@ -560,15 +510,23 @@ dev.off()</code></pre>
 <pre class="r"><code>plotdf &lt;- filter(finaldf, level == &quot;diverged&quot;)
 filter(finaldf, plasticity == &quot;conserved&quot; &amp; level == &quot;conserved&quot;) |&gt; group_by(experiment) |&gt; 
   summarise(n = n())</code></pre>
-<pre><code>## # A tibble: 6 × 2
-##   experiment     n
-##   &lt;chr&gt;      &lt;int&gt;
-## 1 CC          1329
-## 2 Cold        1416
-## 3 HAP4        2018
-## 4 Heat        1586
-## 5 LowN        1920
-## 6 LowPi       1658</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:proportions-ridgeline">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">experiment</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">n</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">CC</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1329</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1414</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">HAP4</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2017</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Heat</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1585</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">LowN</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1919</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">LowPi</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1655</td></tr>
+</table>
+
 <pre class="r"><code># accompanying percentages of upScer and upSpar genes
 pctdf &lt;- plotdf |&gt; group_by(experiment) |&gt; 
   summarise(pct_upcer = round(sum(effect_size_species &gt; 0)/length(effect_size_species), digits = 2)*100,
@@ -590,12 +548,12 @@ p &lt;- ggplot(data = plotdf, aes(x = effect_size_species, y = experiment, fill 
                       type = colordf[colordf$scheme == &quot;experiment&quot;,]$type) +
   scale_y_discrete(limits = ExperimentNames, labels = LongExperimentNames)
 p</code></pre>
-<pre><code>## Picking joint bandwidth of 0.265</code></pre>
+<pre><code>## Picking joint bandwidth of 0.264</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/proportions-ridgeline-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/ridgeline.pdf&quot;,
     width = 4, height = 3)
 p</code></pre>
-<pre><code>## Picking joint bandwidth of 0.265</code></pre>
+<pre><code>## Picking joint bandwidth of 0.264</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -656,15 +614,23 @@ dev.off()</code></pre>
 ##                 2</code></pre>
 <p>nGenes per experiment for paper figure:</p>
 <pre class="r"><code>plotdf_sums</code></pre>
-<pre><code>## # A tibble: 6 × 2
-##   long_experiment   n_Exp
-##   &lt;fct&gt;             &lt;int&gt;
-## 1 Diauxic Shift      4286
-## 2 Hydroxyurea Shock  3952
-## 3 Low Nitrogen       4412
-## 4 Low Phosphate      4383
-## 5 Heat Stress        4172
-## 6 Cold Stress        4051</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:plasticity-group-heatmap-ngenes">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">long_experiment</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">n_Exp</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Diauxic Shift</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4286</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Hydroxyurea Shock</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">3952</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Low Nitrogen</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4412</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Low Phosphate</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4383</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Heat Stress</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4172</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold Stress</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4051</td></tr>
+</table>
+
 </div>
 <div
 id="divergence-category-in-one-environment-is-a-poor-predictor-of-other-environments"
@@ -782,12 +748,12 @@ dev.off()</code></pre>
 number of genes for each row):</p>
 <pre class="r"><code>plot_counts</code></pre>
 <pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6]
-## [1,]  561  561  561  561  561  561
-## [2,]  898  898  898  898  898  898
-## [3,]  987  987  987  987  987  987
+## [1,]  559  559  559  559  559  559
+## [2,]  897  897  897  897  897  897
+## [3,]  986  986  986  986  986  986
 ## [4,]  687  687  687  687  687  687
-## [5,]  906  906  906  906  906  906
-## [6,] 1092 1092 1092 1092 1092 1092</code></pre>
+## [5,]  903  903  903  903  903  903
+## [6,] 1091 1091 1091 1091 1091 1091</code></pre>
 <pre class="r"><code>lgd &lt;- Legend(col_fun = col_fun, title = &quot;avgerage log2 fold change&quot;,  direction = &quot;horizontal&quot;) # need to run draw(lgd) in the console</code></pre>
 <p>Genes with higher Log2 fold change in Spar:</p>
 <pre class="r"><code>plot_mat &lt;- matrix(nrow = length(ExperimentNames),
@@ -831,12 +797,12 @@ dev.off()</code></pre>
 number of genes for each row):</p>
 <pre class="r"><code>plot_counts</code></pre>
 <pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6]
-## [1,]  628  628  628  628  628  628
-## [2,]  595  595  595  595  595  595
-## [3,]  603  603  603  603  603  603
-## [4,]  838  838  838  838  838  838
-## [5,]  481  481  481  481  481  481
-## [6,]  446  446  446  446  446  446</code></pre>
+## [1,]  623  623  623  623  623  623
+## [2,]  590  590  590  590  590  590
+## [3,]  598  598  598  598  598  598
+## [4,]  834  834  834  834  834  834
+## [5,]  478  478  478  478  478  478
+## [6,]  443  443  443  443  443  443</code></pre>
 <pre class="r"><code>lgd &lt;- Legend(col_fun = col_fun, title = &quot;avgerage log2 fold change&quot;,  direction = &quot;horizontal&quot;) # need to run draw(lgd) in the console</code></pre>
 </div>
 <div id="plasticity-divergence-is-unique-to-each-environment"
@@ -864,23 +830,17 @@ gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
                                  cer == 2 &amp; par == 1) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
 getplasticityCorr(gene_idxs, .experiment_name = &quot;HAP4&quot;)</code></pre>
-<pre><code>##            [,1]
-## [1,] -0.9359643</code></pre>
+<pre><code>## [1] -0.9359643</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowN&quot;)</code></pre>
-<pre><code>##          [,1]
-## [1,] 0.906296</code></pre>
+<pre><code>## [1] 0.906296</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
-<pre><code>##           [,1]
-## [1,] 0.9128942</code></pre>
+<pre><code>## [1] 0.9128942</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;CC&quot;)</code></pre>
-<pre><code>##           [,1]
-## [1,] 0.6486633</code></pre>
+<pre><code>## [1] 0.6486633</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Heat&quot;)</code></pre>
-<pre><code>##           [,1]
-## [1,] 0.9786642</code></pre>
+<pre><code>## [1] 0.9786642</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Cold&quot;)</code></pre>
-<pre><code>##            [,1]
-## [1,] -0.4895706</code></pre>
+<pre><code>## [1] -0.4895706</code></pre>
 <p>Heatmap of species correlations for genes increasing in Spar and
 decreasing in Scer:</p>
 <pre class="r"><code># 2-1 divergers
@@ -1011,8 +971,7 @@ testcor12 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot
 <pre class="r"><code>testcor12</code></pre>
 <pre><code>## [1] -0.9021212</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
-<pre><code>##            [,1]
-## [1,] -0.9021212</code></pre>
+<pre><code>## [1] -0.9021212</code></pre>
 <pre class="r"><code># LowPi 2-1 alone:
 gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
                                  plasticity == &quot;diverged&quot; &amp;
@@ -1024,8 +983,7 @@ testcor21 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot
 <pre class="r"><code>testcor21</code></pre>
 <pre><code>## [1] -0.9543984</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
-<pre><code>##            [,1]
-## [1,] -0.9543984</code></pre>
+<pre><code>## [1] -0.9543984</code></pre>
 <pre class="r"><code># weights
 finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp;
                     plasticity == &quot;diverged&quot; &amp;
@@ -1230,23 +1188,17 @@ gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
                                  cer == 2 &amp; par == 1) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
 getplasticityCorr(gene_idxs, .experiment_name = &quot;HAP4&quot;)</code></pre>
-<pre><code>##            [,1]
-## [1,] -0.9359643</code></pre>
+<pre><code>## [1] -0.9359643</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowN&quot;)</code></pre>
-<pre><code>##          [,1]
-## [1,] 0.906296</code></pre>
+<pre><code>## [1] 0.906296</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
-<pre><code>##           [,1]
-## [1,] 0.9128942</code></pre>
+<pre><code>## [1] 0.9128942</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;CC&quot;)</code></pre>
-<pre><code>##           [,1]
-## [1,] 0.6486633</code></pre>
+<pre><code>## [1] 0.6486633</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Heat&quot;)</code></pre>
-<pre><code>##           [,1]
-## [1,] 0.9786642</code></pre>
+<pre><code>## [1] 0.9786642</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;Cold&quot;)</code></pre>
-<pre><code>##            [,1]
-## [1,] -0.4895706</code></pre>
+<pre><code>## [1] -0.4895706</code></pre>
 </div>
 <div id="example-expression-profiles-for-figure" class="section level3">
 <h3>Example expression profiles for figure</h3>
@@ -1349,8 +1301,7 @@ case it is helpful</p>
 <pre class="r"><code>gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; cer == 1 &amp; par == 2) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
 getplasticityCorr(.gene_idxs = gene_idxs, .experiment_name = &quot;LowPi&quot;)</code></pre>
-<pre><code>##           [,1]
-## [1,] 0.9484853</code></pre>
+<pre><code>## [1] 0.9484853</code></pre>
 <pre class="r"><code>test_condition_vec &lt;- info |&gt; filter(experiment == &quot;LowPi&quot;) |&gt; 
     dplyr::select(condition) |&gt; pull()
 # means
@@ -1411,8 +1362,7 @@ p_log &lt;- ggplot(plotdf, aes(x = timepoint, y = log2(expr))) +
 ggarrange(p_scale, p_log, nrow = 1, ncol = 2)</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/low-Pi95-1.png" width="672" /></p>
 <pre class="r"><code>cor(test_cer_vec, test_par_vec) # should be 0.95</code></pre>
-<pre><code>##           [,1]
-## [1,] 0.9484853</code></pre>
+<pre><code>## [1] 0.9484853</code></pre>
 <pre class="r"><code>p_log &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, info$experiment == &quot;LowPi&quot;],
                           .cts2 = collapsed$par[gene_idxs, info$experiment == &quot;LowPi&quot;],
                           .info1 = filter(info, experiment == &quot;LowPi&quot;),
@@ -1835,7 +1785,7 @@ getTP0NormDifferenceAverage &lt;- function(.gene_vec, .experiment_vec, .decreasi
 getTP0NormDifferenceAverage(.gene_vec = sample(finaldf$gene_name, 3),
                             .experiment_vec = sample(finaldf$experiment, 3),
                             .decreasing_species_vec = sample(c(&quot;cer&quot;, &quot;par&quot;), replace = TRUE, 3))</code></pre>
-<pre><code>## [1] 0.1197672</code></pre>
+<pre><code>## [1] 0.09923759</code></pre>
 <p>Random simulation with 100 iterations:</p>
 <pre class="r"><code>tp0df &lt;- finaldf |&gt; filter(plasticity == &quot;diverged&quot; &amp;
                              level == &quot;conserved&quot; &amp;

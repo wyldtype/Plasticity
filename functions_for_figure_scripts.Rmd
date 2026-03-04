@@ -295,9 +295,9 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
       gdf$norm_upperBound <- gdf$mean_expr + gdf$CI
       gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI
     }
-    if (.confidence_type == "all") { # 95% of genes fall in this range
-      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr*1.96
-      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr*1.96
+    if (.confidence_type == "all") { # standard deviation
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr
     }
   }
   if (.normalization == "log2") {
@@ -311,8 +311,8 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
       gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI)
     }
     if (.confidence_type == "all") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
-      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr*1.96)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr) # log(expr + confidence interval) != log(expression) + log(confidence interval)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr)
     }
   }
   # creating consistent plotlims across all experiments
@@ -546,8 +546,8 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
       gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI
     }
     if (.confidence_type == "all") { # 95% of genes fall in this range
-      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr*1.96
-      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr*1.96
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr
     }
   }
   if (.normalization == "log2") {
@@ -558,8 +558,8 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
       gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI)
     }
     if (.confidence_type == "all") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
-      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr*1.96)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr) # log(expr + confidence interval) != log(expression) + log(confidence interval)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr)
     }
   }
   # creating consistent plotlims across all experiments

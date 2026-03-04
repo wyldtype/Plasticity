@@ -353,30 +353,10 @@ class="section level1">
 metadata</h1>
 <p>Working with RNAseq data published in Krieger et al. 2020 and Fay et
 al. 2023</p>
-<pre><code>## Loading required package: readr</code></pre>
-<pre><code>## Loading required package: tidyr</code></pre>
-<pre><code>## Loading required package: purrr</code></pre>
-<pre><code>## Loading required package: ggplot2</code></pre>
-<pre><code>## Need help getting started? Try the R Graphics Cookbook:
-## https://r-graphics.org</code></pre>
-<pre><code>## Loading required package: ggpubr</code></pre>
-<pre><code>## Loading required package: openxlsx</code></pre>
-<pre><code>## Loading required package: matrixStats</code></pre>
 <pre><code>##       readr       tidyr       purrr     ggplot2      ggpubr 
 ##        TRUE        TRUE        TRUE        TRUE        TRUE 
 ##    openxlsx matrixStats 
 ##        TRUE        TRUE</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:matrixStats&#39;:
-## 
-##     count</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
 <div
 id="reading-in-krieger-et-al.-2020-and-lupo-et-al.-2021-tagseq-data"
 class="section level2">
@@ -451,13 +431,21 @@ test_cpm &lt;- countsPerMillionAllele(.cts_cer = tagseq_cer[,-1],
 ((test_count/(colSums(tagseq_cer[,-1], na.rm = TRUE) + 
                 colSums(tagseq_par[,-1], na.rm = TRUE))[test_colIdx])*1e6) %&gt;% 
   round() # what it should be</code></pre>
-<pre><code>##   WT_19_cer_SCtoLowPi_rep1
-## 1                       20</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:countsPerMillionAllele">
+<col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">WT_19_cer_SCtoLowPi_rep1</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">20</td></tr>
+</table>
+
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## # A tibble: 1 × 1
-##   WT_19_cer_SCtoLowPi_rep1
-##                      &lt;dbl&gt;
-## 1                       10</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:countsPerMillionAllele">
+<col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">WT_19_cer_SCtoLowPi_rep1</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">10</td></tr>
+</table>
+
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
 <pre><code>## WT_19_cer_SCtoLowPi_rep1 
 ##                       20</code></pre>
@@ -480,8 +468,8 @@ cpm_cer &lt;- cpm_cer[isHighExpr,]
 cpm_par &lt;- cpm_par[isHighExpr,]
 sum(cpm_cer == 0 &amp; cpm_par == 0) # note there are still individual samples with zero counts</code></pre>
 <pre><code>## [1] 48907</code></pre>
-<pre class="r"><code># 3) check % cer of all high-enough expressed genes is close to 1 for cer samples and 0 for par samples
-plotdf &lt;- bind_rows(bind_cols(tibble(gene = keep_genes,
+<p>Do any Scer/Spar samples have many incorrect gene mappings?</p>
+<pre class="r"><code>plotdf &lt;- bind_rows(bind_cols(tibble(gene = keep_genes,
                                      allele = &quot;cer&quot;), cpm_cer),
                     bind_cols(tibble(gene = keep_genes,
                                      allele = &quot;par&quot;), cpm_par)) |&gt; 
@@ -503,369 +491,23 @@ plotdf$pct_cer &lt;- if_else(plotdf$counts_cer == 0 &amp;
                             plotdf$counts_par == 0,
                           true = NA,
                           false = plotdf$counts_cer/(plotdf$counts_cer + plotdf$counts_par))
-plotdf &lt;- drop_na(plotdf)
-sample_genes &lt;- sample(plotdf$gene, size = 100)
-ggplot(filter(plotdf, gene %in% sample_genes),
-       aes(x = gene, y = pct_cer)) + 
-  geom_point(aes(color = organism))</code></pre>
-<p><img src="clean_data_files/figure-html/gene-wise-mapping-bias-1.png" width="672" /></p>
-<p>Do any Scer/Spar samples have many incorrect gene mappings?</p>
-<pre class="r"><code>sampdf &lt;- plotdf |&gt; filter(organism %in% c(&quot;cerSample&quot;, &quot;parSample&quot;)) |&gt; 
-  group_by(sample_name, organism) |&gt; 
-  summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;sample_name&#39;. You can override
-## using the `.groups` argument.</code></pre>
-<pre class="r"><code>sampdf |&gt; filter(organism == &quot;cerSample&quot;) |&gt; arrange(avg_pct_cer)</code></pre>
-<pre><code>## # A tibble: 220 × 3
-## # Groups:   sample_name [220]
-##    sample_name              organism  avg_pct_cer
-##    &lt;chr&gt;                    &lt;chr&gt;           &lt;dbl&gt;
-##  1 WT_39_cer_CellCycle_rep2 cerSample       0.522
-##  2 WT_28_cer_CellCycle_rep2 cerSample       0.680
-##  3 WT_12_cer_CellCycle_rep1 cerSample       0.824
-##  4 WT_11_cer_HAP4andWTonYPD cerSample       0.882
-##  5 WT_13_cer_HAP4andWTonYPD cerSample       0.884
-##  6 WT_15_cer_HAP4andWTonYPD cerSample       0.887
-##  7 WT_TP1_cer_C3_D3_G6_GS7  cerSample       0.897
-##  8 WT_TP1_cer_C3_F5_G12_GS7 cerSample       0.901
-##  9 WT_9_cer_HAP4andWTonYPD  cerSample       0.908
-## 10 WT_41_cer_CellCycle_rep1 cerSample       0.908
-## # ℹ 210 more rows</code></pre>
-<pre class="r"><code>sampdf |&gt; filter(organism == &quot;parSample&quot;) |&gt; arrange(desc(avg_pct_cer))</code></pre>
-<pre><code>## # A tibble: 230 × 3
-## # Groups:   sample_name [230]
-##    sample_name                    organism  avg_pct_cer
-##    &lt;chr&gt;                          &lt;chr&gt;           &lt;dbl&gt;
-##  1 WT_34_par_CellCycle_rep2       parSample      0.312 
-##  2 WT_15_par_HAP4andWTonYPD       parSample      0.164 
-##  3 WT_TP1_par_remnants2_D5_G6_GS7 parSample      0.124 
-##  4 WT_29_par_SCtoLowPi_rep1       parSample      0.118 
-##  5 WT_4_par_SCtoLowPi_rep1        parSample      0.116 
-##  6 WT_17_par_SCtoLowPi_rep2       parSample      0.110 
-##  7 WT_8_par_SCtoLowPi_rep1        parSample      0.105 
-##  8 WT_16_par_SCtoLowPi_rep1       parSample      0.101 
-##  9 WT_6_par_HAP4andWTonYPD        parSample      0.0967
-## 10 WT_1_par_HAP4andWTonYPD        parSample      0.0946
-## # ℹ 220 more rows</code></pre>
-<pre class="r"><code>ggplot(sampdf, aes(x = avg_pct_cer)) + 
-  geom_density(aes(fill = organism)) + 
-  geom_vline(xintercept = 0.75) +
-  geom_vline(xintercept = 0.25)</code></pre>
-<p><img src="clean_data_files/figure-html/sample-wise-mapping-bias-1.png" width="672" /></p>
-<pre class="r"><code>filter(sampdf, (organism == &quot;cerSample&quot; &amp; round(avg_pct_cer, digits = 1) &lt; 0.8) |
-           (organism == &quot;parSample&quot; &amp; round(avg_pct_cer, digits = 1) &gt; 0.2)) |&gt; 
-  arrange(organism, desc(avg_pct_cer))</code></pre>
-<pre><code>## # A tibble: 3 × 3
-## # Groups:   sample_name [3]
-##   sample_name              organism  avg_pct_cer
-##   &lt;chr&gt;                    &lt;chr&gt;           &lt;dbl&gt;
-## 1 WT_28_cer_CellCycle_rep2 cerSample       0.680
-## 2 WT_39_cer_CellCycle_rep2 cerSample       0.522
-## 3 WT_34_par_CellCycle_rep2 parSample       0.312</code></pre>
-<pre class="r"><code>biased_samples &lt;- filter(sampdf, (organism == &quot;cerSample&quot; &amp; round(avg_pct_cer, digits = 1) &lt; 0.9) |
-                           (organism == &quot;parSample&quot; &amp; round(avg_pct_cer, digits = 1) &gt; 0.1)) |&gt; 
-  dplyr::select(sample_name) |&gt; pull()
-biased_samples</code></pre>
-<pre><code>## [1] &quot;WT_12_cer_CellCycle_rep1&quot; &quot;WT_15_par_HAP4andWTonYPD&quot;
-## [3] &quot;WT_28_cer_CellCycle_rep2&quot; &quot;WT_34_par_CellCycle_rep2&quot;
-## [5] &quot;WT_39_cer_CellCycle_rep2&quot;</code></pre>
-<pre class="r"><code># do these samples have small library sizes?
-bad_libsizes &lt;- colSums(tagseq_cer[,biased_samples] + tagseq_par[,biased_samples])
-bad_libsizes |&gt; sort()</code></pre>
-<pre><code>## WT_28_cer_CellCycle_rep2 WT_34_par_CellCycle_rep2 
-##                    10380                    15235 
-## WT_12_cer_CellCycle_rep1 WT_15_par_HAP4andWTonYPD 
-##                    27944                   365274 
-## WT_39_cer_CellCycle_rep2 
-##                   584945</code></pre>
-<pre class="r"><code>hist(colSums(tagseq_cer[,-1] + tagseq_par[,-1]), breaks = 50)
-abline(v = bad_libsizes, col = &quot;red&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/sample-wise-mapping-bias-2.png" width="672" /></p>
+plotdf &lt;- drop_na(plotdf)</code></pre>
 <p>Do any genes have consistently biased mappings? These might be genes
-with above-average seq conservation btwn Scer and Spar and therefore
-shouldn’t be used for allele-specific comparisons in the hybrid</p>
-<pre class="r"><code>cer_genedf &lt;- plotdf |&gt; filter(organism == &quot;cerSample&quot; &amp; !(sample_name %in% biased_samples)) |&gt; 
+with above-average sequence conservation between Scer and Spar and
+therefore shouldn’t be used for allele-specific comparisons in the
+hybrid</p>
+<pre class="r"><code>cer_genedf &lt;- plotdf |&gt; filter(organism == &quot;cerSample&quot;) |&gt; 
   group_by(gene) |&gt; 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
-hist(cer_genedf$avg_pct_cer, breaks = 50)
-abline(v = 0.9, col = &quot;red&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
-<pre class="r"><code>par_genedf &lt;- plotdf |&gt; filter(organism == &quot;parSample&quot; &amp;
-                                 !(sample_name %in% biased_samples)) |&gt; 
+par_genedf &lt;- plotdf |&gt; filter(organism == &quot;parSample&quot;) |&gt; 
   dplyr::group_by(gene) |&gt; 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
-hist(par_genedf$avg_pct_cer, breaks = 50)
-abline(v = 0.1, col = &quot;red&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
-<pre class="r"><code>cer_biased_genes &lt;- par_genedf |&gt; filter(avg_pct_cer &gt; 0.1) |&gt; dplyr::select(gene) |&gt; pull()
+cer_biased_genes &lt;- par_genedf |&gt; filter(avg_pct_cer &gt; 0.1) |&gt; dplyr::select(gene) |&gt; pull()
 par_biased_genes &lt;- cer_genedf |&gt; filter(avg_pct_cer &lt; 0.9) |&gt; dplyr::select(gene) |&gt; pull()
 both_biased_genes &lt;- intersect(cer_biased_genes, par_biased_genes)
 cer_biased_genes &lt;- setdiff(cer_biased_genes, par_biased_genes)
 par_biased_genes &lt;- setdiff(par_biased_genes, cer_biased_genes)
-# any common genes of note?
-sgd_lookup &lt;- read_tsv(&quot;data_files/downloaded_genomes_and_features/SGD_features.tab&quot;,
-                       col_names = FALSE) |&gt; 
-  dplyr::select(X4, X5) |&gt; unique() |&gt; drop_na()</code></pre>
-<pre><code>## Rows: 16454 Columns: 16
-## ── Column specification ───────────────────────────────────────────────
-## Delimiter: &quot;\t&quot;
-## chr  (12): X1, X2, X3, X4, X5, X6, X7, X8, X9, X12, X15, X16
-## dbl   (3): X10, X11, X13
-## date  (1): X14
-## 
-## ℹ Use `spec()` to retrieve the full column specification for this data.
-## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code># cer biased
-sgd_lookup[sgd_lookup$X4 %in% cer_biased_genes,] |&gt; 
-  print(n = length(cer_biased_genes))</code></pre>
-<pre><code>## # A tibble: 39 × 2
-##    X4      X5    
-##    &lt;chr&gt;   &lt;chr&gt; 
-##  1 YAL067C SEO1  
-##  2 YAL054C ACS1  
-##  3 YAR035W YAT1  
-##  4 YKL218C SRY1  
-##  5 YKR039W GAP1  
-##  6 YLR270W DCS1  
-##  7 YLR337C VRP1  
-##  8 YML123C PHO84 
-##  9 YMR133W REC114
-## 10 YMR175W SIP18 
-## 11 YNL142W MEP2  
-## 12 YOL158C ENB1  
-## 13 YOR161C PNS1  
-## 14 YOR173W DCS2  
-## 15 YPL274W SAM3  
-## 16 YPL223C GRE1  
-## 17 YPR006C ICL2  
-## 18 YPR194C OPT2  
-## 19 YBR072W HSP26 
-## 20 YBR093C PHO5  
-## 21 YBR132C AGP2  
-## 22 YCR010C ADY2  
-## 23 YCR030C SYP1  
-## 24 YDR110W FOB1  
-## 25 YDR213W UPC2  
-## 26 YDR254W CHL4  
-## 27 YER046W SPO73 
-## 28 YER065C ICL1  
-## 29 YFL030W AGX1  
-## 30 YFL014W HSP12 
-## 31 YGL222C EDC1  
-## 32 YGL208W SIP2  
-## 33 YGL096W TOS8  
-## 34 YGR236C SPG1  
-## 35 YHR096C HXT5  
-## 36 YHR136C SPL2  
-## 37 YIL121W QDR2  
-## 38 YIL111W COX5B 
-## 39 YIL057C RGI2</code></pre>
-<pre class="r"><code>par_genedf |&gt; filter(gene %in% cer_biased_genes) |&gt; 
-  arrange(desc(avg_pct_cer)) |&gt; 
-  print(n = length(cer_biased_genes))</code></pre>
-<pre><code>## # A tibble: 45 × 2
-##    gene            avg_pct_cer
-##    &lt;chr&gt;                 &lt;dbl&gt;
-##  1 YAR071W/YHR215W       0.785
-##  2 YNL142W               0.775
-##  3 YLR337C               0.458
-##  4 YDR213W               0.443
-##  5 YPL274W               0.419
-##  6 YOL158C               0.360
-##  7 YCR030C               0.295
-##  8 YMR175W               0.286
-##  9 YAL067C               0.282
-## 10 YDR110W               0.249
-## 11 YLR270W               0.247
-## 12 YIL057C               0.247
-## 13 YMR133W               0.241
-## 14 YHR136C               0.238
-## 15 YPR006C               0.217
-## 16 YHR096C               0.214
-## 17 YIL121W               0.201
-## 18 YGR236C               0.191
-## 19 YAL054C               0.181
-## 20 YBR132C               0.181
-## 21 YCR010C               0.181
-## 22 YIL111W               0.180
-## 23 YPR194C               0.175
-## 24 YIL014C-A             0.170
-## 25 YBR285W               0.149
-## 26 YDR343C/YDR342C       0.145
-## 27 YFL014W               0.143
-## 28 YAR035W               0.133
-## 29 YPL223C               0.132
-## 30 YKR039W               0.128
-## 31 YDR254W               0.124
-## 32 YGL096W               0.123
-## 33 YJR096W               0.121
-## 34 YBR093C               0.121
-## 35 YFL030W               0.120
-## 36 YGL208W               0.118
-## 37 YBR072W               0.117
-## 38 YOR161C               0.115
-## 39 YGL222C               0.115
-## 40 YKL218C               0.113
-## 41 YER065C               0.113
-## 42 YOR173W               0.106
-## 43 YER046W               0.106
-## 44 YHR033W               0.102
-## 45 YML123C               0.102</code></pre>
-<pre class="r"><code># par biased
-sgd_lookup[sgd_lookup$X4 %in% par_biased_genes,] |&gt; 
-  print(n = length(par_biased_genes))</code></pre>
-<pre><code>## # A tibble: 53 × 2
-##    X4        X5   
-##    &lt;chr&gt;     &lt;chr&gt;
-##  1 YAL063C   FLO9 
-##  2 YAR050W   FLO1 
-##  3 YJL153C   INO1 
-##  4 YJL088W   ARG3 
-##  5 YJL052W   TDH1 
-##  6 YJR010W   MET3 
-##  7 YJR048W   CYC1 
-##  8 YJR095W   SFC1 
-##  9 YKR046C   PET10
-## 10 YKR097W   PCK1 
-## 11 YLL057C   JLP1 
-## 12 YLL055W   YCT1 
-## 13 YLR174W   IDP2 
-## 14 YLR205C   HMX1 
-## 15 YLR411W   CTR3 
-## 16 YML043C   RRN11
-## 17 YMR095C   SNO1 
-## 18 YMR107W   SPG4 
-## 19 YMR169C   ALD3 
-## 20 YMR303C   ADH2 
-## 21 YNL117W   MLS1 
-## 22 YOL155C   HPF1 
-## 23 YOL152W   FRE7 
-## 24 YOL058W   ARG1 
-## 25 YOL052C-A DDR2 
-## 26 YOR348C   PUT4 
-## 27 YPL171C   OYE3 
-## 28 YPL014W   CIP1 
-## 29 YPR193C   HPA2 
-## 30 YBR294W   SUL1 
-## 31 YCL018W   LEU2 
-## 32 YCR098C   GIT1 
-## 33 YDL227C   HO   
-## 34 YDL037C   BSC1 
-## 35 YDR363W   ESC2 
-## 36 YEL060C   PRB1 
-## 37 YEL022W   GEA2 
-## 38 YEL021W   URA3 
-## 39 YEL020C   PXP1 
-## 40 YER011W   TIR1 
-## 41 YFR053C   HXK1 
-## 42 YGL255W   ZRT1 
-## 43 YGL184C   STR3 
-## 44 YGL107C   RMD9 
-## 45 YGR142W   BTN2 
-## 46 YGR183C   QCR9 
-## 47 YGR213C   RTA1 
-## 48 YHR203C   RPS4B
-## 49 YIL169C   CSS1 
-## 50 YIL164C   NIT1 
-## 51 YIR017C   MET28
-## 52 YIR019C   FLO11
-## 53 YIR028W   DAL4</code></pre>
-<pre class="r"><code>cer_genedf |&gt; filter(gene %in% par_biased_genes) |&gt; 
-  arrange(avg_pct_cer) |&gt; 
-  print(n = length(par_biased_genes))</code></pre>
-<pre><code>## # A tibble: 59 × 2
-##    gene      avg_pct_cer
-##    &lt;chr&gt;           &lt;dbl&gt;
-##  1 YFL051C         0.111
-##  2 YOL152W         0.122
-##  3 YDL037C         0.125
-##  4 YIL164C         0.239
-##  5 YEL021W         0.244
-##  6 YIL169C         0.365
-##  7 YGL107C         0.372
-##  8 YDR363W         0.505
-##  9 YIR019C         0.556
-## 10 YLR411W         0.567
-## 11 YEL022W         0.663
-## 12 YGR213C         0.719
-## 13 YCL018W         0.729
-## 14 YDL227C         0.738
-## 15 YAL063C         0.754
-## 16 YLR307C-A       0.764
-## 17 YGR183C         0.768
-## 18 YPR193C         0.809
-## 19 YEL020C         0.818
-## 20 YJL052W         0.822
-## 21 YNL117W         0.824
-## 22 YBR294W         0.836
-## 23 YPL014W         0.843
-## 24 YCL048W-A       0.851
-## 25 YMR095C         0.853
-## 26 YLL056C         0.854
-## 27 YOL155C         0.855
-## 28 YAR050W         0.860
-## 29 YJL088W         0.861
-## 30 YLL057C         0.867
-## 31 YLR205C         0.867
-## 32 YGL255W         0.869
-## 33 YOL058W         0.870
-## 34 YMR169C         0.870
-## 35 YKR097W         0.871
-## 36 YIR028W         0.873
-## 37 YHR203C         0.875
-## 38 YEL060C         0.877
-## 39 YKL071W         0.877
-## 40 YJR048W         0.878
-## 41 YER011W         0.882
-## 42 YLL055W         0.884
-## 43 YGR142W         0.885
-## 44 YJL153C         0.887
-## 45 YPL171C         0.888
-## 46 YMR303C         0.888
-## 47 YKR046C         0.889
-## 48 YOR348C         0.894
-## 49 YIR017C         0.894
-## 50 YGL184C         0.895
-## 51 YOL052C-A       0.896
-## 52 YJR095W         0.896
-## 53 YJR010W         0.896
-## 54 YML043C         0.897
-## 55 YFR053C         0.897
-## 56 YLR174W         0.899
-## 57 YLR046C         0.899
-## 58 YCR098C         0.900
-## 59 YMR107W         0.900</code></pre>
-<pre class="r"><code># both
-sgd_lookup[sgd_lookup$X4 %in% both_biased_genes,] |&gt; 
-  print(n = length(both_biased_genes))</code></pre>
-<pre><code>## # A tibble: 4 × 2
-##   X4        X5   
-##   &lt;chr&gt;     &lt;chr&gt;
-## 1 YJL052W   TDH1 
-## 2 YMR107W   SPG4 
-## 3 YOL052C-A DDR2 
-## 4 YDR363W   ESC2</code></pre>
-<pre class="r"><code>cer_genedf |&gt; filter(gene %in% both_biased_genes) |&gt; 
-  arrange(avg_pct_cer)</code></pre>
-<pre><code>## # A tibble: 5 × 2
-##   gene      avg_pct_cer
-##   &lt;chr&gt;           &lt;dbl&gt;
-## 1 YDR363W         0.505
-## 2 YJL052W         0.822
-## 3 YCL048W-A       0.851
-## 4 YOL052C-A       0.896
-## 5 YMR107W         0.900</code></pre>
-<pre class="r"><code>par_genedf |&gt; filter(gene %in% both_biased_genes) |&gt; 
-  arrange(desc(avg_pct_cer))</code></pre>
-<pre><code>## # A tibble: 5 × 2
-##   gene      avg_pct_cer
-##   &lt;chr&gt;           &lt;dbl&gt;
-## 1 YDR363W         0.255
-## 2 YOL052C-A       0.169
-## 3 YMR107W         0.167
-## 4 YCL048W-A       0.165
-## 5 YJL052W         0.119</code></pre>
-<pre class="r"><code># Are these genes on the low expr end?
+# Are these genes on the low expr end?
 cer_genedf &lt;- left_join(cer_genedf, tibble(gene = common_genes[isHighExpr],
                                            mean_expr = rowMeans(cpm_cer[,grepl(&quot;cer&quot;, colnames(cpm_cer))] +
                                                                   cpm_par[,grepl(&quot;cer&quot;, colnames(cpm_cer))])),
@@ -881,88 +523,215 @@ p_cerbias &lt;- ggplot(par_genedf, aes(x = log2(mean_expr), y = avg_pct_cer)) +
   geom_point(aes(color = avg_pct_cer &gt; 0.1)) +
   ylab(&quot;% reads mapping to Scer allele&quot;)
 ggarrange(p_parbias, p_cerbias, nrow = 1, ncol = 2)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-1-3.png" width="672" /></p>
-<p>Lastly we’ll check if cer/par ratio of parents matches hybrids for
-each gene across samples</p>
-<pre class="r"><code>plotdf$bias &lt;- if_else(plotdf$gene %in% cer_biased_genes,
-                       true = &quot;cer&quot;,
-                       false = if_else(plotdf$gene %in% par_biased_genes,
-                                       true = &quot;par&quot;, false = &quot;none&quot;))
-plotdf_vshyb &lt;- plotdf |&gt; group_by(gene, organism, bias) |&gt; 
-  summarise(mean_counts_cer = mean(counts_cer, na.rm = TRUE),
-            mean_counts_par = mean(counts_par, na.rm = TRUE)) |&gt; 
-  drop_na() |&gt; 
-  pivot_wider(id_cols = c(&quot;gene&quot;, &quot;bias&quot;), 
-              values_from = c(&quot;mean_counts_cer&quot;, &quot;mean_counts_par&quot;),
-              names_from = organism)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;gene&#39;, &#39;organism&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre class="r"><code># two ways to calculate read counts for each gene in the parents:
-#    1) sum the hits for the cer allele and the par allele (after all we know that all these reads came from one allele or the other)
-#    2) only count the hits for the correct parent&#39;s allele
-# in the hybrid, we no longer know which allele is correct, because both alleles are present.
-# So we can only count them one way. If we see a difference in how 
-# correlated the parental vs hybrid %cer values between the 
-# two methods of parental read counting, mapping bias
-plotdf_vshyb$par_sum &lt;- plotdf_vshyb$mean_counts_cer_parSample + plotdf_vshyb$mean_counts_par_parSample
-plotdf_vshyb$cer_sum &lt;- plotdf_vshyb$mean_counts_cer_cerSample + plotdf_vshyb$mean_counts_par_cerSample
-plotdf_vshyb$pct_cer_parents_sum &lt;- plotdf_vshyb$cer_sum/(plotdf_vshyb$par_sum + plotdf_vshyb$cer_sum)
-plotdf_vshyb$pct_cer_parents_singleAllele &lt;- plotdf_vshyb$mean_counts_cer_cerSample/(plotdf_vshyb$mean_counts_cer_cerSample + plotdf_vshyb$mean_counts_par_parSample)
-plotdf_vshyb$pct_cer_hybrids_sum &lt;- plotdf_vshyb$mean_counts_cer_hybSample/(plotdf_vshyb$mean_counts_cer_hybSample + plotdf_vshyb$mean_counts_par_hybSample)
-# summing parental allele reads
-ggplot(plotdf_vshyb, aes(x = pct_cer_parents_sum, y = pct_cer_hybrids_sum)) +
-  geom_point(aes(color = bias), alpha = 0.5)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<pre class="r"><code>ggplot(filter(plotdf_vshyb, bias != &quot;none&quot;), aes(x = pct_cer_parents_sum, y = pct_cer_hybrids_sum)) +
-  geom_point(aes(color = bias), alpha = 0.5)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
-<pre class="r"><code># single parental allele reads
-ggplot(plotdf_vshyb, aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
-  geom_point(aes(color = bias), alpha = 0.5)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
-<pre class="r"><code>ggplot(filter(plotdf_vshyb, bias != &quot;none&quot;), aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
-  geom_point(aes(color = bias), alpha = 0.5)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-2-4.png" width="672" /></p>
-<p>Conclusion: slight differences in the counts of biased genes, no
-visible difference in the counts of unbiased genes. We can count just
-reads mapping to correct parent allele and remove any biased genes after
-adding Fay et al. 2023 samples and filtering for low expression.</p>
+<p><img src="clean_data_files/figure-html/identifying-biased-genes-1.png" width="672" /></p>
+<p>For simplicity, we are measuring all gene allele mappings as “percent
+of reads mapping to the S.cer allele of the gene”. We expect genes from
+Scer parental samples to have close to 100% of reads mapping to the Scer
+allele. We expect genes from Spar parental samples to have close to 0%
+of reads mapping to the Scer allele. The threshold of 10% of reads
+mapping to wrong species appears to be a good cutoff for identifying
+genes with biased mappings. These do tend to be genes that are on the
+lower end of expression level.</p>
+<p>What are the common names of these genes?</p>
+<pre class="r"><code># any common genes of note?
+sgd_lookup &lt;- read_tsv(&quot;data_files/downloaded_genomes_and_features/SGD_features.tab&quot;,
+                       col_names = FALSE) |&gt; 
+  dplyr::select(X4, X5) |&gt; unique() |&gt; drop_na() |&gt; 
+  dplyr::rename(c(&quot;systematic&quot;=&quot;X4&quot;, &quot;common&quot;=&quot;X5&quot;))</code></pre>
+<pre><code>## Rows: 16454 Columns: 16
+## ── Column specification ───────────────────────────────────────────────
+## Delimiter: &quot;\t&quot;
+## chr  (12): X1, X2, X3, X4, X5, X6, X7, X8, X9, X12, X15, X16
+## dbl   (3): X10, X11, X13
+## date  (1): X14
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code># cer biased
+par_genedf |&gt; filter(gene %in% cer_biased_genes) |&gt; 
+  left_join(y = sgd_lookup, by = c(&quot;gene&quot;=&quot;systematic&quot;)) |&gt; 
+  arrange(desc(avg_pct_cer)) |&gt; 
+  print(n = length(cer_biased_genes))</code></pre>
+<pre><code>## # A tibble: 49 × 4
+##    gene            avg_pct_cer mean_expr common
+##    &lt;chr&gt;                 &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt; 
+##  1 YAR071W/YHR215W       0.785     22.2  &lt;NA&gt;  
+##  2 YNL142W               0.775   1180.   MEP2  
+##  3 YLR337C               0.466      3.77 VRP1  
+##  4 YDR213W               0.443     57.1  UPC2  
+##  5 YPL274W               0.430      3.30 SAM3  
+##  6 YOL158C               0.365      3.44 ENB1  
+##  7 YCR030C               0.294    177.   SYP1  
+##  8 YMR175W               0.287      5.88 SIP18 
+##  9 YAL067C               0.282    167.   SEO1  
+## 10 YLR270W               0.250    135.   DCS1  
+## 11 YDR110W               0.248     45.6  FOB1  
+## 12 YMR133W               0.247      9.97 REC114
+## 13 YIL057C               0.243     53.8  RGI2  
+## 14 YHR136C               0.237    224.   SPL2  
+## 15 YPR006C               0.223      8.12 ICL2  
+## 16 YHR096C               0.214     15.2  HXT5  
+## 17 YIL121W               0.204      7.68 QDR2  
+## 18 YGR236C               0.189     16.7  SPG1  
+## 19 YIL111W               0.183      6.3  COX5B 
+## 20 YPR194C               0.180      5.49 OPT2  
+## 21 YBR132C               0.180     18.6  AGP2  
+## 22 YAL054C               0.179     31.9  ACS1  
+## 23 YCR010C               0.179     13.9  ADY2  
+## 24 YIL014C-A             0.172      5.14 &lt;NA&gt;  
+## 25 YMR107W               0.166     33.2  SPG4  
+## 26 YBR285W               0.149     14.6  &lt;NA&gt;  
+## 27 YFL014W               0.145     98.6  HSP12 
+## 28 YDR343C/YDR342C       0.144    110.   &lt;NA&gt;  
+## 29 YAR035W               0.133     38.5  YAT1  
+## 30 YPL223C               0.132     13.1  GRE1  
+## 31 YKR039W               0.130    620.   GAP1  
+## 32 YDR254W               0.128     12.2  CHL4  
+## 33 YBR093C               0.125   1051.   PHO5  
+## 34 YGL096W               0.124     26.8  TOS8  
+## 35 YJR096W               0.121     13.2  &lt;NA&gt;  
+## 36 YFL030W               0.120     31.6  AGX1  
+## 37 YBR072W               0.119     49.1  HSP26 
+## 38 YKL218C               0.117     10.1  SRY1  
+## 39 YGL208W               0.117     17.2  SIP2  
+## 40 YOR161C               0.117     13.5  PNS1  
+## 41 YGL222C               0.115     37.7  EDC1  
+## 42 YER065C               0.112     77.8  ICL1  
+## 43 YOR173W               0.108     23.5  DCS2  
+## 44 YML123C               0.105    434.   PHO84 
+## 45 YER046W               0.105     30.9  SPO73 
+## 46 YPR045C               0.103    124.   THP3  
+## 47 YCR021C               0.102     26.7  HSP30 
+## 48 YDR111C               0.102     32.6  ALT2  
+## 49 YHR033W               0.101     23.5  &lt;NA&gt;</code></pre>
+<pre class="r"><code># par biased
+cer_genedf |&gt; filter(gene %in% par_biased_genes) |&gt; 
+  left_join(y = sgd_lookup, by = c(&quot;gene&quot;=&quot;systematic&quot;)) |&gt; 
+  arrange(avg_pct_cer) |&gt; 
+  print(n = length(par_biased_genes))</code></pre>
+<pre><code>## # A tibble: 64 × 4
+##    gene      avg_pct_cer mean_expr common
+##    &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt; 
+##  1 YFL051C         0.115     12.4  &lt;NA&gt;  
+##  2 YOL152W         0.120    132.   FRE7  
+##  3 YDL037C         0.123      1.88 BSC1  
+##  4 YIL164C         0.239      8.33 NIT1  
+##  5 YEL021W         0.242      2.87 URA3  
+##  6 YIL169C         0.362     70.5  CSS1  
+##  7 YGL107C         0.367    191.   RMD9  
+##  8 YDR363W         0.506     41.3  ESC2  
+##  9 YIR019C         0.560     28.7  FLO11 
+## 10 YLR411W         0.561     17.5  CTR3  
+## 11 YEL022W         0.658    120.   GEA2  
+## 12 YGR213C         0.714      7.58 RTA1  
+## 13 YCL018W         0.725     10.5  LEU2  
+## 14 YDL227C         0.736     60.0  HO    
+## 15 YAL063C         0.747      3.27 FLO9  
+## 16 YGR183C         0.764    498.   QCR9  
+## 17 YLR307C-A       0.764     31.3  &lt;NA&gt;  
+## 18 YPR193C         0.808     12.6  HPA2  
+## 19 YEL020C         0.818     58.0  PXP1  
+## 20 YJL052W         0.821    342.   TDH1  
+## 21 YNL117W         0.824    136.   MLS1  
+## 22 YBR294W         0.836    143.   SUL1  
+## 23 YPL014W         0.842     48.7  CIP1  
+## 24 YCL048W-A       0.844    135.   &lt;NA&gt;  
+## 25 YOL155C         0.848    180.   HPF1  
+## 26 YMR095C         0.853     26.0  SNO1  
+## 27 YLL056C         0.855     26.6  &lt;NA&gt;  
+## 28 YJL088W         0.858    295.   ARG3  
+## 29 YAR050W         0.861      6.50 FLO1  
+## 30 YOL058W         0.862   1672.   ARG1  
+## 31 YLR205C         0.866     29.5  HMX1  
+## 32 YLL057C         0.867     10.4  JLP1  
+## 33 YGL255W         0.869     40.5  ZRT1  
+## 34 YMR169C         0.870     44.8  ALD3  
+## 35 YKL071W         0.871      5.73 &lt;NA&gt;  
+## 36 YKR097W         0.872    182.   PCK1  
+## 37 YHR203C         0.872   2193.   RPS4B 
+## 38 YIR028W         0.873     50.7  DAL4  
+## 39 YEL060C         0.874    182.   PRB1  
+## 40 YJR048W         0.876    145.   CYC1  
+## 41 YLL055W         0.879     62.5  YCT1  
+## 42 YER011W         0.880     26.3  TIR1  
+## 43 YKR046C         0.883    145.   PET10 
+## 44 YPL171C         0.883     18.8  OYE3  
+## 45 YGR142W         0.883     59.7  BTN2  
+## 46 YJL153C         0.887     22.2  INO1  
+## 47 YMR303C         0.888    194.   ADH2  
+## 48 YFR053C         0.890    349.   HXK1  
+## 49 YIR017C         0.890    131.   MET28 
+## 50 YDL191W         0.891     97.5  RPL35A
+## 51 YLR046C         0.891     41.3  &lt;NA&gt;  
+## 52 YOR348C         0.894    170.   PUT4  
+## 53 YGL184C         0.895     40.9  STR3  
+## 54 YOL052C-A       0.896    273.   DDR2  
+## 55 YJR095W         0.896     61.0  SFC1  
+## 56 YJR010W         0.897    235.   MET3  
+## 57 YML043C         0.898     44.7  RRN11 
+## 58 YLR377C         0.898     59.5  FBP1  
+## 59 YMR121C         0.899    102.   RPL15B
+## 60 YER102W         0.899   1212.   RPS8B 
+## 61 YLR174W         0.899     68    IDP2  
+## 62 YIL144W         0.899     42.2  NDC80 
+## 63 YFR055W         0.899    163.   IRC7  
+## 64 YCR098C         0.900     16.1  GIT1</code></pre>
+<pre class="r"><code># both
+bind_rows(cer_genedf |&gt; filter(gene %in% both_biased_genes) |&gt; 
+            arrange(avg_pct_cer),
+          par_genedf |&gt; filter(gene %in% both_biased_genes) |&gt; 
+            arrange(desc(avg_pct_cer))) |&gt; 
+  left_join(y = sgd_lookup, by = c(&quot;gene&quot;=&quot;systematic&quot;)) |&gt; 
+  print(n = length(both_biased_genes)*2)</code></pre>
+<pre><code>## # A tibble: 8 × 4
+##   gene      avg_pct_cer mean_expr common
+##   &lt;chr&gt;           &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt; 
+## 1 YDR363W         0.506      41.3 ESC2  
+## 2 YJL052W         0.821     342.  TDH1  
+## 3 YCL048W-A       0.844     135.  &lt;NA&gt;  
+## 4 YOL052C-A       0.896     273.  DDR2  
+## 5 YDR363W         0.255      40.2 ESC2  
+## 6 YOL052C-A       0.170      34.1 DDR2  
+## 7 YCL048W-A       0.166      33.3 &lt;NA&gt;  
+## 8 YJL052W         0.121     239.  TDH1</code></pre>
+<p>As Fay et al. 2023 data does not have separate parental samples, we
+will record all the based genes and remove them after adding Fay et
+al. 2023 samples and filtering for low expression.</p>
 <p>Here are our lists of based genes/samples:</p>
 <pre class="r"><code>cer_biased_genes</code></pre>
 <pre><code>##  [1] &quot;YAL054C&quot;         &quot;YAL067C&quot;         &quot;YAR035W&quot;        
 ##  [4] &quot;YAR071W/YHR215W&quot; &quot;YBR072W&quot;         &quot;YBR093C&quot;        
 ##  [7] &quot;YBR132C&quot;         &quot;YBR285W&quot;         &quot;YCR010C&quot;        
-## [10] &quot;YCR030C&quot;         &quot;YDR110W&quot;         &quot;YDR213W&quot;        
-## [13] &quot;YDR254W&quot;         &quot;YDR343C/YDR342C&quot; &quot;YER046W&quot;        
-## [16] &quot;YER065C&quot;         &quot;YFL014W&quot;         &quot;YFL030W&quot;        
-## [19] &quot;YGL096W&quot;         &quot;YGL208W&quot;         &quot;YGL222C&quot;        
-## [22] &quot;YGR236C&quot;         &quot;YHR033W&quot;         &quot;YHR096C&quot;        
-## [25] &quot;YHR136C&quot;         &quot;YIL014C-A&quot;       &quot;YIL057C&quot;        
-## [28] &quot;YIL111W&quot;         &quot;YIL121W&quot;         &quot;YJR096W&quot;        
-## [31] &quot;YKL218C&quot;         &quot;YKR039W&quot;         &quot;YLR270W&quot;        
-## [34] &quot;YLR337C&quot;         &quot;YML123C&quot;         &quot;YMR133W&quot;        
-## [37] &quot;YMR175W&quot;         &quot;YNL142W&quot;         &quot;YOL158C&quot;        
-## [40] &quot;YOR161C&quot;         &quot;YOR173W&quot;         &quot;YPL223C&quot;        
-## [43] &quot;YPL274W&quot;         &quot;YPR006C&quot;         &quot;YPR194C&quot;</code></pre>
+## [10] &quot;YCR021C&quot;         &quot;YCR030C&quot;         &quot;YDR110W&quot;        
+## [13] &quot;YDR111C&quot;         &quot;YDR213W&quot;         &quot;YDR254W&quot;        
+## [16] &quot;YDR343C/YDR342C&quot; &quot;YER046W&quot;         &quot;YER065C&quot;        
+## [19] &quot;YFL014W&quot;         &quot;YFL030W&quot;         &quot;YGL096W&quot;        
+## [22] &quot;YGL208W&quot;         &quot;YGL222C&quot;         &quot;YGR236C&quot;        
+## [25] &quot;YHR033W&quot;         &quot;YHR096C&quot;         &quot;YHR136C&quot;        
+## [28] &quot;YIL014C-A&quot;       &quot;YIL057C&quot;         &quot;YIL111W&quot;        
+## [31] &quot;YIL121W&quot;         &quot;YJR096W&quot;         &quot;YKL218C&quot;        
+## [34] &quot;YKR039W&quot;         &quot;YLR270W&quot;         &quot;YLR337C&quot;        
+## [37] &quot;YML123C&quot;         &quot;YMR107W&quot;         &quot;YMR133W&quot;        
+## [40] &quot;YMR175W&quot;         &quot;YNL142W&quot;         &quot;YOL158C&quot;        
+## [43] &quot;YOR161C&quot;         &quot;YOR173W&quot;         &quot;YPL223C&quot;        
+## [46] &quot;YPL274W&quot;         &quot;YPR006C&quot;         &quot;YPR045C&quot;        
+## [49] &quot;YPR194C&quot;</code></pre>
 <pre class="r"><code>par_biased_genes</code></pre>
 <pre><code>##  [1] &quot;YAL063C&quot;   &quot;YAR050W&quot;   &quot;YBR294W&quot;   &quot;YCL018W&quot;   &quot;YCL048W-A&quot;
-##  [6] &quot;YCR098C&quot;   &quot;YDL037C&quot;   &quot;YDL227C&quot;   &quot;YDR363W&quot;   &quot;YEL020C&quot;  
-## [11] &quot;YEL021W&quot;   &quot;YEL022W&quot;   &quot;YEL060C&quot;   &quot;YER011W&quot;   &quot;YFL051C&quot;  
-## [16] &quot;YFR053C&quot;   &quot;YGL107C&quot;   &quot;YGL184C&quot;   &quot;YGL255W&quot;   &quot;YGR142W&quot;  
-## [21] &quot;YGR183C&quot;   &quot;YGR213C&quot;   &quot;YHR203C&quot;   &quot;YIL164C&quot;   &quot;YIL169C&quot;  
-## [26] &quot;YIR017C&quot;   &quot;YIR019C&quot;   &quot;YIR028W&quot;   &quot;YJL052W&quot;   &quot;YJL088W&quot;  
-## [31] &quot;YJL153C&quot;   &quot;YJR010W&quot;   &quot;YJR048W&quot;   &quot;YJR095W&quot;   &quot;YKL071W&quot;  
-## [36] &quot;YKR046C&quot;   &quot;YKR097W&quot;   &quot;YLL055W&quot;   &quot;YLL056C&quot;   &quot;YLL057C&quot;  
-## [41] &quot;YLR046C&quot;   &quot;YLR174W&quot;   &quot;YLR205C&quot;   &quot;YLR307C-A&quot; &quot;YLR411W&quot;  
-## [46] &quot;YML043C&quot;   &quot;YMR095C&quot;   &quot;YMR107W&quot;   &quot;YMR169C&quot;   &quot;YMR303C&quot;  
-## [51] &quot;YNL117W&quot;   &quot;YOL052C-A&quot; &quot;YOL058W&quot;   &quot;YOL152W&quot;   &quot;YOL155C&quot;  
-## [56] &quot;YOR348C&quot;   &quot;YPL014W&quot;   &quot;YPL171C&quot;   &quot;YPR193C&quot;</code></pre>
+##  [6] &quot;YCR098C&quot;   &quot;YDL037C&quot;   &quot;YDL191W&quot;   &quot;YDL227C&quot;   &quot;YDR363W&quot;  
+## [11] &quot;YEL020C&quot;   &quot;YEL021W&quot;   &quot;YEL022W&quot;   &quot;YEL060C&quot;   &quot;YER011W&quot;  
+## [16] &quot;YER102W&quot;   &quot;YFL051C&quot;   &quot;YFR053C&quot;   &quot;YFR055W&quot;   &quot;YGL107C&quot;  
+## [21] &quot;YGL184C&quot;   &quot;YGL255W&quot;   &quot;YGR142W&quot;   &quot;YGR183C&quot;   &quot;YGR213C&quot;  
+## [26] &quot;YHR203C&quot;   &quot;YIL144W&quot;   &quot;YIL164C&quot;   &quot;YIL169C&quot;   &quot;YIR017C&quot;  
+## [31] &quot;YIR019C&quot;   &quot;YIR028W&quot;   &quot;YJL052W&quot;   &quot;YJL088W&quot;   &quot;YJL153C&quot;  
+## [36] &quot;YJR010W&quot;   &quot;YJR048W&quot;   &quot;YJR095W&quot;   &quot;YKL071W&quot;   &quot;YKR046C&quot;  
+## [41] &quot;YKR097W&quot;   &quot;YLL055W&quot;   &quot;YLL056C&quot;   &quot;YLL057C&quot;   &quot;YLR046C&quot;  
+## [46] &quot;YLR174W&quot;   &quot;YLR205C&quot;   &quot;YLR307C-A&quot; &quot;YLR377C&quot;   &quot;YLR411W&quot;  
+## [51] &quot;YML043C&quot;   &quot;YMR095C&quot;   &quot;YMR121C&quot;   &quot;YMR169C&quot;   &quot;YMR303C&quot;  
+## [56] &quot;YNL117W&quot;   &quot;YOL052C-A&quot; &quot;YOL058W&quot;   &quot;YOL152W&quot;   &quot;YOL155C&quot;  
+## [61] &quot;YOR348C&quot;   &quot;YPL014W&quot;   &quot;YPL171C&quot;   &quot;YPR193C&quot;</code></pre>
 <pre class="r"><code>both_biased_genes</code></pre>
-<pre><code>## [1] &quot;YCL048W-A&quot; &quot;YDR363W&quot;   &quot;YJL052W&quot;   &quot;YMR107W&quot;   &quot;YOL052C-A&quot;</code></pre>
-<pre class="r"><code>biased_samples</code></pre>
-<pre><code>## [1] &quot;WT_12_cer_CellCycle_rep1&quot; &quot;WT_15_par_HAP4andWTonYPD&quot;
-## [3] &quot;WT_28_cer_CellCycle_rep2&quot; &quot;WT_34_par_CellCycle_rep2&quot;
-## [5] &quot;WT_39_cer_CellCycle_rep2&quot;</code></pre>
+<pre><code>## [1] &quot;YCL048W-A&quot; &quot;YDR363W&quot;   &quot;YJL052W&quot;   &quot;YOL052C-A&quot;</code></pre>
 </div>
 <div id="reading-in-fay-et-al.-2023-rnaseq-data-and-r1r2-qc"
 class="section level2">
@@ -1020,7 +789,7 @@ ggplot(pivot_wider(sampdf, id_cols = c(&quot;sample_name&quot;, &quot;allele&quo
                    names_from = &quot;read&quot;, values_from = &quot;lib_size&quot;), 
        aes(x = R1, y = R2)) +
   geom_point(aes(color = allele))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <pre class="r"><code># good agreement in libsize between reads. 
 # Scer samples have a narrower libsize range though
 # was this also seen in Fay alignment?
@@ -1038,7 +807,7 @@ sampdf &lt;- fay_sampdf |&gt;
 ggplot(sampdf, aes(x = lib_size_fay, y = lib_size)) +
   geom_point(aes(color = allele, shape = read)) +
   geom_abline(slope = 1, intercept = 0)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
 <pre class="r"><code># highly correlated with fay alignment, R^2 &gt; 0.99
 lm(lib_size ~ lib_size_fay, data = sampdf) |&gt; summary()</code></pre>
 <pre><code>## 
@@ -1103,43 +872,65 @@ random_gene &lt;- sample(c(1:nrow(fay_cer)), 1)
 # cer
 # what it was
 fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)]</code></pre>
-<pre><code>## # A tibble: 1 × 1
-##   S25_R1
-##    &lt;dbl&gt;
-## 1     40</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">S37_R1</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">157</td></tr>
+</table>
+
 <pre class="r"><code>fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)]</code></pre>
-<pre><code>## # A tibble: 1 × 1
-##   S25_R2
-##    &lt;dbl&gt;
-## 1     38</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">S37_R2</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">167</td></tr>
+</table>
+
 <pre class="r"><code># what it should be
 (fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)] +
   fay_cer_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)])/2</code></pre>
-<pre><code>##   S25_R1
-## 1     39</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">S37_R1</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">162</td></tr>
+</table>
+
 <pre class="r"><code># what it is
 fay_cer[random_gene, random_Sample]</code></pre>
-<pre><code>## [1] 39</code></pre>
+<pre><code>## [1] 162</code></pre>
 <pre class="r"><code># par
 # what it was
 fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)]</code></pre>
-<pre><code>## # A tibble: 1 × 1
-##   S25_R1
-##    &lt;dbl&gt;
-## 1    196</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">S37_R1</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">136</td></tr>
+</table>
+
 <pre class="r"><code>fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)]</code></pre>
-<pre><code>## # A tibble: 1 × 1
-##   S25_R2
-##    &lt;dbl&gt;
-## 1    224</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">S37_R2</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">140</td></tr>
+</table>
+
 <pre class="r"><code># what it should be
 (fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R1&quot;)] +
     fay_par_R1R2[random_gene, paste0(random_Sample, &quot;_R2&quot;)])/2</code></pre>
-<pre><code>##   S25_R1
-## 1    210</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><tr>
+<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">S37_R1</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">138</td></tr>
+</table>
+
 <pre class="r"><code># what it is
 fay_par[random_gene, random_Sample]</code></pre>
-<pre><code>## [1] 210</code></pre>
+<pre><code>## [1] 138</code></pre>
 <pre class="r"><code>rm(fay_cer_R1R2, fay_par_R1R2)
 
 # setting rownames to gene names for each count matrix
@@ -1616,10 +1407,11 @@ sample_info &lt;- dplyr::select(sample_info, -&quot;new_id&quot;)
 # checking example (two C5_A10s for the 960 timepoint)
 sample_info |&gt; filter(experiment == &quot;LowN&quot; &amp; organism == &quot;par&quot; &amp;
                         genotype == &quot;GCN4delete&quot;)</code></pre>
-<pre><code>## [1] sample_name    organism       genotype       experiment    
-## [5] time_point_str well_flask_ID  allele         time_point_num
-## [9] condition     
-## &lt;0 rows&gt; (or 0-length row.names)</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><col><col><col><col><col><col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">sample_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">organism</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">genotype</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">experiment</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">time_point_str</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">well_flask_ID</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">allele</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">time_point_num</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">condition</th></tr>
+</table>
+
 <pre class="r"><code># should have additional tag P1 or P2 on the C5_A10s</code></pre>
 </div>
 <div id="misc.-filtering-of-additional-samples-and-genes"
@@ -1629,50 +1421,97 @@ class="section level2">
 # have the same periodicity of their cell cycles
 sample_info |&gt; filter(experiment == &quot;CC&quot;) |&gt; 
   dplyr::select(time_point_str, time_point_num) |&gt; unique() |&gt; arrange(time_point_num)</code></pre>
-<pre><code>##    time_point_str time_point_num
-## 1      0 min, YPD              0
-## 2       5 min, HU              5
-## 3      10 min, HU             10
-## 4      20 min, HU             20
-## 5      30 min, HU             30
-## 6      60 min, HU             60
-## 7     120 min, HU            120
-## 8    125 min, YPD            125
-## 9    130 min, YPD            130
-## 10   135 min, YPD            135
-## 11   140 min, YPD            140
-## 12   145 min, YPD            145
-## 13   150 min, YPD            150
-## 14   155 min, YPD            155
-## 15   160 min, YPD            160
-## 16   165 min, YPD            165
-## 17   170 min, YPD            170
-## 18   175 min, YPD            175
-## 19   180 min, YPD            180
-## 20   185 min, YPD            185
-## 21   190 min, YPD            190
-## 22   195 min, YPD            195
-## 23   200 min, YPD            200
-## 24   205 min, YPD            205
-## 25   210 min, YPD            210
-## 26   215 min, YPD            215
-## 27   220 min, YPD            220
-## 28   225 min, YPD            225
-## 29   230 min, YPD            230
-## 30   235 min, YPD            235
-## 31   240 min, YPD            240
-## 32   245 min, YPD            245
-## 33   250 min, YPD            250
-## 34   255 min, YPD            255
-## 35   260 min, YPD            260
-## 36   265 min, YPD            265
-## 37   270 min, YPD            270
-## 38   275 min, YPD            275
-## 39   280 min, YPD            280
-## 40   285 min, YPD            285
-## 41   290 min, YPD            290
-## 42   295 min, YPD            295
-## 43   300 min, YPD            300</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">time_point_str</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">time_point_num</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">5 min, HU</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">5</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">10 min, HU</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">10</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">20 min, HU</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">20</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">30 min, HU</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">30</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">60 min, HU</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">60</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">120 min, HU</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">120</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">125 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">125</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">130 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">130</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">135 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">135</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">140 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">140</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">145 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">145</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">150 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">150</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">155 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">155</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">160 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">160</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">165 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">165</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">170 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">170</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">175 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">175</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">180 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">180</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">185 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">185</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">190 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">190</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">195 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">195</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">200 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">200</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">205 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">205</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">210 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">210</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">215 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">215</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">220 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">220</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">225 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">225</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">230 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">230</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">235 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">235</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">240 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">240</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">245 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">245</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">250 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">250</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">255 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">255</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">260 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">260</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">265 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">265</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">270 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">270</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">275 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">275</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">280 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">280</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">285 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">285</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">290 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">290</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">295 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">295</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">300 min, YPD</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">300</td></tr>
+</table>
+
 <pre class="r"><code>keep &lt;- !(sample_info$experiment == &quot;CC&quot; &amp; sample_info$time_point_num &gt; 125)
 sample_info &lt;- sample_info[keep,]
 counts &lt;- counts[,(colnames(counts) %in% sample_info$sample_name)]
@@ -1717,7 +1556,7 @@ class="section level2">
 libsizes &lt;- colSums(counts) # these counts include all samples, hybrid and parental
 ggplot(tibble(libsize = libsizes), aes(x = libsize)) + geom_histogram()</code></pre>
 <pre><code>## `stat_bin()` using `bins = 30`. Pick better value `binwidth`.</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <pre class="r"><code>min(libsizes)</code></pre>
 <pre><code>## [1] 11902.5</code></pre>
 <pre class="r"><code>max(libsizes)</code></pre>
@@ -1771,7 +1610,7 @@ ggplot(plotdf, aes(x = cer, y = par)) +
   geom_hline(yintercept = 100000, color = &quot;blue&quot;, alpha = 0.5)</code></pre>
 <pre><code>## Warning: Removed 32 rows containing missing values or values outside the scale
 ## range (`geom_point()`).</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-11-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-9-2.png" width="672" /></p>
 <pre class="r"><code># (the samples within the blue box will be removed by our library size threshold below)
 # and no other samples should be below the blue lines but not within the blue box
 
@@ -1783,7 +1622,7 @@ counts_lcpm &lt;- log2((counts/libsizes)*1e6 + 2/avgLibSizeInMillions) # equival
 # (already checked this more elegantly in hybrid, where samples can be paired)
 cer_par_mean_expr_diffs_parents &lt;- rowMeans(counts[,sample_info$allele == &quot;cer&quot;]) - rowMeans(counts[,sample_info$allele == &quot;par&quot;])
 hist(sign(cer_par_mean_expr_diffs_parents)*log(abs(cer_par_mean_expr_diffs_parents)), breaks = 50) </code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-11-3.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-9-3.png" width="672" /></p>
 <pre class="r"><code># Does one species tend to have larger libsizes?
 plotdf &lt;- tibble(libsize_cer = colSums(counts[, grepl(&quot;_cer&quot;, colnames(counts))])[sample(c(1:400), 400)],
                  libsize_par = colSums(counts[, grepl(&quot;_par&quot;, colnames(counts))])[sample(c(1:400), 400)],
@@ -1793,7 +1632,7 @@ plotdf &lt;- tibble(libsize_cer = colSums(counts[, grepl(&quot;_cer&quot;, colna
 ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name)) </code></pre>
 <pre><code>## Warning: Removed 457 rows containing non-finite outside the scale range
 ## (`stat_boxplot()`).</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-11-4.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-9-4.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)))</code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -1809,7 +1648,7 @@ ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quo
 <pre class="r"><code>ggplot(filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name))</code></pre>
 <pre><code>## Warning: Removed 438 rows containing non-finite outside the scale range
 ## (`stat_boxplot()`).</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-11-5.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-9-5.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;))) </code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -1830,7 +1669,7 @@ plotdf &lt;- tibble(libsize_cer = colSums(counts[, grepl(&quot;_cer&quot;, colna
                  libsize_hyp = colSums(counts[, grepl(&quot;_hyp&quot;, colnames(counts)) &amp; sample_info$experiment %in% c(&quot;Heat&quot;, &quot;Cold&quot;)])) %&gt;%
   pivot_longer(cols = c(libsize_cer, libsize_par, libsize_hyc, libsize_hyp))
 ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name)) </code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-11-6.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-9-6.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quot;)))</code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -1844,7 +1683,7 @@ ggplot(filter(plotdf, name %in% c(&quot;libsize_cer&quot;, &quot;libsize_par&quo
 ## mean in group libsize_cer mean in group libsize_par 
 ##                  421439.9                 4222772.2</code></pre>
 <pre class="r"><code>ggplot(filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;)), aes(x = name, y = value)) + geom_boxplot(aes(fill = name))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-11-7.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-9-7.png" width="672" /></p>
 <pre class="r"><code>t.test(value ~ name, filter(plotdf, name %in% c(&quot;libsize_hyc&quot;, &quot;libsize_hyp&quot;)))</code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
@@ -1879,14 +1718,14 @@ test_count &lt;- test_cts[test_rowIdx, test_colIdx]
 test_cpm &lt;- countsPerMillion(test_cts)
 test_cpm_cpm &lt;- countsPerMillion(test_cpm)
 ((test_count/colSums(test_cts, na.rm = TRUE)[test_colIdx])*1e6) %&gt;% round() # what it should be</code></pre>
-<pre><code>## WT_TP3_par_WTs_B2_G6_GS2018 
-##                           4</code></pre>
+<pre><code>## WT_TP1_par_P5_E5_G12_GS13 
+##                        17</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## [1] 4</code></pre>
+<pre><code>## [1] 10</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## [1] 4</code></pre>
+<pre><code>## [1] 17</code></pre>
 <pre class="r"><code>test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (should be the same as test_cpm)</code></pre>
-<pre><code>## [1] 4</code></pre>
+<pre><code>## [1] 17</code></pre>
 <pre class="r"><code># Example of how small libraries skew data, YIL134W in CC before normalizing:
 test_counts &lt;- counts[, (grepl(&quot;_hyc&quot;, colnames(counts)) | 
                            grepl(&quot;_hyp&quot;, colnames(counts))) &amp;
@@ -1897,14 +1736,14 @@ genedf &lt;- tibble(expr = as.numeric(test_counts[&quot;YIL134W&quot;,]),
                  libsize = libSizes,
                  sample_name = colnames(test_counts))
 ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == &quot;WT_02_hyp_CellCycle_rep2&quot;)) + theme(legend.position = &quot;none&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <pre class="r"><code># after normalizing:
 test_counts_cpm &lt;- countsPerMillion(test_counts)
 genedf &lt;- tibble(expr = as.numeric(test_counts_cpm[&quot;YIL134W&quot;,]),
                  libsize = libSizes,
                  sample_name = colnames(test_counts))
 ggplot(genedf, aes(x = libSizes, y = expr)) + geom_point(aes(color = sample_name == &quot;WT_02_hyp_CellCycle_rep2&quot;)) + theme(legend.position = &quot;none&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-10-2.png" width="672" /></p>
 <pre class="r"><code># At a certain lib size, there appears to begin to be a correlation between count and libsize, what size is that?
 libSizes &lt;- colSums(counts)
 gene_idx &lt;- sample(rownames(counts), 1) # rerun to make sure most genes have expr and libsize correlated past cutoff of 200k libsize
@@ -1916,7 +1755,7 @@ plotdf &lt;- tibble(libsize = libSizes,
             by = &quot;sample_name&quot;)
 ggplot(plotdf, aes(x = libsize, y = expr)) + 
   geom_point(aes(color = experiment)) + geom_vline(xintercept = 100000, col = &quot;red&quot;) + theme_classic() + ggtitle(gene_idx)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-12-3.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-10-3.png" width="672" /></p>
 <p>If we didn’t filter out the samples with small library size, genes
 like this would have highly unpredictable counts in those samples.</p>
 <p>Eliminating samples with libsize &lt; 100,000:</p>
@@ -2009,62 +1848,96 @@ gene_lens_spar &lt;- gene_lens_spar |&gt; dplyr::select(gene_name, length) |&gt;
 # check that duplicated genes have about the same length before removing duplicates
 gene_lens_scer[gene_lens_scer$gene_name %in% gene_lens_scer$gene_name[duplicated(gene_lens_scer$gene_name)],] |&gt; 
   arrange(gene_name)</code></pre>
-<pre><code>## # A tibble: 4 × 2
-##   gene_name       length
-##   &lt;chr&gt;            &lt;dbl&gt;
-## 1 YLR036C/YIL089W    617
-## 2 YLR036C/YIL089W    611
-## 3 YNL336W/YFL062W   1139
-## 4 YNL336W/YFL062W   1145</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">length</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YLR036C/YIL089W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">617&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YLR036C/YIL089W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">611&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YNL336W/YFL062W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.14e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YNL336W/YFL062W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.14e+03</td></tr>
+</table>
+
 <pre class="r"><code>gene_lens_scer &lt;- gene_lens_scer[!duplicated(gene_lens_scer$gene_name),]
 gene_lens_spar[gene_lens_spar$gene_name %in% gene_lens_spar$gene_name[duplicated(gene_lens_spar$gene_name)],] |&gt; 
   arrange(gene_name)</code></pre>
-<pre><code>## # A tibble: 14 × 2
-##    gene_name       length
-##    &lt;chr&gt;            &lt;dbl&gt;
-##  1 YAR028W            530
-##  2 YAR028W            701
-##  3 YBR140C           8447
-##  4 YBR140C            761
-##  5 YDR025W/YBR048W    980
-##  6 YDR025W/YBR048W    822
-##  7 YGR289C           1853
-##  8 YGR289C           1847
-##  9 YNR075W           1142
-## 10 YNR075W           1127
-## 11 YPL091W            557
-## 12 YPL091W           1451
-## 13 YPL092W           1331
-## 14 YPL092W           1376</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">length</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YAR028W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">530&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YAR028W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">701&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YBR140C</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">8.45e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YBR140C</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">761&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YDR025W/YBR048W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">980&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YDR025W/YBR048W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">822&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YGR289C</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.85e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YGR289C</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.85e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YNR075W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.14e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YNR075W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.13e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YPL091W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">557&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YPL091W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.45e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YPL092W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.33e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YPL092W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.38e+03</td></tr>
+</table>
+
 <pre class="r"><code># the ones in Scer are fine, but a few in Spar are concerning:
 two_lengths_spar &lt;- c(&quot;YAR028W&quot;, &quot;YBR140C&quot;, 
                       &quot;YDR025W/YBR048W&quot;, &quot;YPL091W&quot;)
 # what do they look like in Scer?
 gene_lens_scer |&gt; filter(gene_name %in% two_lengths_spar)</code></pre>
-<pre><code>## # A tibble: 4 × 2
-##   gene_name       length
-##   &lt;chr&gt;            &lt;dbl&gt;
-## 1 YAR028W            704
-## 2 YBR140C           9278
-## 3 YDR025W/YBR048W    809
-## 4 YPL091W           1451</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">length</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YAR028W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">704&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YBR140C</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">9.28e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YDR025W/YBR048W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">809&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YPL091W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.45e+03</td></tr>
+</table>
+
 <pre class="r"><code># looks like the larger length is most accurate
 gene_lens_spar &lt;- gene_lens_spar |&gt; arrange(gene_name, desc(length))
 gene_lens_spar &lt;- gene_lens_spar[!duplicated(gene_lens_spar$gene_name),]
 gene_lens_spar |&gt; filter(gene_name %in% two_lengths_spar)</code></pre>
-<pre><code>## # A tibble: 4 × 2
-##   gene_name       length
-##   &lt;chr&gt;            &lt;dbl&gt;
-## 1 YAR028W            701
-## 2 YBR140C           8447
-## 3 YDR025W/YBR048W    980
-## 4 YPL091W           1451</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">length</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YAR028W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">701&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YBR140C</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">8.45e+03</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YDR025W/YBR048W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">980&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YPL091W</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.45e+03</td></tr>
+</table>
+
 <pre class="r"><code># how many genes have significantly different lengths in both species?
 plotdf &lt;- left_join(x = dplyr::rename(dplyr::select(gene_lens_scer, gene_name, length), &quot;Scer&quot;=&quot;length&quot;),
                     y = dplyr::rename(dplyr::select(gene_lens_spar, gene_name, length), &quot;Spar&quot;=&quot;length&quot;),
                     by = &quot;gene_name&quot;)
 ggplot(plotdf, aes(x = Scer, y = Spar)) + geom_point()</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <pre class="r"><code># most are the same exact length, a few have slightly different lengths
 # arranging gene_lens into same gene order as count matrices
 sum(gene_lens_scer$gene_name == common_genes) # pre-arranging</code></pre>
@@ -2107,11 +1980,11 @@ sum(gene_lens_scer$gene_name == rownames(test_cts))/nrow(test_cts) # should be 1
 <pre class="r"><code>test_cpm &lt;- countsPerMillionWithLength(test_cts, test_lens)
 # test_cpm_cpm &lt;- countsPerMillionWithLength(test_cpm, test_lens)
 round(((test_count/test_lens[test_rowIdx])/sum(test_cts[,test_colIdx]/test_lens))*10^6) # what it should be</code></pre>
-<pre><code>## [1] 7</code></pre>
+<pre><code>## [1] 116</code></pre>
 <pre class="r"><code>test_cts[test_rowIdx, test_colIdx] # what it is before using our function</code></pre>
-<pre><code>## [1] 12</code></pre>
+<pre><code>## [1] 100</code></pre>
 <pre class="r"><code>test_cpm[test_rowIdx, test_colIdx] # what it is using our function</code></pre>
-<pre><code>## [1] 7</code></pre>
+<pre><code>## [1] 116</code></pre>
 <pre class="r"><code># test_cpm_cpm[test_rowIdx, test_colIdx] # what it is if you run cpm too many times (unlike the TagSeq normalization, this cannot be run over and over again)
 
 counts_unnorm &lt;- counts
@@ -2162,29 +2035,57 @@ dim(counts)</code></pre>
 <pre class="r"><code>dim(sample_info_allele)</code></pre>
 <pre><code>## [1] 360   9</code></pre>
 <pre class="r"><code>sample_info |&gt; dplyr::select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
-<pre><code>##                     sample_name organism allele
-## 1      WT_TP3_cer_C3_H5_G12_GS8      cer    cer
-## 2      WT_10_par_HAP4andWTonYPD      par    par
-## 3       WT_7_cer_SCtoLowPi_rep1      cer    cer
-## 4   WT_TP3_par_WTs_A2_G6_GS2018      par    par
-## 5      WT_13_cer_SCtoLowPi_rep1      cer    cer
-## 6       WT_TP3_cer_C3_F2_G6_GS8      cer    cer
-## 7  WT_TP1_cer_WTs_H1_G12_GS2018      cer    cer
-## 8     WT_TP1_par_P5_F5_G12_GS13      par    par
-## 9      WT_01_cer_CellCycle_rep1      cer    cer
-## 10                      S58_cer      cer    cer</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">sample_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">organism</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">allele</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_TP3_par_WTs_D2_G6_GS2018</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">WT_05_par_CellCycle_rep1</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_TP3_cer_C3_G2_G6_GS8</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">WT_01_cer_CellCycle_rep1</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_1_cer_SCtoLowPi_rep2</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">WT_TP3_par_P1_G6_G12_GS2</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_02_par_CellCycle_rep2</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">WT_06_cer_CellCycle_rep2</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_TP3_par_WTs_H2_G12_GS2018</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">WT_TP3_cer_WTs_E1_G12_GS2018</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td></tr>
+</table>
+
 <pre class="r"><code>sample_info_allele |&gt; dplyr::select(sample_name, organism, allele) |&gt; slice_sample(n = 10)</code></pre>
-<pre><code>##                      sample_name organism allele
-## 1   WT_TP3_hyc_WTs_F4_WT2_GS2018      hyb    cer
-## 2  WT_TP2_hyp_WTs_D10_G12_GS2018      hyb    par
-## 3       WT_02_hyc_CellCycle_rep1      hyb    cer
-## 4        WT_1_hyp_HAP4andWTonYPD      hyb    par
-## 5       WT_26_hyp_SCtoLowPi_rep1      hyb    par
-## 6       WT_10_hyp_SCtoLowPi_rep1      hyb    par
-## 7       WT_13_hyp_SCtoLowPi_rep1      hyb    par
-## 8   WT_TP3_hyc_WTs_F3_WT2_GS2018      hyb    cer
-## 9                         S8_hyc      hyb    cer
-## 10 WT_TP2_hyc_WTs_A10_G12_GS2018      hyb    cer</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  ">
+<col><col><col><tr>
+<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">sample_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">organism</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">allele</th></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_07_hyp_CellCycle_rep1</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">WT_24_hyp_SCtoLowPi_rep1</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_TP3_hyp_WTs_E3_WT2_GS2018</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">WT_9_hyc_SCtoLowPi_rep1</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_TP1_hyp_WTs_E4_WT2_GS2018</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">S35_hyc</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_TP2_hyc_WTs_D12_G12_GS2018</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">WT_TP1_hyp_WTs_G4_WT2_GS2018</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">WT_TP1_hyc_WTs_D5_G12_GS2018</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td></tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">S36_hyp</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">hyb</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td></tr>
+</table>
+
 <pre class="r"><code># checking that every hybrid sample name has exactly one cer and one par row
 sample_info_allele |&gt; dplyr::select(sample_name, organism, allele) |&gt; 
   group_by(sample_name) |&gt; 
@@ -2216,7 +2117,7 @@ oneGeneBoxplots &lt;- function(.gene_idx) {
   return(p)
 }
 oneGeneBoxplots(random_gene)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <pre class="r"><code># all genes
 mean_expr_cer &lt;- rowMeans(counts[, which(sample_info$organism == &quot;cer&quot;)], na.rm = TRUE)
 mean_expr_par &lt;- rowMeans(counts[, which(sample_info$organism == &quot;par&quot;)], na.rm = TRUE)
@@ -2226,7 +2127,7 @@ plotdf &lt;- tibble(cer_expr = c(mean_expr_cer, mean_expr_hyc),
                  par_expr = c(mean_expr_par, mean_expr_hyp),
                  type = c(rep(&quot;parent&quot;, length(rownames(counts))), rep(&quot;hybrid&quot;, length(rownames(counts)))))
 ggplot(plotdf, aes(x = log(cer_expr), y = log(par_expr))) + geom_point(aes(color = type))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-16-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-14-2.png" width="672" /></p>
 <pre class="r"><code># Mean expression of most genes is highly correlated between species and between hybrid alleles</code></pre>
 </div>
 <div id="visualizing-lowly-expressed-genes" class="section level2">
@@ -2248,7 +2149,7 @@ mean(meansdel, na.rm = TRUE)</code></pre>
 <pre class="r"><code># choosing cutoff expression (in not-log scale)
 ggplot(data = plotdf, aes(x = meanExpr, y = sdExpr)) + geom_hex(bins = 70) + 
   geom_vline(xintercept = 5, color = &quot;red&quot;)</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 <pre class="r"><code># a good cutoff is where the lower bound of the sd stops being related to mean (i.e. becomes horizontal)
 # lowly expressed genes will systematically have higher variance (or extremely low variance for that tiny tail of genes with high 0 counts)
 2^5</code></pre>
@@ -2258,7 +2159,7 @@ ggplot(data = plotdf, aes(x = meanExpr, y = sdExpr)) + geom_hex(bins = 70) +
 # Note: we only want to filter genes that are lowly expressed in cer, par, hyc and hyp
 # Example of why this matters: YPR199C
 oneGeneBoxplots(&quot;YPR199C&quot;) # strongly expressed in cer and hyc</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-17-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
 <pre class="r"><code>keep_overall &lt;- apply(counts_lcpm, 1, mean) &gt; 5
 &quot;YPR199C&quot; %in% rownames(counts)[keep_overall] # wouldn&#39;t be kept by overall cutoff threshold</code></pre>
 <pre><code>## [1] FALSE</code></pre>
@@ -2280,14 +2181,14 @@ genedf &lt;- tibble(expr = as.numeric(counts[gene_idx,])) |&gt;
                                         names_from = &quot;allele&quot;, values_from = &quot;expr&quot;,
                                         values_fn = mean)
 ggplot(genedf, aes(x = cer, y = par)) + geom_point(aes(color = experiment))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 <pre class="r"><code># hybrid
 genedf &lt;- tibble(expr = as.numeric(counts_allele[gene_idx,])) |&gt; 
   bind_cols(sample_info_allele) |&gt; pivot_wider(id_cols = c(&quot;condition&quot;, &quot;experiment&quot;),
                                                names_from = &quot;allele&quot;, values_from = &quot;expr&quot;,
                                                values_fn = mean)
 ggplot(genedf, aes(x = cer, y = par)) + geom_point(aes(color = experiment))</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-18-2.png" width="672" /></p>
+<p><img src="clean_data_files/figure-html/unnamed-chunk-16-2.png" width="672" /></p>
 </div>
 <div id="heatcold-qc" class="section level2">
 <h2>Heat/Cold QC</h2>
@@ -2361,7 +2262,7 @@ ggplot(pcadf,
   ylab(paste0(&quot;PC2, &quot;, round(var_pct[2]*100, digits = 0), 
               &quot;% of variance&quot;)) +
   theme(legend.title = element_blank())</code></pre>
-<p><img src="clean_data_files/figure-html/unnamed-chunk-19-1.png" width="672" />
+<p><img src="clean_data_files/figure-html/unnamed-chunk-17-1.png" width="672" />
 Those two Scer Heat 30min sample outliers are due to one gene, YFL014W
 (HSP12), (run the PCA without this gene and the outlier samples will no
 longer be outliers), which had ~100000 reads in our in-house alignment
@@ -2401,7 +2302,7 @@ dim(counts)</code></pre>
      cer_biased_genes,
      par_biased_genes,
      both_biased_genes,
-     biased_samples, file = &quot;data_files/Cleaned_Count_Data.RData&quot;)
+     file = &quot;data_files/Cleaned_Count_Data.RData&quot;)
 save(counts_allele, sample_info_allele, file = &quot;data_files/Cleaned_Count_Data_AlleleSpecific.RData&quot;)</code></pre>
 </div>
 </div>

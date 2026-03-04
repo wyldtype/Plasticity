@@ -362,15 +362,15 @@ folder_name &lt;- &quot;DiauxicShift&quot;</code></pre>
 table(expdf$group) |&gt; sort(decreasing = TRUE)</code></pre>
 <pre><code>## 
 ##         cons1         cons2         dyn01     levupcer1         cons0 
-##          1218           616           359           284           250 
+##          1220           619           359           282           250 
 ##         dyn20     levuppar1         dyn21         dyn10 levdynuppar01 
 ##           213           194           188           155           122 
-##     levuppar2 levdynuppar21         dyn02     levuppar0 levdynupcer01 
-##           117            65            64            58            50 
+##     levuppar2         dyn02 levdynuppar21     levuppar0 levdynupcer01 
+##           114            66            65            58            50 
 ##     levupcer0     levupcer2 levdynupcer10 levdynupcer20 levdynupcer21 
 ##            47            47            43            38            36 
 ##         dyn12 levdynuppar20 levdynuppar02 levdynuppar10 levdynupcer12 
-##            34            33            16            13            11 
+##            34            33            14            13            11 
 ## levdynuppar12 levdynupcer02 
 ##            10             5</code></pre>
 <pre class="r"><code>sum(table(expdf$group))</code></pre>
@@ -396,13 +396,13 @@ fisher.test(matrix(c(n_dynandlevdiv, n_dyndiv - n_dynandlevdiv,
 ##  Fisher&#39;s Exact Test for Count Data
 ## 
 ## data:  matrix(c(n_dynandlevdiv, n_dyndiv - n_dynandlevdiv, n_leveldiv - n_dynandlevdiv, n_dyncons - (n_leveldiv - n_dynandlevdiv)), nrow = 2)
-## p-value = 0.006177
+## p-value = 0.005456
 ## alternative hypothesis: true odds ratio is not equal to 1
 ## 95 percent confidence interval:
-##  1.055771 1.402588
+##  1.058278 1.406596
 ## sample estimates:
 ## odds ratio 
-##   1.217205</code></pre>
+##   1.220378</code></pre>
 <pre class="r"><code># barplot of all divergence groups
 ggplot(expdf, aes(x = group)) + 
   geom_bar(aes(fill = group4)) +
@@ -420,7 +420,7 @@ ggplot(expdf, aes(x = group)) +
 <h2>Gene count tables</h2>
 <pre class="r"><code># Biased genes, can&#39;t determine level divergence:
 expdf |&gt; filter(level == &quot;biased&quot;) |&gt; nrow()</code></pre>
-<pre><code>## [1] 83</code></pre>
+<pre><code>## [1] 92</code></pre>
 <pre class="r"><code># Lowly expressed genes in this environment:
 setdiff(unique(finaldf$gene_name), expdf$gene_name) |&gt; length()</code></pre>
 <pre><code>## [1] 577</code></pre>
@@ -441,8 +441,8 @@ expdf |&gt; dplyr::select(cer) |&gt; table()</code></pre>
 <pre><code>##    par
 ## cer    0    1    2
 ##   0  250    0    0
-##   1    0 1218    0
-##   2    0    0  616</code></pre>
+##   1    0 1220    0
+##   2    0    0  619</code></pre>
 <pre class="r"><code>cat(&quot;Diverged level:&quot;)</code></pre>
 <pre><code>## Diverged level:</code></pre>
 <pre class="r"><code>expdf |&gt; filter(plasticity != &quot;diverged&quot; &amp; 
@@ -456,7 +456,7 @@ expdf |&gt; dplyr::select(cer) |&gt; table()</code></pre>
 ##    par
 ## cer   0   1   2
 ##   0  47   0   0
-##   1   0 284   0
+##   1   0 282   0
 ##   2   0   0  47
 ## 
 ## , , direction = up in Spar
@@ -465,7 +465,7 @@ expdf |&gt; dplyr::select(cer) |&gt; table()</code></pre>
 ## cer   0   1   2
 ##   0  58   0   0
 ##   1   0 194   0
-##   2   0   0 117</code></pre>
+##   2   0   0 114</code></pre>
 <pre class="r"><code>cat(&quot;Diverged plasticity:&quot;)</code></pre>
 <pre><code>## Diverged plasticity:</code></pre>
 <pre class="r"><code>expdf |&gt; filter(plasticity == &quot;diverged&quot; &amp; 
@@ -488,7 +488,7 @@ expdf |&gt; dplyr::select(cer) |&gt; table()</code></pre>
 ## 
 ##    par
 ## cer   0   1   2
-##   0   0 359  64
+##   0   0 359  66
 ##   1   0   0   0
 ##   2   0   0   0
 ## 
@@ -519,7 +519,7 @@ expdf |&gt; dplyr::select(cer) |&gt; table()</code></pre>
 ## 
 ##    par
 ## cer   0   1   2
-##   0   0 122  16
+##   0   0 122  14
 ##   1  13   0  10
 ##   2  33  65   0</code></pre>
 </div>
@@ -530,7 +530,7 @@ class="section level2">
 class="section level3">
 <h3>Genes with conserved level and plasticity</h3>
 <pre class="r"><code># Conserved genes:
-ylims &lt;- c(3, 9)
+ylims &lt;- c(4.5, 10.5)
 cluster_names &lt;- expdf |&gt; filter(plasticity != &quot;diverged&quot; &amp; 
                                    level != &quot;diverged&quot;) |&gt; 
   dplyr::select(cer, par) |&gt; pull() |&gt; unique()
@@ -551,12 +551,8 @@ for (clust in cluster_names) {
 <pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 16 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 17 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
@@ -622,26 +618,18 @@ for (i in c(1:nrow(griddf))) {
                                                         top = paste0(length(gene_idxs), &quot; genes&quot;))
 }</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 5 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 8 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 9 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 17 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 23 rows containing missing values or values outside the scale
+<pre><code>## Warning: Removed 8 rows containing missing values or values outside the scale
 ## range (`geom_ribbon()`).</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
@@ -720,6 +708,8 @@ print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                       top = paste0(length(gene_idxs), &quot; genes&quot;)))</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
+## range (`geom_ribbon()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -766,12 +756,6 @@ for (i in c(1:nrow(griddf))) {
 <pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 11 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 25 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
@@ -788,10 +772,10 @@ for (i in c(1:nrow(griddf))) {
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
 <pre><code>## Warning: Removed 6 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 15 rows containing missing values or values outside the scale
 ## range (`geom_ribbon()`).</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
@@ -823,15 +807,15 @@ prop_table &lt;- expdf |&gt; mutate(plasticity_diverged = plasticity == &quot;di
 prop_table</code></pre>
 <pre><code>##                    level_diverged
 ## plasticity_diverged FALSE TRUE
-##               FALSE  2084  747
-##               TRUE   1013  442</code></pre>
+##               FALSE  2089  742
+##               TRUE   1015  440</code></pre>
 <pre class="r"><code>sum(prop_table)</code></pre>
 <pre><code>## [1] 4286</code></pre>
 <pre class="r"><code>prop_table/sum(prop_table)</code></pre>
 <pre><code>##                    level_diverged
 ## plasticity_diverged     FALSE      TRUE
-##               FALSE 0.4862343 0.1742884
-##               TRUE  0.2363509 0.1031265</code></pre>
+##               FALSE 0.4874008 0.1731218
+##               TRUE  0.2368175 0.1026598</code></pre>
 <pre class="r"><code>pdf(file = paste0(&quot;paper_figures/&quot;, 
                   folder_name, &quot;/prop_area.pdf&quot;), width = 4, height = 4)
 plotPropAreaSingle(.counts = c(prop_table[1, 2], prop_table[1, 1],
