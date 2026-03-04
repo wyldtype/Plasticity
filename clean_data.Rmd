@@ -105,8 +105,11 @@ keep_genes <- common_genes[isHighExpr]
 cpm_cer <- cpm_cer[isHighExpr,]
 cpm_par <- cpm_par[isHighExpr,]
 sum(cpm_cer == 0 & cpm_par == 0) # note there are still individual samples with zero counts
+```
 
-# 3) check % cer of all high-enough expressed genes is close to 1 for cer samples and 0 for par samples
+Do any Scer/Spar samples have many incorrect gene mappings?
+
+```{r plotdf-for-mapping-bias}
 plotdf <- bind_rows(bind_cols(tibble(gene = keep_genes,
                                      allele = "cer"), cpm_cer),
                     bind_cols(tibble(gene = keep_genes,
@@ -130,83 +133,22 @@ plotdf$pct_cer <- if_else(plotdf$counts_cer == 0 &
                           true = NA,
                           false = plotdf$counts_cer/(plotdf$counts_cer + plotdf$counts_par))
 plotdf <- drop_na(plotdf)
-sample_genes <- sample(plotdf$gene, size = 100)
-ggplot(filter(plotdf, gene %in% sample_genes),
-       aes(x = gene, y = pct_cer)) + 
-  geom_point(aes(color = organism))
 ```
 
-Do any Scer/Spar samples have many incorrect gene mappings?
+Do any genes have consistently biased mappings? These might be genes with above-average sequence conservation between Scer and Spar and therefore shouldn't be used for allele-specific comparisons in the hybrid
 
-```{r sample-wise-mapping-bias}
-sampdf <- plotdf |> filter(organism %in% c("cerSample", "parSample")) |> 
-  group_by(sample_name, organism) |> 
-  summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
-
-sampdf |> filter(organism == "cerSample") |> arrange(avg_pct_cer)
-sampdf |> filter(organism == "parSample") |> arrange(desc(avg_pct_cer))
-
-ggplot(sampdf, aes(x = avg_pct_cer)) + 
-  geom_density(aes(fill = organism)) + 
-  geom_vline(xintercept = 0.75) +
-  geom_vline(xintercept = 0.25)
-  
-filter(sampdf, (organism == "cerSample" & round(avg_pct_cer, digits = 1) < 0.8) |
-           (organism == "parSample" & round(avg_pct_cer, digits = 1) > 0.2)) |> 
-  arrange(organism, desc(avg_pct_cer))
-biased_samples <- filter(sampdf, (organism == "cerSample" & round(avg_pct_cer, digits = 1) < 0.9) |
-                           (organism == "parSample" & round(avg_pct_cer, digits = 1) > 0.1)) |> 
-  dplyr::select(sample_name) |> pull()
-biased_samples
-# do these samples have small library sizes?
-bad_libsizes <- colSums(tagseq_cer[,biased_samples] + tagseq_par[,biased_samples])
-bad_libsizes |> sort()
-hist(colSums(tagseq_cer[,-1] + tagseq_par[,-1]), breaks = 50)
-abline(v = bad_libsizes, col = "red")
-```
-
-Do any genes have consistently biased mappings? These might be genes with above-average seq conservation btwn Scer and Spar and therefore shouldn't be used for allele-specific comparisons in the hybrid
-
-```{r}
-cer_genedf <- plotdf |> filter(organism == "cerSample" & !(sample_name %in% biased_samples)) |> 
+```{r identifying-biased-genes}
+cer_genedf <- plotdf |> filter(organism == "cerSample") |> 
   group_by(gene) |> 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
-hist(cer_genedf$avg_pct_cer, breaks = 50)
-abline(v = 0.9, col = "red")
-par_genedf <- plotdf |> filter(organism == "parSample" &
-                                 !(sample_name %in% biased_samples)) |> 
+par_genedf <- plotdf |> filter(organism == "parSample") |> 
   dplyr::group_by(gene) |> 
   summarise(avg_pct_cer = mean(pct_cer, na.rm = TRUE))
-hist(par_genedf$avg_pct_cer, breaks = 50)
-abline(v = 0.1, col = "red")
 cer_biased_genes <- par_genedf |> filter(avg_pct_cer > 0.1) |> dplyr::select(gene) |> pull()
 par_biased_genes <- cer_genedf |> filter(avg_pct_cer < 0.9) |> dplyr::select(gene) |> pull()
 both_biased_genes <- intersect(cer_biased_genes, par_biased_genes)
 cer_biased_genes <- setdiff(cer_biased_genes, par_biased_genes)
 par_biased_genes <- setdiff(par_biased_genes, cer_biased_genes)
-# any common genes of note?
-sgd_lookup <- read_tsv("data_files/downloaded_genomes_and_features/SGD_features.tab",
-                       col_names = FALSE) |> 
-  dplyr::select(X4, X5) |> unique() |> drop_na()
-# cer biased
-sgd_lookup[sgd_lookup$X4 %in% cer_biased_genes,] |> 
-  print(n = length(cer_biased_genes))
-par_genedf |> filter(gene %in% cer_biased_genes) |> 
-  arrange(desc(avg_pct_cer)) |> 
-  print(n = length(cer_biased_genes))
-# par biased
-sgd_lookup[sgd_lookup$X4 %in% par_biased_genes,] |> 
-  print(n = length(par_biased_genes))
-cer_genedf |> filter(gene %in% par_biased_genes) |> 
-  arrange(avg_pct_cer) |> 
-  print(n = length(par_biased_genes))
-# both
-sgd_lookup[sgd_lookup$X4 %in% both_biased_genes,] |> 
-  print(n = length(both_biased_genes))
-cer_genedf |> filter(gene %in% both_biased_genes) |> 
-  arrange(avg_pct_cer)
-par_genedf |> filter(gene %in% both_biased_genes) |> 
-  arrange(desc(avg_pct_cer))
 # Are these genes on the low expr end?
 cer_genedf <- left_join(cer_genedf, tibble(gene = common_genes[isHighExpr],
                                            mean_expr = rowMeans(cpm_cer[,grepl("cer", colnames(cpm_cer))] +
@@ -225,53 +167,42 @@ p_cerbias <- ggplot(par_genedf, aes(x = log2(mean_expr), y = avg_pct_cer)) +
 ggarrange(p_parbias, p_cerbias, nrow = 1, ncol = 2)
 ```
 
-Lastly we'll check if cer/par ratio of parents matches hybrids for each gene across samples
+Conclusion: 10% of reads mapping to wrong species is a good cutoff. These do tend to be genes that are on the lower end of expression level.
 
-```{r}
-plotdf$bias <- if_else(plotdf$gene %in% cer_biased_genes,
-                       true = "cer",
-                       false = if_else(plotdf$gene %in% par_biased_genes,
-                                       true = "par", false = "none"))
-plotdf_vshyb <- plotdf |> group_by(gene, organism, bias) |> 
-  summarise(mean_counts_cer = mean(counts_cer, na.rm = TRUE),
-            mean_counts_par = mean(counts_par, na.rm = TRUE)) |> 
-  drop_na() |> 
-  pivot_wider(id_cols = c("gene", "bias"), 
-              values_from = c("mean_counts_cer", "mean_counts_par"),
-              names_from = organism)
+What are the common names of these genes?
 
-# two ways to calculate read counts for each gene in the parents:
-#    1) sum the hits for the cer allele and the par allele (after all we know that all these reads came from one allele or the other)
-#    2) only count the hits for the correct parent's allele
-# in the hybrid, we no longer know which allele is correct, because both alleles are present.
-# So we can only count them one way. If we see a difference in how 
-# correlated the parental vs hybrid %cer values between the 
-# two methods of parental read counting, mapping bias
-plotdf_vshyb$par_sum <- plotdf_vshyb$mean_counts_cer_parSample + plotdf_vshyb$mean_counts_par_parSample
-plotdf_vshyb$cer_sum <- plotdf_vshyb$mean_counts_cer_cerSample + plotdf_vshyb$mean_counts_par_cerSample
-plotdf_vshyb$pct_cer_parents_sum <- plotdf_vshyb$cer_sum/(plotdf_vshyb$par_sum + plotdf_vshyb$cer_sum)
-plotdf_vshyb$pct_cer_parents_singleAllele <- plotdf_vshyb$mean_counts_cer_cerSample/(plotdf_vshyb$mean_counts_cer_cerSample + plotdf_vshyb$mean_counts_par_parSample)
-plotdf_vshyb$pct_cer_hybrids_sum <- plotdf_vshyb$mean_counts_cer_hybSample/(plotdf_vshyb$mean_counts_cer_hybSample + plotdf_vshyb$mean_counts_par_hybSample)
-# summing parental allele reads
-ggplot(plotdf_vshyb, aes(x = pct_cer_parents_sum, y = pct_cer_hybrids_sum)) +
-  geom_point(aes(color = bias), alpha = 0.5)
-ggplot(filter(plotdf_vshyb, bias != "none"), aes(x = pct_cer_parents_sum, y = pct_cer_hybrids_sum)) +
-  geom_point(aes(color = bias), alpha = 0.5)
-# single parental allele reads
-ggplot(plotdf_vshyb, aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
-  geom_point(aes(color = bias), alpha = 0.5)
-ggplot(filter(plotdf_vshyb, bias != "none"), aes(x = pct_cer_parents_singleAllele, y = pct_cer_hybrids_sum)) +
-  geom_point(aes(color = bias), alpha = 0.5)
+```{r biased-common-names}
+# any common genes of note?
+sgd_lookup <- read_tsv("data_files/downloaded_genomes_and_features/SGD_features.tab",
+                       col_names = FALSE) |> 
+  dplyr::select(X4, X5) |> unique() |> drop_na() |> 
+  dplyr::rename(c("systematic"="X4", "common"="X5"))
+# cer biased
+par_genedf |> filter(gene %in% cer_biased_genes) |> 
+  left_join(y = sgd_lookup, by = c("gene_name"="systematic")) |> 
+  arrange(desc(avg_pct_cer)) |> 
+  print(n = length(cer_biased_genes))
+# par biased
+cer_genedf |> filter(gene %in% par_biased_genes) |> 
+  left_join(y = sgd_lookup, by = c("gene_name"="systematic")) |> 
+  arrange(avg_pct_cer) |> 
+  print(n = length(par_biased_genes))
+# both
+bind_rows(cer_genedf |> filter(gene %in% both_biased_genes) |> 
+            arrange(avg_pct_cer),
+          par_genedf |> filter(gene %in% both_biased_genes) |> 
+            arrange(desc(avg_pct_cer))) |> 
+  left_join(y = sgd_lookup, by = c("gene_name"="systematic")) |> 
+  print(n = length(both_biased_genes)*2)
 ```
 
-Conclusion: slight differences in the counts of biased genes, no visible difference in the counts of unbiased genes. We can count just reads mapping to correct parent allele and remove any biased genes after adding Fay et al. 2023 samples and filtering for low expression.
+As Fay et al. 2023 data does not have separate parental samples, we will record all the based genes and remove them after adding Fay et al. 2023 samples and filtering for low expression.
 
 Here are our lists of based genes/samples:
 ```{r}
 cer_biased_genes
 par_biased_genes
 both_biased_genes
-biased_samples
 ```
 ## Reading in Fay et al. 2023 RNAseq data and R1/R2 QC
 
@@ -1247,7 +1178,7 @@ save(counts, sample_info,
      cer_biased_genes,
      par_biased_genes,
      both_biased_genes,
-     biased_samples, file = "data_files/Cleaned_Count_Data.RData")
+     file = "data_files/Cleaned_Count_Data.RData")
 save(counts_allele, sample_info_allele, file = "data_files/Cleaned_Count_Data_AlleleSpecific.RData")
 ```
 
