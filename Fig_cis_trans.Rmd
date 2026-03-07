@@ -583,6 +583,15 @@ p
 dev.off()
 ```
 
+## Hybrid allele cor relative to min(cor_Scer, cor_Spar)
+
+```{r cor-hyb-vs-scer-spar}
+plotdf <- finaldf |> dplyr::select(cor_hybrid, cor_scer, cor_spar, experiment)
+plotdf$min_cor <- pmin(plotdf$cor_scer, plotdf$cor_spar)
+plotdf$var_in_cis <- plotdf$cor_hybrid < plotdf$min_cor
+ggplot(plotdf, aes(x = min_cor, y = cor_hybrid)) +
+  geom_point(aes(color = experiment)) + facet_wrap(~experiment)
+```
 
 
 # %%%%%%%%%%%%%%%%% probably archive from here down %%%%%%%%%%%%%%%%% 

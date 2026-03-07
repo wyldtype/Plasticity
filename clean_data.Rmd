@@ -15,7 +15,7 @@ sapply(c("readr", "tidyr", "purrr", "ggplot2", "ggpubr", "openxlsx", "matrixStat
 library(dplyr) # dplyr functions keep being hidden so loading it last
 ```
 
-## Reading in Krieger et al. 2020 and Lupo et al. 2021 tagseq data
+## Reading in Krieger et al. 2020 tagseq data
 
 Reading in quantified RNAseq counts as individual *.ReadsPerGene.out.tab files, one file per sample
 

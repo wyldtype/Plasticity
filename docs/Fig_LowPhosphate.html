@@ -567,13 +567,11 @@ pdf(file = paste0(&quot;paper_figures/&quot;,
                   folder_name, &quot;/conserved_scaled.pdf&quot;), width = 2, height = 2)
 print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                                 .experiment_name = experiment_name,
-                                .plotlims = c(-2, 2), .normalization = &quot;scale&quot;) +
+                                .plotlims = c(-2.2, 2.2), .normalization = &quot;scale&quot;) +
                         theme(plot.margin = unit(c(0,0.25,0,0), &quot;cm&quot;)),
                       top = paste0(length(gene_idxs), &quot; genes&quot;)))</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -701,13 +699,11 @@ pdf(file = paste0(&quot;paper_figures/&quot;,
                   folder_name, &quot;/plasticity_scaled.pdf&quot;), width = 2, height = 2)
 print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                                 .experiment_name = experiment_name,
-                                .plotlims = c(-2, 2), .normalization = &quot;scale&quot;) +
+                                .plotlims = c(-2.2, 2.2), .normalization = &quot;scale&quot;) +
                         theme(plot.margin = unit(c(0,0.25,0,0), &quot;cm&quot;)),
                       top = paste0(length(gene_idxs), &quot; genes&quot;)))</code></pre>
 <pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>

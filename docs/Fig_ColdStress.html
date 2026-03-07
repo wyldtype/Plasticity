@@ -526,7 +526,7 @@ class="section level2">
 class="section level3">
 <h3>Genes with conserved level and plasticity</h3>
 <pre class="r"><code># Conserved genes:
-ylims &lt;- c(4.5, 10.5)
+ylims &lt;- c(5, 12)
 cluster_names &lt;- expdf |&gt; filter(plasticity != &quot;diverged&quot; &amp; 
                                    level != &quot;diverged&quot;) |&gt; 
   dplyr::select(cer, par) |&gt; pull() |&gt; unique()
@@ -625,10 +625,6 @@ for (i in c(1:nrow(griddf))) {
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 4 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
                   folder_name, &quot;/level.pdf&quot;), width = 2, height = 2)
@@ -684,10 +680,6 @@ for (i in c(1:nrow(griddf))) {
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 8 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
                   folder_name, &quot;/plasticity.pdf&quot;), width = 2, height = 2)
@@ -774,12 +766,8 @@ for (i in c(1:nrow(griddf))) {
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.
 ## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
-<pre><code>## Warning: Removed 4 rows containing missing values or values outside the scale
-## range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 6 rows containing missing values or values outside the scale
-## range (`geom_ribbon()`).</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
+## override using the `.groups` argument.
+## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
 ## override using the `.groups` argument.</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
