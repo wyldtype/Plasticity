@@ -14,12 +14,42 @@ load("data_files/FinalDataframe3Disp.RData")
 load("data_files/GO_Slim.RData")
 nGenes <- finaldf$gene_name |> unique() |> length() # for exact tests 
 # filtering for just Biological Processess
+goslim_full <- goslim
 goslim <- filter(goslim, GO_aspect == "P")
 ```
 
 ```{r package-issues}
 environmentName(environment(select)) # should be dplyr
 environmentName(environment(degree)) # should be igraph
+```
+
+## How many genes diverging in plasticity are membrane-bound transporters?
+
+```{r membrane-transporters}
+plotdf <- goslim_full |> filter(GO_aspect %in% c("F")) |> 
+  dplyr::select(ORF, gene, GO_aspect, GOslim_term) |> 
+  group_by(ORF, gene) |> 
+  summarise(term_list = list(GOslim_term)) |> 
+  ungroup() |> 
+  full_join(y = finaldf,
+            by = c("ORF"="gene_name"),
+            relationship = "one-to-many")
+# plotdf$membrane_transporter <- purrr::map2(plotdf$C, plotdf$P, \(comp, proc) {
+#   "membrane" %in% unlist(comp) & "transport" %in% unlist(proc)
+# }) |> unlist()
+plotdf$membrane_transporter <- purrr::map(plotdf$term_list, \(proc) {
+  "transmembrane transporter activity" %in% unlist(proc)
+}) |> unlist()
+gene_idxs <- filter(plotdf, experiment == "CC" & membrane_transporter) |> 
+  dplyr::select(ORF) |> pull()
+plotGenes(gene_idxs, .experiment_name = "CC") # 1-2 divergers
+plotdf$div12 <- plotdf$cer == 1 & plotdf$par == 2
+plotdf |> filter(experiment == "CC") |> 
+  dplyr::select(div12, membrane_transporter) |> table() |> 
+  fisher.test() # slight enrichment of genes with transmembrane transporter activity among the HU Shock 1-2 divergers 
+plotdf |> filter(experiment == "Cold") |> 
+  dplyr::select(div12, membrane_transporter) |> table() |> 
+  fisher.test() # also true in Cold (not in any other environments or reversal directions)
 ```
 
 ## Print gene lists for Saccharomyces Genome Database (SGD)
@@ -65,7 +95,7 @@ getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/result
       dplyr::select(ORF) |> pull() |> unique()
     return(purrr::reduce(termgenes, paste, sep = " "))
   }) |> unlist()
-  
+  # writing to csv
   write_csv(arrange(testdf, exact_pval, desc(group_count)), 
             file = paste0(.file_prefix, .group_name, ".csv"),
             quote = "none", 
@@ -76,29 +106,8 @@ getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/result
 # tests for getGOSlimDf
 test <- getGOSlimDf(.idxs = c("YGR192C", "YJR009C", "YJL052W"),
                     .group_name = "tdhs", .min_hits = 1)
+test
 ```
-
-Looping through all the plasticity reversal categories to get GOSlim results:
-
-```{r slimlist}
-griddf <- expand_grid(experiment = ExperimentNames,
-                      cer_clust = c(1, 2))
-slimlist <- vector(mode = "list", length = nrow(griddf))
-for (i in 1:nrow(griddf)) {
-  e <- griddf$experiment[i]
-  cer_clust <- griddf$cer_clust[i]
-  par_clust <- setdiff(c(1, 2), cer_clust)
-  gene_idxs <- filter(finaldf, experiment == e &
-                        cer == cer_clust &
-                        par == par_clust) |> 
-    dplyr::select(gene_name) |> pull()
-  slimlist[[i]] <- getGOSlimDf(.idxs = gene_idxs,
-                               .group_name = paste0(e, cer_clust, par_clust))
-}
-names(slimlist) <- as.character(apply(griddf, 1, \(x) {paste(x[1], x[2], sep = "_")}))
-```
-
-## Combining GO terms for main paper summary table
 
 Manually selecting groups of terms related to broader but meaningful biological processes.
 
@@ -311,9 +320,93 @@ term_stress <- c("response to stress",
                  "response to chemical")
 ```
 
-Counting number of genes in each plasticity group that are associated with terms belong to the combined term (the combined term was decided by visually inspecting the Supplementary_Table2.xlsx full GOslim results):
+## Regulon-based GO analysis
+GO analysis of specific regulons with over 30% diverged plasticity genes (regulons of PDR1, PDR3, RLM1, RPN4, YAP1, etc.)
 
-```{r combining-terms}
+```{r GO-regulons-div30}
+goslim <- goslim_full |> filter(GO_aspect == "F")
+load("data_files/GOinput.RData")
+GOgriddf <- group_by(GOdf, regulator, regulator_common, environment) |> 
+  summarise(nTargets = n()) |> 
+  ungroup()
+GOlist <- purrr::map2(GOgriddf$regulator, GOgriddf$environment, \(tf, e) {
+  tf_common <- GOdf |> filter(regulator == tf) |> dplyr::select(regulator_common) |> 
+    pull() |> unique()
+  GOgene_idxs <- filter(GOdf, environment == e & regulator == tf) |> 
+    dplyr::select(target) |> pull()
+  gene_idxs <- filter(finaldf, gene_name %in% GOgene_idxs &
+                        experiment == e & plasticity == "diverged") |> 
+    dplyr::select(gene_name) |> pull()
+  if (length(gene_idxs) > 5) {
+    slimlist <- getGOSlimDf(.idxs = gene_idxs,
+                            .group_name = paste(tf_common, e, length(gene_idxs), "genes", sep = "_"),
+                            .file_prefix = "gene_ontology/results/regulons/function/div30/",
+                            .min_hits = 0)
+  }
+  if (length(gene_idxs) <= 5) {
+    slimlist <- NA
+  }
+  
+  return(slimlist)
+})
+names(GOlist) <- paste(GOgriddf$regulator_common, GOgriddf$environment, sep = "_")
+```
+
+
+GO analysis of remaining regulons with higher conserved proportions
+
+```{r GO-regulons-conserved}
+goslim <- goslim_full |> filter(GO_aspect == "F")
+load("data_files/GOinputConserved.RData")
+GOgriddf <- group_by(GOdf_conserved, regulator, regulator_common, environment) |> 
+  summarise(nTargets = n()) |> 
+  ungroup()
+GOlist <- purrr::map2(GOgriddf$regulator, GOgriddf$environment, \(tf, e) {
+  tf_common <- GOdf_conserved |> filter(regulator == tf) |> dplyr::select(regulator_common) |> 
+    pull() |> unique()
+  GOgene_idxs <- filter(GOdf_conserved, environment == e & regulator == tf) |> 
+    dplyr::select(target) |> pull()
+  gene_idxs <- filter(finaldf, gene_name %in% GOgene_idxs &
+                        experiment == e & plasticity == "conserved") |> 
+    dplyr::select(gene_name) |> pull()
+  if (length(gene_idxs) > 5) {
+    slimlist <- getGOSlimDf(.idxs = gene_idxs,
+                            .group_name = paste(tf_common, e, length(gene_idxs), "genes", sep = "_"),
+                            .file_prefix = "gene_ontology/results/regulons/function/conserved/",
+                            .min_hits = 0)
+  }
+  if (length(gene_idxs) <= 5) {
+    slimlist <- NA
+  }
+  
+  return(slimlist)
+})
+names(GOlist) <- paste(GOgriddf$regulator_common, GOgriddf$environment, sep = "_")
+```
+
+Archive: Counting number of genes in each plasticity group that are associated with terms belong to the combined term (the combined term was decided by visually inspecting the full GOslim results):
+
+Looping through all the plasticity reversal categories to get GOSlim results:
+
+```{r slimlist-all-diverged-plasticity}
+griddf <- expand_grid(experiment = ExperimentNames,
+                      cer_clust = c(1, 2))
+slimlist <- vector(mode = "list", length = nrow(griddf))
+for (i in 1:nrow(griddf)) {
+  e <- griddf$experiment[i]
+  cer_clust <- griddf$cer_clust[i]
+  par_clust <- setdiff(c(1, 2), cer_clust)
+  gene_idxs <- filter(finaldf, experiment == e &
+                        cer == cer_clust &
+                        par == par_clust) |> 
+    dplyr::select(gene_name) |> pull()
+  slimlist[[i]] <- getGOSlimDf(.idxs = gene_idxs,
+                               .group_name = paste0(e, cer_clust, par_clust))
+}
+names(slimlist) <- as.character(apply(griddf, 1, \(x) {paste(x[1], x[2], sep = "_")}))
+```
+
+```{r combining-terms-all-diverged-plasticity}
 # HAP4, 1-2, chaperone and transport
 term_genes <- getCombinedTermGenes(slimlist$HAP4_1, .term_vec = c(term_chaperone, term_transport))
 all_genes <- finaldf |> filter(experiment == "HAP4" & cer == 1 & par == 2) |> dplyr::select(gene_name) |> pull()

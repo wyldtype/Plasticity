@@ -44,9 +44,10 @@ idxs <- map(idxs, \(g) {
   }
   return(g)
 }) |> unlist() |> sort()
-write_delim(tibble(gene_name = idxs),
-            delim = "\n", file = "data_files/yeastract_genes.txt",
-            col_names = FALSE)
+# Commented out so gene list matches the downloaded regulatory matrices we uploaded to Github
+# write_delim(tibble(gene_name = idxs),
+#             delim = "\n", file = "data_files/yeastract_genes.txt",
+#             col_names = FALSE)
 ```
 
 Table downloaded from yeastract containing names of genes in common and systematic format, used to convert between formats below:
@@ -104,7 +105,7 @@ Reading in the un-stressed regulator matrix:
 # setting file suffix to determine which matrix type
 # file_name_suffix <- "_directOrExpression.csv" # Binding OR expression regulatory matrices
 # file_name_suffix <- "_binding.csv" # Binding, with or without expression
-file_name_suffix <- "_bindingANDexpression.csv" # Binding AND expression regulatory matrices
+file_name_suffix <- "_bindingANDexpression_NEW.csv" # Binding AND expression regulatory matrices
 # file_name_suffix <- "_Activators_directAndExpression.csv" # Binding AND expression regulatory matrices, positive results on expression only
 # No-stress control matrix
 ypd <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/Control",
@@ -156,6 +157,27 @@ sum(!(zero_count_elements %in% colnames(ypd)))
 toRemove <- setdiff(zero_count_elements, colnames(ypd))
 regmats <- map(regmats, .f = \(x) {x[setdiff(rownames(x), toRemove),]})
 ```
+
+### Filtering out unused targets not in regulators
+```{r unused-targets}
+# all_regulators <- purrr::map2(regmats, names(regmats), \(mat, nm) {
+#   nUnusedTargets <- length(setdiff(colnames(mat), rownames(mat)))
+#   if(nUnusedTargets != 0) {
+#     cat(nm, "has", nUnusedTargets, "targets not found in regulator set\n")
+#   }
+#   return(rownames(mat))
+# }) |> unlist() |> unique()
+# problem_targets <- setdiff(idxs, all_regulators)
+# problem_targets
+# cat("this should be zero:", sum(regmats$CC[, problem_targets]), "\n")
+# # removing unused targets not found in regulators
+# regmats <- purrr::map(regmats, \(mat) {
+#   stopifnot(sum(mat[, problem_targets]) != 0)
+#   #mat <- mat[, setdiff(colnames(mat), problem_targets)]
+#   return(mat)
+# })
+```
+
 
 ### Making regmats square
 
@@ -697,6 +719,169 @@ plotHomeAndAltEnvironments(.tf_common = test_tf, .e = test_home, .e2 = test_alt,
                            .reg_idxs = test_idxs, .regulon_normalization = "log2")
 ```
 
+### Are regulators diverging in expression level associated with more divergent regulons?
+
+"Volcano"-style plots of log2 fold change on the x axis and percent of regulon that is divergent on the y axis (where p-value would normally go)
+
+There are 4 plots total: does <parent or hybrid> expression level divergence predict regulon <plasticity or level> divergence?
+
+```{r volcano-parent-level-vs-target-plasticity}
+plotdf <- regdf |> filter(environment != "YPD") |> 
+  full_join(y = finaldf,
+            by = c("target"="gene_name",
+                   "environment"="experiment")) |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(n_div_plast = sum(plasticity == "diverged",
+                              na.rm = TRUE),
+            n = n(),
+            pct_div_plast = n_div_plast/n,
+            mean_cor = mean(cor_parents, na.rm = TRUE)) |> 
+  filter(n >= 20) |> 
+  left_join(y = dplyr::select(finaldf, gene_name, 
+                              experiment, effect_size_species),
+            by = c("regulator"="gene_name",
+                   "environment"="experiment"))
+# R-squarred
+test <- lm(mean_cor ~ effect_size_species, data = plotdf)
+summary(test)
+# plot
+p_parent_plast <- ggplot(plotdf, aes(x = effect_size_species, y = mean_cor)) +
+  geom_point(aes(color = environment)) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type =  colordf$type[colordf$scheme == "experiment"]) +
+  geom_text(aes(label = regulator_common), 
+            check_overlap = TRUE, nudge_y = 0.025) +
+  #geom_vline(xintercept = c(-log2(1.5), log2(1.5))) +
+  geom_smooth(method = "lm") +
+  theme_classic() +
+  #theme(legend.position = "none") +
+  xlab("log2 fold change of regulator\nbetween species") +
+  ylab("average expression correlation of\ntarget genes between species") +
+  ggtitle(paste0("R-squarred = ",
+                            round(summary(test)$r.squared, digits = 2)))
+p_parent_plast
+```
+
+```{r volcano-hybrid-level-vs-target-plasticity}
+plotdf <- regdf |> filter(environment != "YPD") |> 
+  full_join(y = finaldf,
+            by = c("target"="gene_name",
+                   "environment"="experiment")) |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(n_div_plast = sum(plasticity == "diverged",
+                              na.rm = TRUE),
+            n = n(),
+            pct_div_plast = n_div_plast/n,
+            mean_cor = mean(cor_parents, na.rm = TRUE)) |> 
+  filter(n >= 20) |> 
+  left_join(y = dplyr::select(finaldf, gene_name, 
+                              experiment, effect_size_allele),
+            by = c("regulator"="gene_name",
+                   "environment"="experiment"))
+# R-squarred
+test <- lm(mean_cor ~ effect_size_allele, data = plotdf)
+summary(test)
+# plot
+p_hybrid_plast <- ggplot(plotdf, aes(x = effect_size_allele, y = mean_cor)) +
+  geom_point(aes(color = environment)) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type =  colordf$type[colordf$scheme == "experiment"]) +
+  geom_text(aes(label = regulator_common), 
+            check_overlap = TRUE, nudge_y = 0.025) +
+  geom_smooth(method = "lm") +
+  #geom_vline(xintercept = c(-log2(1.5), log2(1.5))) +
+  theme_classic() +
+  #theme(legend.position = "none") +
+  xlab("log2 fold change of regulator\nbetween hybrid alleles") +
+  ylab("average expression correlation of\ntarget genes between species") +
+  ggtitle(paste0("R-squarred = ",
+                            round(summary(test)$r.squared, digits = 2)))
+p_hybrid_plast
+```
+
+```{r volcano-parent-level-vs-target-level}
+plotdf <- regdf |> filter(environment != "YPD") |> 
+  inner_join(y = finaldf,
+              by = c("target"="gene_name",
+                     "environment"="experiment")) |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(n_div_level = sum(level == "diverged",
+                              na.rm = TRUE),
+            n = n(),
+            mean_log2fc = mean(effect_size_species, na.rm = TRUE),
+            pct_div_level = n_div_level/n) |> 
+  filter(n >= 20) |> 
+  left_join(y = dplyr::select(finaldf, gene_name, 
+                              experiment, effect_size_species),
+            by = c("regulator"="gene_name",
+                   "environment"="experiment"))
+# lm test for R^2 value
+test <- lm(mean_log2fc ~ effect_size_species, data = plotdf)
+summary(test)
+# plot
+p_parent_lev <- ggplot(plotdf, aes(x = effect_size_species, y = mean_log2fc)) +
+  geom_point(aes(color = environment)) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type =  colordf$type[colordf$scheme == "experiment"]) +
+  geom_text(aes(label = regulator_common), 
+            check_overlap = TRUE, nudge_y = 0.025) +
+  ggtitle(paste0("R-squarred = ",
+                 round(summary(test)$r.squared, digits = 2))) +
+  theme_classic() +
+  #theme(legend.position = "none") +
+  xlab("log2 fold change of regulator\nbetween species") +
+  ylab("average log2 fold change of\ntarget genes between species") +
+  geom_smooth(method = "lm")
+p_parent_lev
+```
+```{r volcano-hybrid-level-vs-target-level}
+plotdf <- regdf |> filter(environment != "YPD") |> 
+  inner_join(y = finaldf,
+              by = c("target"="gene_name",
+                     "environment"="experiment")) |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(n_div_level = sum(level == "diverged",
+                              na.rm = TRUE),
+            n = n(),
+            mean_log2fc = mean(effect_size_allele, na.rm = TRUE),
+            pct_div_level = n_div_level/n) |> 
+  filter(n >= 20) |> 
+  left_join(y = dplyr::select(finaldf, gene_name, 
+                              experiment, effect_size_allele),
+            by = c("regulator"="gene_name",
+                   "environment"="experiment"))
+# lm test for R^2 value
+test <- lm(mean_log2fc ~ effect_size_allele, data = plotdf)
+summary(test)
+# plot
+p_hybrid_lev <- ggplot(plotdf, aes(x = effect_size_allele, y = mean_log2fc)) +
+  geom_point(aes(color = environment)) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type =  colordf$type[colordf$scheme == "experiment"]) +
+  geom_text(aes(label = regulator_common), 
+            check_overlap = TRUE, nudge_y = 0.025) +
+  ggtitle(paste0("R-squarred = ",
+                 round(summary(test)$r.squared, digits = 2))) +
+  theme_classic() +
+  xlab("log2 fold change of regulator\nbetween hybrid alleles") +
+  ylab("average log2 fold change of\ntarget genes between species") +
+  geom_smooth(method = "lm")
+p_hybrid_lev
+```
+
+All 4 plots:
+```{r volcano-4plots}
+p <- ggarrange(p_parent_lev, p_hybrid_lev,
+               p_parent_plast, p_hybrid_plast,
+               nrow = 2, ncol = 2, common.legend = TRUE,
+               legend = "bottom")
+p
+pdf("paper_figures/Supplement/regulator_level.pdf",
+    width = 7, height = 7)
+p
+dev.off()
+```
+
 ### Maybe supplemental figure: reversals have similar expression variance to conserved plasticity genes
 
 ```{r variance}
@@ -811,6 +996,112 @@ ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)
 dev.off()
 ```
 
+Bootstrapping of every non-YPD regulator with 20+ targets
+
+```{r getNullPctDivPlast}
+getNullPctDivPlast <- function(.environment, .size) {
+  stopifnot(.size > 0)
+  sampledf <- finaldf |> filter(experiment == .environment) |> 
+    dplyr::slice_sample(n = .size, replace = FALSE)
+  nDivPlast <- sampledf |> filter(plasticity == "diverged") |> 
+    nrow()
+  return(nDivPlast/.size)
+}
+# tests for getNullPctDivPlast
+getNullPctDivPlast(.environment = "LowPi", .size = 24)
+```
+
+```{r bootstrapRegulon}
+bootstrapRegulon <- function(.environment, .size, .nIter) {
+  stopifnot(.size > 0 & .nIter > 0)
+  boostrap_sample <- purrr::map(c(1:.nIter), \(i) {
+    samp <- getNullPctDivPlast(.environment = .environment,
+                               .size = .size)
+  }) |> unlist()
+  return(boostrap_sample)
+}
+# tests for bootstrapRegulon
+test_observed_pct <- regdf |> filter(environment == "LowPi" &
+                                       regulator_common == "PHO4") |> 
+  dplyr::select(target, environment) |> left_join(y = finaldf, by = c("target"="gene_name",
+                                                                      "environment"="experiment")) |> 
+  summarise(n = n(),
+            n_div_plast = sum(plasticity == "diverged", na.rm = TRUE),
+            pct_div_plast = n_div_plast/n) |> 
+  dplyr::select(pct_div_plast) |> pull()
+test_sample <- bootstrapRegulon(.environment = "LowPi", .size = 25, .nIter = 100)
+test_plotdf <- tibble(null_dist = test_sample)
+ggplot(test_plotdf, aes(x = null_dist)) +
+  geom_histogram(binwidth = 0.05) +
+  theme_classic() +
+  geom_vline(xintercept = test_observed_pct, color = "red") +
+  xlab("Percent of regulon with diverged plasticity") +
+  ggtitle(paste("PHO4", LongExperimentNames[ExperimentNames == "LowPi"]))
+test_observed_pct < quantile(test_sample, probs = 0.05)
+```
+
+Plotting for each environment-specific regulon:
+
+```{r bootstrap-plotting, cache=TRUE}
+griddf <- regdf |> filter(environment != "YPD") |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(size = n()) |> 
+  filter(size >= 20) |> 
+  select(regulator, regulator_common, environment)
+# bootstrapping and generating plots
+nIter <- 1000
+plotlist <- vector(mode = "list", length = nrow(griddf))
+siglist <- vector(mode = "list", length = nrow(griddf))
+names(plotlist) <- paste(griddf$regulator_common, griddf$environment, sep = "_")
+for (i in 1:nrow(griddf)) {
+  cat(i, "/", nrow(griddf), "\n")
+  test_environment <- griddf$environment[i]
+  test_regulator_common <- griddf$regulator_common[i]
+  test_observed_df <- regdf |> filter(environment == test_environment &
+                                         regulator_common == test_regulator_common) 
+  test_n <- nrow(test_observed_df)
+  test_observed_pct <- test_observed_df |> 
+    dplyr::select(target, environment) |> 
+    left_join(y = finaldf, by = c("target"="gene_name",
+                                  "environment"="experiment")) |> 
+    summarise(n_div_plast = sum(plasticity == "diverged", na.rm = TRUE),
+              pct_div_plast = n_div_plast/test_n) |> 
+    dplyr::select(pct_div_plast) |> pull()
+  test_sample <- bootstrapRegulon(.environment = test_environment, 
+                                  .size = test_n, .nIter = nIter)
+  test_plotdf <- tibble(null_dist = test_sample)
+  nm <- paste(test_regulator_common, test_environment, sep = "_")
+  nm_long <- paste(test_regulator_common, 
+                   LongExperimentNames[ExperimentNames == test_environment], 
+                   sep = " regulon\nin ")
+  siglist[[i]] <- test_observed_pct < quantile(test_sample, probs = 0.05)
+  plotlist[[nm]] <- ggplot(test_plotdf, aes(x = null_dist)) +
+    geom_histogram(binwidth = 0.05) +
+    theme_classic() +
+    geom_vline(xintercept = test_observed_pct, color = "red") +
+    xlab("Percent of regulon with\ndiverged plasticity") +
+    ggtitle(nm_long)
+}
+```
+
+Plotting for figure:
+```{r bootstrap-plotting}
+# # set new binwidth, if desired
+# plotlist <- purrr::map(plotlist, \(plt) {
+#   plt + geom_histogram(binwidth = 0.05)
+# })
+cat("number of regulons outside of boostrap range with 95% confidence:",
+    sum(unlist(siglist)), "out of", length(siglist), "total regulons\n")
+ggarrange(plotlist = sample(plotlist, size = 10), nrow = 2, ncol = 5)
+p <- ggarrange(plotlist = plotlist, nrow = 13, ncol = 4)
+pdf("paper_figures/Supplement/bootstrap.pdf",
+    width = 10, height = 30)
+annotate_figure(p, top = paste0("number of boostrap samples = ", nIter))
+dev.off()
+```
+
+
+
 ### Histograms of how conserved genes tend to have more regulators in each environment
 
 ```{r n-regulators-per-target-histogram}
@@ -878,6 +1169,58 @@ pdf("paper_figures/Yeastract/histogram_allEnv.pdf",
 p + theme(legend.position = "none")
 dev.off()
 ```
+## Supplemental Table 3: regulators and their regulons in each environment
+
+```{r supp3-regulator-regulon}
+plotdf <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name"))
+# dataframe of fraction conserved plasticity in each environment (same starting code as from regulon-pct-conserved-plasticity)
+consplastdf <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
+  home_mat <- regmats[[h]]
+  h_idxs <- finaldf |> filter(experiment == h) |> 
+    dplyr::select(gene_name) |> pull()
+  regulon_idxs <- intersect(colnames(home_mat)[home_mat[tf,] > 0], h_idxs)
+  outdf <- purrr::map(ExperimentNames, \(e) {
+    e_plast_genes <- finaldf |>
+      filter(experiment == e & plasticity == "conserved") |>
+      dplyr::select(gene_name) |> pull()
+    e_genedf <- tibble(tf = tf,
+                       home = h,
+                       experiment = e,
+                       n = length(regulon_idxs),
+                       nConsPlast = sum(regulon_idxs %in% e_plast_genes))
+    return(e_genedf)
+  }) |> purrr::reduce(.f = bind_rows)
+  return(outdf)
+}) |> purrr::reduce(.f = bind_rows) |> 
+  mutate(pct_cons_plast = nConsPlast/n) |> 
+  dplyr::select(tf, home, experiment, pct_cons_plast) |> 
+  pivot_wider(id_cols = c("tf", "home"),
+              names_from = "experiment",
+              values_from = "pct_cons_plast",
+              names_prefix = "percent_conserved_plasticity_")
+suppTable3 <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name", 
+                               "regulon_size"="out_degree_e", 
+                               "log2foldChange_parents"="effect_size_species",
+                               "log2foldChange_hybrid"="effect_size_allele",
+                               "padj_parents"="padj_species",
+                               "padj_hybrid"="padj_allele")) |> 
+  left_join(y = dplyr::select(yeastract_lookup, 
+                       common, systematic), 
+            by = c("tf"="systematic")) |> 
+  dplyr::select(home, tf, common, regulon_size,
+         log2foldChange_parents,
+         log2foldChange_hybrid,
+         padj_parents, padj_hybrid, plasticity, 
+         cor_parents, cor_hybrid, cor_scer, cor_spar) |> 
+  left_join(y = consplastdf, by = c("tf", "home"))
+```
+
+Writing supp table to csv:
+
+```{r supp3-csv}
+# write_csv(suppTable3, file = "data_files/Supplementary_Table3.csv",
+#           col_names = TRUE)
+```
 
 ### Fraction of regulator targets with conserved vs diverged plasticity
 
@@ -917,28 +1260,6 @@ p <- ggplot(plotdf, aes(x = nTargets, y = pctDivPlast)) +
 p
 ```
 
-Any cis-diverging regulators with more than 30% diverged targets?
-
-```{r cis-regulators}
-plotdf <- dplyr::select(finaldf, gene_name, experiment,
-                              cor_scer, cor_spar, cor_hybrid,
-                              effect_size_allele, padj_allele) |> 
-  filter(gene_name %in% div30regulators) |> 
-  group_by(gene_name) |> 
-  summarise(nEnvLevDiv= sum(padj_allele < 0.05),
-            levDir = mean(effect_size_allele))
-```
-
-```{r PDR3}
-plotEnvironments("YBL005W", .quartet = TRUE)
-```
-
-```{r RPN4}
-plotEnvironments("YDL020C", .quartet = TRUE)
-```
-
-
-
 pdf for figure:
 ```{r pct-div-plast-per-TF-pdf}
 pdf("paper_figures/Yeastract/pctDivergedPlasticityPerTF.pdf",
@@ -947,8 +1268,467 @@ p
 dev.off()
 ```
 
+Any cis-diverging regulators with more than 30% diverged targets?
+
+```{r cis-regulators}
+dplyr::select(finaldf, gene_name, experiment,
+                              cor_scer, cor_spar, cor_hybrid,
+                              effect_size_allele, padj_allele) |> 
+  filter(gene_name %in% div30regulators) |> 
+  group_by(gene_name) |> 
+  summarise(nEnvLevDiv= sum(padj_allele < 0.05),
+            levDir = mean(effect_size_allele)) |> 
+  dplyr::arrange(desc(nEnvLevDiv)) |> 
+  left_join(yeastract_lookup, by = c("gene_name"="systematic"))
+```
+
+```{r PHO4}
+plotEnvironments("YFR034C", .quartet = TRUE)
+```
+```{r YRR1}
+plotEnvironments("YOR162C", .quartet = TRUE)
+```
+
+Subset of regdf only including regulons with > 30% diverged plasticity genes, for GO analysis:
+
+```{r GOdf}
+GOdf <- regdf |> filter(regulator %in% div30regulators & environment != "YPD") |> 
+  arrange(regulator_common)
+GOdf|> dplyr::select(regulator_common, environment) |> table()
+# writing to RData file (we'll write it to a csv for Supp materials in GO script)
+save(GOdf, file = "data_files/GOinput.RData")
+
+# conserved regulators
+GOdf_conserved <- regdf |> filter(!(regulator %in% div30regulators) & environment != "YPD") |> 
+  arrange(regulator_common)
+GOdf_conserved |> dplyr::select(regulator_common, environment) |> table()
+save(GOdf_conserved, file = "data_files/GOinputConserved.RData")
+```
+
+## Investigating interesting examples from GO results
+
+YRR1 has strongly divergent regulons, it controls more genes in CC than HAP4, but looking at HAP4 first
+
+```{r regulon-avg-expr-examples-YRR1-HAP4, warning=FALSE}
+### genes associated with transport in YRR1 regulon in Diauxic Shift:
+# YRR1, PDR1 and 3, YAP1, and IXR1 all regulate FLR1, YBR008C
+p_FLR1 <- plotGenes("YBR008C", .quartet = TRUE, .experiment_name = "HAP4", 
+                    .plot_titles = c("FLR1, regulated by YRR1 \n(GO: transport)\n in Diauxic Shift"))
+# YOR1 has reversed plasticity in hybrid, (low-varying in Spar parent):
+p_YOR1 <- plotGenes("YGR281W", .quartet = TRUE, .experiment_name = "HAP4",
+                    .plot_titles = c("YOR1, regulated by YRR1 \n(GO: transport)\n in Diauxic Shift"))
+# SEC28 and PTR2 decrease after Diauxic shift in Scer, PTR2 has divergent plasticity in cis!
+p_SEC28 <- plotGenes("YIL076W", .quartet = TRUE, .experiment_name = "HAP4",
+                     .plot_titles = c("SEC28, regulated by YRR1 \n(GO: transport)\n in Diauxic Shift"))
+p_PTR2 <- plotGenes("YKR093W", .quartet = TRUE, .experiment_name = "HAP4",
+                    .plot_titles = c("PTR2, regulated by YRR1 \n(GO: transport)\n in Diauxic Shift"))
+# TPO1, slightly more of a decrease in Spar, also seems to be plasticity divergence in cis
+p_TPO1 <- plotGenes("YLL028W", .quartet = TRUE, .experiment_name = "HAP4",
+                    .plot_titles = c("TPO1, regulated by YRR1 \n(GO: transport)\n in Diauxic Shift"))
+# PDR12, similar to TPO1, but it starts from a higher level in Spar
+p_PDR12 <- plotGenes("YPL058C", .quartet = TRUE, .experiment_name = "HAP4",
+                     .plot_titles = c("PDR12, regulated by YRR1 \n(GO: transport)\n in Diauxic Shift"))
+ggarrange(p_FLR1, p_YOR1, p_SEC28, p_PTR2, p_TPO1, p_PDR12,
+          nrow = 1, ncol = 6)
+```
+
+## Archive below:
+### Ptr2 regulators in HAP4
+
+```{r ptr2-regulators, warning=FALSE}
+test_idxs <- regdf |> filter(regulator_common == "DAL80") |> 
+  select(regulator) |> pull() |> unique()
+plotGenes(test_idxs, .experiment_name = "HAP4", .quartet = TRUE)
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_e <- "HAP4"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulates PTR2\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist[1:10],
+          nrow = 2, ncol = ceiling(length(plotlist[1:10])/2))
+ggarrange(plotlist = plotlist[11:21],
+          nrow = 2, ncol = ceiling(length(plotlist[11:21])/2))
+```
+### Ptr2 (YKR093W) comparative TFBS content
+
+```{r ptr2-tfbs, warning=FALSE}
+ptr2_tfbsdf <- readxl::read_xlsx("data_files/PTR2_intergenic_TFBS.xlsx",
+                                 col_names = TRUE)
+plotdf <- ptr2_tfbsdf |> group_by(TF, Species) |> 
+  mutate(TF = stringr::str_trim(TF, side = "right")) |> 
+  tidyr::separate_rows(TF, convert = TRUE) |> 
+  group_by(TF, Species) |> 
+  summarise(n = n()) |> 
+  pivot_wider(id_cols = "TF", names_from = "Species", 
+              values_from = "n", values_fill = 0) |>
+  left_join(y = dplyr::select(yeastract_lookup, common_protein, common, systematic),
+            by = c("TF"="common_protein"))
+plotdf$conservation <- if_else(plotdf$Scer == 0, true = "Spar",
+                               false = if_else(plotdf$Spar == 0,
+                                               true = "Scer",
+                                               false = "both"))
+both_idxs <- plotdf |> filter(conservation == "both") |> 
+  select(systematic) |> pull() |> 
+  intersect(y = unique(finaldf$gene_name))
+Scer_idxs <- plotdf |> filter(conservation == "Scer") |> 
+  select(systematic) |> pull() |> 
+  intersect(y = unique(finaldf$gene_name))
+Spar_idxs <- plotdf |> filter(conservation == "Spar") |> 
+  select(systematic) |> pull() |> 
+  intersect(y = unique(finaldf$gene_name))
+# TFs with TFBSs in both species
+plotGenes(both_idxs, .experiment_name = "HAP4",
+                    .plot_titles = c("TFs with binding sites in \nPTR2 intergenic in both species"), .quartet = TRUE)
+# Scer unique
+plotlist <- vector(mode = "list", length = length(Scer_idxs))
+names(plotlist) <- Scer_idxs
+for (g in Scer_idxs) {
+  plotlist[[g]] <- plotGenes(g, 
+                             .quartet = TRUE, .experiment_name = "HAP4",
+                             .plot_titles = unique(plotdf$common[plotdf$systematic == g]))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+# Spar unique
+plotlist <- vector(mode = "list", length = length(Spar_idxs))
+names(plotlist) <- Spar_idxs
+for (g in Spar_idxs) {
+  plotlist[[g]] <- plotGenes(g, 
+                             .quartet = TRUE, .experiment_name = "HAP4",
+                             .plot_titles = unique(plotdf$common[plotdf$systematic == g]))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+```
+### conserved example regulon HSF1 Heat, protein folding
+
+```{r regulon-avg-expr-examples-YRR1-CC-metabolites, warning=FALSE}
+test_idxs <- c("YAL005C", "YBL075C", "YBR072W", "YBR169C", "YDR214W", "YDR258C", "YER103W",
+               "YFL016C", "YGR142W", "YJR045C", "YLL024C", "YLL026W", "YLR216C", "YLR259C",
+               "YML130C", "YMR186W", "YNL007C", "YNL064C", "YNL281W", "YOR020C", "YOR027W",
+               "YPL106C", "YPL240C", "YPR158W")
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_tf <- "HSF1"
+test_GO <- "GO: protein folding"
+test_e <- "Heat"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist[1:12],
+          nrow = 2, ncol = ceiling(length(plotlist[1:12])/2))
+ggarrange(plotlist = plotlist[13:24],
+          nrow = 2, ncol = ceiling(length(plotlist[13:24])/2))
+```
+
+### HSP60 comparative TFBS content
+
+```{r ptr2-tfbs, warning=FALSE}
+hsp60_tfbsdf <- readxl::read_xlsx("data_files/HSP60_intergenic_TFBS.xlsx",
+                                 col_names = TRUE)
+plotdf <- hsp60_tfbsdf |> group_by(TF, Species) |> 
+  mutate(TF = stringr::str_trim(TF, side = "right")) |> 
+  tidyr::separate_rows(TF, convert = TRUE) |> 
+  group_by(TF, Species) |> 
+  summarise(n = n()) |> 
+  pivot_wider(id_cols = "TF", names_from = "Species", 
+              values_from = "n", values_fill = 0) |>
+  left_join(y = dplyr::select(yeastract_lookup, common_protein, common, systematic),
+            by = c("TF"="common_protein"))
+plotdf$conservation <- if_else(plotdf$Scer == 0, true = "Spar",
+                               false = if_else(plotdf$Spar == 0,
+                                               true = "Scer",
+                                               false = "both"))
+both_idxs <- plotdf |> filter(conservation == "both") |> 
+  select(systematic) |> pull() |> 
+  intersect(y = unique(finaldf$gene_name))
+Scer_idxs <- plotdf |> filter(conservation == "Scer") |> 
+  select(systematic) |> pull() |> 
+  intersect(y = unique(finaldf$gene_name))
+Spar_idxs <- plotdf |> filter(conservation == "Spar") |> 
+  select(systematic) |> pull() |> 
+  intersect(y = unique(finaldf$gene_name))
+# TFs with TFBSs in both species
+plotGenes(both_idxs, .experiment_name = "Heat",
+                    .plot_titles = c("TFs with binding sites in \nPTR2 intergenic in both species"), .quartet = TRUE)
+# Scer unique
+plotlist <- vector(mode = "list", length = length(Scer_idxs))
+names(plotlist) <- Scer_idxs
+for (g in Scer_idxs) {
+  plotlist[[g]] <- plotGenes(g, 
+                             .quartet = TRUE, .experiment_name = "Heat",
+                             .plot_titles = unique(plotdf$common[plotdf$systematic == g]))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+# Spar unique
+plotlist <- vector(mode = "list", length = length(Spar_idxs))
+names(plotlist) <- Spar_idxs
+for (g in Spar_idxs) {
+  plotlist[[g]] <- plotGenes(g, 
+                             .quartet = TRUE, .experiment_name = "Heat",
+                             .plot_titles = unique(plotdf$common[plotdf$systematic == g]))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+```
+
+Conclusion: too much TFBS turnover to identify any causative changes in PTR2 cis region---HSP60 has conserved plasticity and has more differences in TFBS content between species than PTR2
+
+```{r regulon-avg-expr-examples-YRR1-CC, warning=FALSE}
+# YRR1, 3 genes associated with plasma membrane organization in CC. All have the same pattern of HU-induced decrease in Spar (and in hybrid alleles):
+plotGenes(c("YFL014W", "YMR251W-A", "YPR149W"), .experiment_name = "CC",
+          .plot_titles = c("HOR7, NCE102, and HSP12 \n(GO: plasma membrane organization)\n in HU Shock"), .quartet = TRUE)
+```
+
+YRR1 also regulates some genes involved in generation of precursor metabolites and energy:
+
+```{r regulon-avg-expr-examples-YRR1-CC-metabolites, warning=FALSE}
+test_idxs <- c("YAL038W", "YFR033C", "YGL253W", "YJR048W", 
+               "YMR145C", "YOR065W", "YPR191W")
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_tf <- "YRR1"
+test_GO <- "GO: generation of precursor metabolites"
+test_e <- "CC"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+```
+
+Conclusion: lots of trans-based level divergence in both directions, HXK2 seems to have up-Scer cis-based level divergence. Some mild plasticity divergence, especially RGL1, ENO2, AAP1, and SOL4, COX6, CYC1
+
+YAP1 CC has the same generation of precursor metabolites and energy GO-term hit in CC:
+
+```{r regulon-avg-expr-examples-YAP1-CC-metabolites, warning=FALSE}
+test_idxs <- c("YAL038W", "YBL045C", "YBR010W", "YER067W", "YFR033C", "YGL253W",
+               "YGR248W", "YHR047C", "YHR051W", "YHR174W", "YJR048W", "YLR258W")
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_tf <- "YAP1"
+test_GO <- "GO: generation of precursor metabolites"
+test_e <- "CC"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+```
+
+Conclusion: Similar to YRR1, the trans-based level divergence is the main story. In both YAP1 and YRR1, CYC1 only has plasticity in Scer, spikes early. Lupo et al. 2021 doesn't mention this gene.
+
+PDR1 Protein Folding
+
+```{r regulon-avg-expr-examples-PDR1-CC-protein-folding, warning=FALSE}
+test_idxs <- c("YAL005C", "YCL045C", "YDR258C", "YLL024C", "YLL026W", "YPL106C",
+               "YAR002W")
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_tf <- "PDR1"
+test_GO <- "GO: protein folding/heat response"
+test_e <- "CC"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 1, ncol = length(plotlist))
+```
+
+Conclusion: SSA2, EMC1, and SSE1 all have the same pattern in the parents: start higher in Scer, decrease in Scer and increase in Spar, no obvious pattern in hybrids. HSP104 perhaps has cis-based plasticity divergence
+
+SWI4 has some cellcycle/mitosis/DNA metabolism genes:
+
+```{r regulon-avg-expr-examples-SWI4-CC-DNAmet, warning=FALSE}
+test_idxs <- c("YBR088C", "YDR296W", "YPL127C", "YLR084C", "YLR183C")
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_tf <- "SWI4"
+test_GO <- "GO: mitosis/DNA metabolism"
+test_e <- "CC"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 1, ncol = length(plotlist))
+```
+
+Conclusion: TOS4 and POL30 both have a trans-based spike in Spar not Scer
+
+```{r regulon-avg-expr-examples-SWI4-CC-DNAmet, warning=FALSE}
+test_idxs <- c("YER111C", "YBR088C", "YLR183C")
+test_commonNames <- c("SWI4", "POL30", "TOS4")
+test_tf <- "SWI4"
+test_GO <- "GO: mitosis/DNA metabolism"
+test_e <- "CC"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_commonNames
+for (g in test_commonNames) {
+  plotlist[[g]] <- plotGenes(test_idxs[test_commonNames == g], 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 1, ncol = ceiling(length(plotlist)))
+```
+Conclusion: perhaps a trans-based spikes in Spar preempt a cis-based spike in SWI4
 
 
+RPN4: stress response:
+
+```{r regulon-avg-expr-examples-RPN4-CC-stress, warning=FALSE}
+test_idxs <- c("YBL023C", "YDL140C", "YDR028C", "YDR159W", "YDR334W", "YDR372C",
+               "YFL024C", "YGL195W", "YMR186W", "YOR023C", "YOR025W", "YOR297C")
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_tf <- "RPN4"
+test_GO <- "GO: stress response"
+test_e <- "CC"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+```
+Conclusion: lots of plasticity divergence, not much based in cis
+
+RPN4: protein folding, maturation:
+
+```{r regulon-avg-expr-examples-RPN4-CC-stress, warning=FALSE}
+test_idxs <- c("YAL005C", "YDL143W", "YJR088C", "YML048W", "YMR186W",
+               "YCR008W", "YHR028C", "YKL040C", "YKL077W")
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_tf <- "RPN4"
+test_GO <- "GO: protein folding/maturation"
+test_e <- "CC"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+```
+
+RPN4: protein folding, maturation:
+
+```{r regulon-avg-expr-examples-RPN4-CC-stress, warning=FALSE}
+test_idxs <- c("YAL005C", "YDL143W", "YJR088C", "YML048W", "YMR186W",
+               "YCR008W", "YHR028C", "YKL040C", "YKL077W")
+test_genes <- left_join(tibble(systematic = test_idxs),
+                        y = dplyr::select(yeastract_lookup, systematic, common),
+                        by = "systematic")
+test_tf <- "RPN4"
+test_GO <- "GO: protein folding/maturation"
+test_e <- "CC"
+test_e_name <- LongExperimentNames[ExperimentNames == test_e]
+plotlist = vector(mode = "list", length = length(test_idxs))
+names(plotlist) <- test_genes$common
+for (g in test_genes$common) {
+  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
+  plotlist[[g]] <- plotGenes(test_idx, 
+                             .quartet = TRUE, .experiment_name = test_e,
+                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
+                                                   test_GO, "\n in ", test_e_name))
+}
+ggarrange(plotlist = plotlist,
+          nrow = 2, ncol = ceiling(length(plotlist)/2))
+```
+
+PDR3 CC: metabolism
+```{r regulon-avg-expr-examples-PDR3-CC, warning=FALSE}
+plotGenes(.gene_idxs = c("YAL038W", "YHR174W"), .experiment_name = "CC",
+          .plot_titles = c("CDC19 and ENO2\n in PDR3 regulon \n(GO: metabolism)\n in HU Shock"), .quartet = FALSE)
+```
+These two are both highly expressed, higher in Scer, and have Scer-only spike early
+
+## Is there a relationship between level and plasticity divergence when they are both in cis?
+
+The above examples suggest that genes that are diverging in plasticity or level in cis may also have divergence in the other property. As more genes are diverging in level in cis, if we filter first for cis based level divergence and then for cis-based plasticity divergence, we'll likely have a bigger set.
+
+```{r cis-level-plasticity}
+eff_thresh <- log2(1.5)
+plotdf <- finaldf |> filter(plasticity == "diverged" &
+                              level == "diverged") |> 
+  mutate(cis_level = effect_size_allele > eff_thresh & 
+           padj_allele < 0.05)
+# cor, lower = more cis
+ggplot(plotdf, aes(x = cis_level, y = cor_hybrid)) +
+  geom_boxplot(aes(color = cis_level)) +
+  stat_compare_means()
+# scaled mean difference, higher = more cis
+ggplot(plotdf, aes(x = cis_level, y = ABC_hybrid)) +
+  geom_boxplot(aes(color = cis_level)) +
+  stat_compare_means()
+```
+
+Conclusion: slight trends in the expected direction, but nothing major.
 
 ## Regulons have a higher percentage of conserved plasticity genes in their home environment vs alternative environments
 
@@ -1018,66 +1798,14 @@ p
 Outputting to pdf:
 
 ```{r home-density-pdf}
-pdf("paper_figures/Yeastract/histogram_regulons.pdf",
-    width = 9, height = 2)
-p
-dev.off()
+# pdf("paper_figures/Yeastract/histogram_regulons.pdf",
+#     width = 9, height = 2)
+# p
+# dev.off()
 ```
 
-## Supplemental Table 3: regulators and their regulons in each environment
 
-```{r supp3-regulator-regulon}
-plotdf <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name"))
-# dataframe of fraction conserved plasticity in each environment (same starting code as from regulon-pct-conserved-plasticity)
-consplastdf <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
-  home_mat <- regmats[[h]]
-  h_idxs <- finaldf |> filter(experiment == h) |> 
-    dplyr::select(gene_name) |> pull()
-  regulon_idxs <- intersect(colnames(home_mat)[home_mat[tf,] > 0], h_idxs)
-  outdf <- purrr::map(ExperimentNames, \(e) {
-    e_plast_genes <- finaldf |>
-      filter(experiment == e & plasticity == "conserved") |>
-      dplyr::select(gene_name) |> pull()
-    e_genedf <- tibble(tf = tf,
-                       home = h,
-                       experiment = e,
-                       n = length(regulon_idxs),
-                       nConsPlast = sum(regulon_idxs %in% e_plast_genes))
-    return(e_genedf)
-  }) |> purrr::reduce(.f = bind_rows)
-  return(outdf)
-}) |> purrr::reduce(.f = bind_rows) |> 
-  mutate(pct_cons_plast = nConsPlast/n) |> 
-  dplyr::select(tf, home, experiment, pct_cons_plast) |> 
-  pivot_wider(id_cols = c("tf", "home"),
-              names_from = "experiment",
-              values_from = "pct_cons_plast",
-              names_prefix = "percent_conserved_plasticity_")
-suppTable3 <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name", 
-                               "regulon_size"="out_degree_e", 
-                               "log2foldChange_parents"="effect_size_species",
-                               "log2foldChange_hybrid"="effect_size_allele",
-                               "padj_parents"="padj_species",
-                               "padj_hybrid"="padj_allele")) |> 
-  left_join(y = dplyr::select(yeastract_lookup, 
-                       common, systematic), 
-            by = c("tf"="systematic")) |> 
-  dplyr::select(home, tf, common, regulon_size,
-         log2foldChange_parents,
-         log2foldChange_hybrid,
-         padj_parents, padj_hybrid, plasticity, 
-         cor_parents, cor_hybrid, cor_scer, cor_spar) |> 
-  left_join(y = consplastdf, by = c("tf", "home"))
-```
-
-Writing supp table to csv:
-
-```{r supp3-csv}
-write_csv(suppTable3, file = "data_files/Supplementary_Table3.csv",
-          col_names = TRUE)
-```
-
-Archive: Do any TFs Granger-cause a difference in their targets' expression?
+Do any TFs Granger-cause a difference in their targets' expression? (Archived this analysis b/c it was very sensitive to the number of timepoints in each experiment, but keeping the function in case it is useful)
 
 ```{r testGrangerCause}
 testGrangerCause <- function(.tf, .target, .environment, .allele, .parents_or_hybrid) {
