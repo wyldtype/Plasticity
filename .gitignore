@@ -10,5 +10,8 @@
 /single_gene_models_cache
 /data_for_figure_scripts_cache
 /clustering_cache
+/QC_clustering_cache
+/Fig_environmental_patterns_cache
+/Fig_yeastract_cache
 .DS_Store
 .Rproj.user
