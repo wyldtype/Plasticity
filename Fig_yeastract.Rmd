@@ -139,80 +139,100 @@ cold <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/Cold",
 Our full list of regmats:
 
 ```{r regmat-list}
-regmats <- list("YPD" = ypd, "HAP4" = hap4,
+if (!file.exists("data_files/RegulatoryMatrices.RData")) {
+  regmats <- list("YPD" = ypd, "HAP4" = hap4,
                 # "HAP4_up" = hap4_activators,
                 # "HAP4_down" = hap4_inhibitors,
                 "CC" = cc, "LowN" = lown, "LowPi" = lowpi, 
                 "Heat" = heat, "Cold" = cold)
+}
 ```
 
 ### Filtering out unused regulators
 
 ```{r unused-regulators}
-# filtering out any regulators (rows) with zero counts in all
-# environments and not included in the targets (columns)
-zero_count_elements <- rownames(ypd)[rowSums(purrr::reduce(regmats, .f = cbind)) == 0]
-sum(zero_count_elements %in% colnames(ypd))
-sum(!(zero_count_elements %in% colnames(ypd)))
-toRemove <- setdiff(zero_count_elements, colnames(ypd))
-regmats <- map(regmats, .f = \(x) {x[setdiff(rownames(x), toRemove),]})
+if (!file.exists("data_files/RegulatoryMatrices.RData")) {
+  # filtering out any regulators (rows) with zero counts in all
+  # environments and not included in the targets (columns)
+  zero_count_elements <- rownames(ypd)[rowSums(purrr::reduce(regmats, .f = cbind)) == 0]
+  sum(zero_count_elements %in% colnames(ypd))
+  sum(!(zero_count_elements %in% colnames(ypd)))
+  toRemove <- setdiff(zero_count_elements, colnames(ypd))
+  regmats <- map(regmats, .f = \(x) {x[setdiff(rownames(x), toRemove),]})
+}
 ```
 
 ### Filtering out unused targets not in regulators
 ```{r unused-targets}
-# all_regulators <- purrr::map2(regmats, names(regmats), \(mat, nm) {
-#   nUnusedTargets <- length(setdiff(colnames(mat), rownames(mat)))
-#   if(nUnusedTargets != 0) {
-#     cat(nm, "has", nUnusedTargets, "targets not found in regulator set\n")
-#   }
-#   return(rownames(mat))
-# }) |> unlist() |> unique()
-# problem_targets <- setdiff(idxs, all_regulators)
-# problem_targets
-# cat("this should be zero:", sum(regmats$CC[, problem_targets]), "\n")
-# # removing unused targets not found in regulators
-# regmats <- purrr::map(regmats, \(mat) {
-#   stopifnot(sum(mat[, problem_targets]) != 0)
-#   #mat <- mat[, setdiff(colnames(mat), problem_targets)]
-#   return(mat)
-# })
+if (!file.exists("data_files/RegulatoryMatrices.RData")) {
+  all_regulators <- purrr::map2(regmats, names(regmats), \(mat, nm) {
+    nUnusedTargets <- length(setdiff(colnames(mat), rownames(mat)))
+    if(nUnusedTargets != 0) {
+      cat(nm, "has", nUnusedTargets, "targets not found in regulator set\n")
+    }
+    return(rownames(mat))
+  }) |> unlist() |> unique()
+  problem_targets <- setdiff(idxs, all_regulators)
+  problem_targets
+  cat("this should be zero:", sum(regmats$CC[, problem_targets]), "\n")
+  # removing unused targets not found in regulators
+  regmats <- purrr::map(regmats, \(mat) {
+    stopifnot(sum(mat[, problem_targets]) == 0)
+    #mat <- mat[, setdiff(colnames(mat), problem_targets)]
+    return(mat)
+  })
+}
 ```
 
 
 ### Making regmats square
 
 ```{r square}
-# filtering out zero count regulators made rows/columns nearly identical
-# but there are still a few non-zero regulators that aren't found in columns
+if (!file.exists("data_files/RegulatoryMatrices.RData")) {
+  # filtering out zero count regulators made rows/columns nearly identical
+  # but there are still a few non-zero regulators that aren't found in columns
+  
+  # checking for any genes missing from idxs that have network connections
+  setdiff(rownames(regmats$YPD)[rowSums(regmats$YPD) > 0], idxs) # YER109C = FLO8, YLR256W = HAP1, YOL028C = YAP7 all unannotated b/c of large sequence differences between Scer and other saccharomyces
+  # Number of genes that are recorded in yeastract as Scer regulators, but
+  # they are missing in our gene lists: 
+  sum(!(rownames(regmats$YPD) %in% colnames(regmats$YPD))) # number of regulators
+  rowSums(regmats$YPD[!(rownames(regmats$YPD) %in% colnames(regmats$YPD)),]) # number of targets for each regulator
+  
+  ### making regulator matrices square
+  regmats <- map(regmats, \(x) {
+    common_idxs <- colnames(x)
+    out_mat <- x[common_idxs, common_idxs]
+    return(out_mat)
+    
+  })
+}
 
-# checking for any genes missing from idxs that have network connections
-setdiff(rownames(regmats$YPD)[rowSums(regmats$YPD) > 0], idxs) # YER109C = FLO8, YLR256W = HAP1, YOL028C = YAP7 all unannotated b/c of large sequence differences between Scer and other saccharomyces
-# Number of genes that are recorded in yeastract as Scer regulators, but
-# they are missing in our gene lists: 
-sum(!(rownames(regmats$YPD) %in% colnames(regmats$YPD))) # number of regulators
-rowSums(regmats$YPD[!(rownames(regmats$YPD) %in% colnames(regmats$YPD)),]) # number of targets for each regulator
-
-### making regulator matrices square
-regmats <- map(regmats, \(x) {
-  common_idxs <- colnames(x)
-  out_mat <- x[common_idxs, common_idxs]
-  return(out_mat)
-})
 ```
 
 ### Removing unconnected nodes
 
 ```{r unconnected-nodes}
-# genes with no in or out edges in any environment
-zero_count_rows <- rownames(regmats$YPD)[rowSums(purrr::reduce(regmats, .f = cbind)) == 0]
-zero_count_cols <- colnames(regmats$YPD)[colSums(purrr::reduce(regmats, .f = rbind)) == 0]
-zero_count_genes <- intersect(zero_count_rows, zero_count_cols)
-length(zero_count_genes)
-regmats <- map(regmats, \(x) {
-  out_mat <- x[setdiff(rownames(x), zero_count_genes), 
-               setdiff(colnames(x), zero_count_genes)]
-  return(out_mat)
-})
+if (!file.exists("data_files/RegulatoryMatrices.RData")) {
+  # genes with no in or out edges in any environment
+  zero_count_rows <- rownames(regmats$YPD)[rowSums(purrr::reduce(regmats, .f = cbind)) == 0]
+  zero_count_cols <- colnames(regmats$YPD)[colSums(purrr::reduce(regmats, .f = rbind)) == 0]
+  zero_count_genes <- intersect(zero_count_rows, zero_count_cols)
+  length(zero_count_genes)
+  regmats <- map(regmats, \(x) {
+    out_mat <- x[setdiff(rownames(x), zero_count_genes), 
+                 setdiff(colnames(x), zero_count_genes)]
+    return(out_mat)
+  })
+}
+```
+## Saving processed regulatory matrices
+
+```{r saving-regmats}
+if (file.exists("data_files/RegulatoryMatrices.RData")) {
+  load("data_files/RegulatoryMatrices.RData")
+}
+save(regmats, file = "data_files/RegulatoryMatrices.RData")
 ```
 
 ## Visualizing Networks
@@ -1085,7 +1105,7 @@ for (i in 1:nrow(griddf)) {
 ```
 
 Plotting for figure:
-```{r bootstrap-plotting}
+```{r bootstrap-pdf}
 # # set new binwidth, if desired
 # plotlist <- purrr::map(plotlist, \(plt) {
 #   plt + geom_histogram(binwidth = 0.05)
@@ -1337,7 +1357,7 @@ ggarrange(p_FLR1, p_YOR1, p_SEC28, p_PTR2, p_TPO1, p_PDR12,
 
 ```{r ptr2-regulators, warning=FALSE}
 test_idxs <- regdf |> filter(regulator_common == "DAL80") |> 
-  select(regulator) |> pull() |> unique()
+  dplyr::select(regulator) |> pull() |> unique()
 plotGenes(test_idxs, .experiment_name = "HAP4", .quartet = TRUE)
 test_genes <- left_join(tibble(systematic = test_idxs),
                         y = dplyr::select(yeastract_lookup, systematic, common),
@@ -1376,13 +1396,13 @@ plotdf$conservation <- if_else(plotdf$Scer == 0, true = "Spar",
                                                true = "Scer",
                                                false = "both"))
 both_idxs <- plotdf |> filter(conservation == "both") |> 
-  select(systematic) |> pull() |> 
+  dplyr::select(systematic) |> pull() |> 
   intersect(y = unique(finaldf$gene_name))
 Scer_idxs <- plotdf |> filter(conservation == "Scer") |> 
-  select(systematic) |> pull() |> 
+  dplyr::select(systematic) |> pull() |> 
   intersect(y = unique(finaldf$gene_name))
 Spar_idxs <- plotdf |> filter(conservation == "Spar") |> 
-  select(systematic) |> pull() |> 
+  dplyr::select(systematic) |> pull() |> 
   intersect(y = unique(finaldf$gene_name))
 # TFs with TFBSs in both species
 plotGenes(both_idxs, .experiment_name = "HAP4",
@@ -1410,7 +1430,7 @@ ggarrange(plotlist = plotlist,
 ```
 ### conserved example regulon HSF1 Heat, protein folding
 
-```{r regulon-avg-expr-examples-YRR1-CC-metabolites, warning=FALSE}
+```{r regulon-avg-expr-examples-HSF1-Heat-protein, warning=FALSE}
 test_idxs <- c("YAL005C", "YBL075C", "YBR072W", "YBR169C", "YDR214W", "YDR258C", "YER103W",
                "YFL016C", "YGR142W", "YJR045C", "YLL024C", "YLL026W", "YLR216C", "YLR259C",
                "YML130C", "YMR186W", "YNL007C", "YNL064C", "YNL281W", "YOR020C", "YOR027W",
@@ -1439,7 +1459,7 @@ ggarrange(plotlist = plotlist[13:24],
 
 ### HSP60 comparative TFBS content
 
-```{r ptr2-tfbs, warning=FALSE}
+```{r hsp60-tfbs, warning=FALSE}
 hsp60_tfbsdf <- readxl::read_xlsx("data_files/HSP60_intergenic_TFBS.xlsx",
                                  col_names = TRUE)
 plotdf <- hsp60_tfbsdf |> group_by(TF, Species) |> 
@@ -1456,13 +1476,13 @@ plotdf$conservation <- if_else(plotdf$Scer == 0, true = "Spar",
                                                true = "Scer",
                                                false = "both"))
 both_idxs <- plotdf |> filter(conservation == "both") |> 
-  select(systematic) |> pull() |> 
+  dplyr::select(systematic) |> pull() |> 
   intersect(y = unique(finaldf$gene_name))
 Scer_idxs <- plotdf |> filter(conservation == "Scer") |> 
-  select(systematic) |> pull() |> 
+  dplyr::select(systematic) |> pull() |> 
   intersect(y = unique(finaldf$gene_name))
 Spar_idxs <- plotdf |> filter(conservation == "Spar") |> 
-  select(systematic) |> pull() |> 
+  dplyr::select(systematic) |> pull() |> 
   intersect(y = unique(finaldf$gene_name))
 # TFs with TFBSs in both species
 plotGenes(both_idxs, .experiment_name = "Heat",
@@ -1604,24 +1624,7 @@ ggarrange(plotlist = plotlist,
 
 Conclusion: TOS4 and POL30 both have a trans-based spike in Spar not Scer
 
-```{r regulon-avg-expr-examples-SWI4-CC-DNAmet, warning=FALSE}
-test_idxs <- c("YER111C", "YBR088C", "YLR183C")
-test_commonNames <- c("SWI4", "POL30", "TOS4")
-test_tf <- "SWI4"
-test_GO <- "GO: mitosis/DNA metabolism"
-test_e <- "CC"
-test_e_name <- LongExperimentNames[ExperimentNames == test_e]
-plotlist = vector(mode = "list", length = length(test_idxs))
-names(plotlist) <- test_commonNames
-for (g in test_commonNames) {
-  plotlist[[g]] <- plotGenes(test_idxs[test_commonNames == g], 
-                             .quartet = TRUE, .experiment_name = test_e,
-                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
-                                                   test_GO, "\n in ", test_e_name))
-}
-ggarrange(plotlist = plotlist,
-          nrow = 1, ncol = ceiling(length(plotlist)))
-```
+
 Conclusion: perhaps a trans-based spikes in Spar preempt a cis-based spike in SWI4
 
 
@@ -1653,32 +1656,7 @@ Conclusion: lots of plasticity divergence, not much based in cis
 
 RPN4: protein folding, maturation:
 
-```{r regulon-avg-expr-examples-RPN4-CC-stress, warning=FALSE}
-test_idxs <- c("YAL005C", "YDL143W", "YJR088C", "YML048W", "YMR186W",
-               "YCR008W", "YHR028C", "YKL040C", "YKL077W")
-test_genes <- left_join(tibble(systematic = test_idxs),
-                        y = dplyr::select(yeastract_lookup, systematic, common),
-                        by = "systematic")
-test_tf <- "RPN4"
-test_GO <- "GO: protein folding/maturation"
-test_e <- "CC"
-test_e_name <- LongExperimentNames[ExperimentNames == test_e]
-plotlist = vector(mode = "list", length = length(test_idxs))
-names(plotlist) <- test_genes$common
-for (g in test_genes$common) {
-  test_idx <- filter(test_genes, common == g) |> dplyr::select(systematic) |> pull()
-  plotlist[[g]] <- plotGenes(test_idx, 
-                             .quartet = TRUE, .experiment_name = test_e,
-                             .plot_titles = paste0(g, ", regulated by ", test_tf," \n",
-                                                   test_GO, "\n in ", test_e_name))
-}
-ggarrange(plotlist = plotlist,
-          nrow = 2, ncol = ceiling(length(plotlist)/2))
-```
-
-RPN4: protein folding, maturation:
-
-```{r regulon-avg-expr-examples-RPN4-CC-stress, warning=FALSE}
+```{r regulon-avg-expr-examples-RPN4-CC-protein, warning=FALSE}
 test_idxs <- c("YAL005C", "YDL143W", "YJR088C", "YML048W", "YMR186W",
                "YCR008W", "YHR028C", "YKL040C", "YKL077W")
 test_genes <- left_join(tibble(systematic = test_idxs),

@@ -12,6 +12,8 @@ library(dplyr)
 library(purrr)
 load("data_files/FinalDataframe3Disp.RData")
 load("data_files/GO_Slim.RData")
+load("data_files/Cleaned_Counts.RData")
+load("data_files/Cleaned_Counts_Allele.RData")
 nGenes <- finaldf$gene_name |> unique() |> length() # for exact tests 
 # filtering for just Biological Processess
 goslim_full <- goslim
