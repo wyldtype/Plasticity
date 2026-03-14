@@ -1,0 +1,8 @@
+term,group_count,overall_count,exact_pval,sig,genes
+ATP hydrolysis activity,2,83,0.0041327963706375695,FALSE,YDR377W YLL034C
+structural molecule activity,2,261,0.037317982745728354,FALSE,YDR427W YDR471W
+ligase activity,1,103,0.12062223426432317,FALSE,YDR377W
+hydrolase activity,2,567,0.14833621843115544,FALSE,YDR377W YLL034C
+structural constituent of ribosome,1,179,0.20163044695309296,FALSE,YDR471W
+oxidoreductase activity,1,270,0.29035245137416277,FALSE,YDR158W
+transmembrane transporter activity,1,278,0.29774214357830564,FALSE,YDR377W

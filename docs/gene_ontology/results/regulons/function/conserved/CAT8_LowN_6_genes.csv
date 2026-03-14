@@ -1,0 +1,6 @@
+term,group_count,overall_count,exact_pval,sig,genes
+oxidoreductase activity,2,270,0.039739918938727914,FALSE,YLR174W YOL126C
+isomerase activity,1,56,0.06718129145085194,FALSE,YOR095C
+acyltransferase activity,1,185,0.207751450109937,FALSE,YNL117W
+transmembrane transporter activity,1,278,0.29774214357830564,FALSE,YDR384C
+transferase activity,1,719,0.6173804519699326,FALSE,YNL117W

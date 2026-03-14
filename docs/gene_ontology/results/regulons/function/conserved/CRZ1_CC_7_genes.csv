@@ -1,0 +1,6 @@
+term,group_count,overall_count,exact_pval,sig,genes
+glycosyltransferase activity,2,92,0.006994918735629862,FALSE,YGR032W YGR189C
+peptidase activity,1,85,0.11621098341621683,FALSE,YLR120C
+phosphatase activity,1,96,0.13036749044350415,FALSE,YDR074W
+hydrolase activity,2,567,0.19225465519459908,FALSE,YDR074W YLR120C
+transferase activity,2,719,0.2775517275854049,FALSE,YGR032W YGR189C

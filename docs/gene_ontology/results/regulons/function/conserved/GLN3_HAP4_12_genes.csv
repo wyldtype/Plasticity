@@ -1,0 +1,12 @@
+term,group_count,overall_count,exact_pval,sig,genes
+hydrolase activity, acting on carbon-nitrogen (but not peptide) bonds,2,52,0.0069176119767677515,FALSE,YNL141W YPL111W
+transmembrane transporter activity,3,278,0.027707427996525813,FALSE,YKR039W YPL265W YPR138C
+oxidoreductase activity,2,270,0.14064227113874095,FALSE,YDL215C YOR375C
+ion binding,3,576,0.16207663021184862,FALSE,YFL021W YNL141W YPL111W
+lyase activity,1,80,0.18071194379249467,FALSE,YHR018C
+ligase activity,1,103,0.2268189444592903,FALSE,YPR035W
+DNA-binding transcription factor activity,1,106,0.23265424863816608,FALSE,YFL021W
+hydrolase activity,2,567,0.41665823237565147,FALSE,YNL141W YPL111W
+enzyme regulator activity,1,249,0.46825518517161424,FALSE,YPL111W
+DNA binding,1,324,0.5633104077333991,FALSE,YFL021W
+transferase activity,1,719,0.8537907439862586,FALSE,YJR148W

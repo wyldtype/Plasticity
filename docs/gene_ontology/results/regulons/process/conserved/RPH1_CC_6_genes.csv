@@ -1,0 +1,21 @@
+term,group_count,overall_count,exact_pval,sig,genes
+ribosomal small subunit biogenesis,1,25,0.03047309179607005,FALSE,YLR336C
+ribosomal large subunit biogenesis,1,46,0.05546874165971949,FALSE,YLL034C
+response to osmotic stress,1,54,0.06484851657242763,FALSE,YLR336C
+ribosomal subunit export from nucleus,1,58,0.06950921497402718,FALSE,YLL034C
+sulfur compound metabolic process,1,81,0.09593424743061829,FALSE,YDR158W
+biosynthetic process,3,973,0.09900644901858441,FALSE,YDR158W YDR377W YDR471W
+cytoplasmic translation,1,96,0.1128286835280794,FALSE,YDR471W
+small molecule metabolic process,2,556,0.1435353322738885,FALSE,YDR158W YDR377W
+nuclear transport,1,156,0.17780021184557948,FALSE,YLL034C
+nucleocytoplasmic transport,1,156,0.17780021184557948,FALSE,YLL034C
+nucleobase-containing small molecule metabolic process,1,172,0.19443951701558126,FALSE,YDR377W
+amino acid metabolic process,1,173,0.19547008479765093,FALSE,YDR158W
+proteolysis involved in protein catabolic process,1,186,0.20876780488850044,FALSE,YDR427W
+translation,1,189,0.21181035227509248,FALSE,YDR471W
+protein-containing complex assembly,1,375,0.38236112493324137,FALSE,YDR427W
+response to stress,1,503,0.48086925278943715,FALSE,YLR336C
+cellular component assembly,1,534,0.5026428827159979,FALSE,YDR427W
+cellular nitrogen compound metabolic process,2,1386,0.5472305748835813,FALSE,YDR377W YDR471W
+catabolic process,1,615,0.5559727141171553,FALSE,YDR427W
+transport,1,874,0.6956682357225947,FALSE,YLL034C

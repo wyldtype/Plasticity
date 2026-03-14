@@ -1,0 +1,13 @@
+term,group_count,overall_count,exact_pval,sig,genes
+GTPase activity,1,59,0.1777002449351659,FALSE,YNL180C
+DNA-binding transcription factor activity,1,106,0.29758973577553516,FALSE,YER045C
+protein-macromolecule adaptor activity,1,116,0.32088719819875755,FALSE,YDR422C
+structural constituent of ribosome,1,179,0.45180300564441234,FALSE,YDR041W
+kinase activity,1,182,0.45740395328486927,FALSE,YDR422C
+enzyme regulator activity,1,249,0.5693582302817528,FALSE,YOR107W
+hydrolase activity,2,567,0.5725007756638947,FALSE,YGR248W YNL180C
+structural molecule activity,1,261,0.5869647871961634,FALSE,YDR041W
+oxidoreductase activity,1,270,0.5997243546539648,FALSE,YHR007C
+transmembrane transporter activity,1,278,0.6107550487404235,FALSE,YOR273C
+DNA binding,1,324,0.6688493552497257,FALSE,YER045C
+transferase activity,2,719,0.7087683932707494,FALSE,YDR422C YGL154C

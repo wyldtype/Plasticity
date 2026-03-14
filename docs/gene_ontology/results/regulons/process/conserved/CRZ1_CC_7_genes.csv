@@ -1,0 +1,12 @@
+term,group_count,overall_count,exact_pval,sig,genes
+cell wall organization or biogenesis,3,114,4.1080952554911995e-4,TRUE,YGR032W YGR189C YLR120C
+carbohydrate metabolic process,2,106,0.009209775482793357,FALSE,YDR074W YGR032W
+oligosaccharide metabolic process,1,16,0.022823558390449583,FALSE,YDR074W
+invasive growth in response to glucose limitation,1,38,0.05347601638363564,FALSE,YMR316W
+pseudohyphal growth,1,48,0.06713413961698333,FALSE,YMR316W
+anatomical structure formation involved in morphogenesis,1,73,0.1005426840387692,FALSE,YGR032W
+protein maturation,1,78,0.1070998334791744,FALSE,YLR120C
+growth,1,89,0.12138148643624513,FALSE,YMR316W
+signal transduction,1,215,0.2715207939677081,FALSE,YLR120C
+biosynthetic process,2,973,0.4237930673017346,FALSE,YDR074W YGR032W
+cellular component assembly,1,534,0.5573357782328134,FALSE,YGR032W

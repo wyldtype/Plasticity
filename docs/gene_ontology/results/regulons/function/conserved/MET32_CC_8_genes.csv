@@ -1,0 +1,11 @@
+term,group_count,overall_count,exact_pval,sig,genes
+transferase activity, transferring alkyl or aryl (other than methyl) groups,2,40,0.0017919120625457898,FALSE,YLL058W YLR303W
+transferase activity,4,719,0.02027127929509247,FALSE,YLL058W YLL062C YLR303W YNL277W
+unfolded protein binding,1,67,0.10514169620136993,FALSE,YBR072W
+lyase activity,1,80,0.12438124907927517,FALSE,YAL012W
+methyltransferase activity,1,81,0.12584610688089914,FALSE,YLL062C
+ion binding,2,576,0.24328815810127272,FALSE,YLL062C YPL135W
+acyltransferase activity,1,185,0.26697246506067285,FALSE,YNL277W
+mRNA binding,1,189,0.27197658170302097,FALSE,YBR072W
+transmembrane transporter activity,1,278,0.3758551448311106,FALSE,YGR055W
+RNA binding,1,365,0.4646223385373053,FALSE,YBR072W

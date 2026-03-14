@@ -647,30 +647,18 @@ for (e in ExperimentNames) {
                theme(legend.position = &quot;none&quot;),
              groupColour = TRUE, groupFill = TRUE)
 }</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 2 rows containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 3 rows containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 1 row containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 2 rows containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 2 rows containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 2 rows containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale
-## range (`geom_point()`).
-## Removed 1 row containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale range (`geom_point()`).
+## Removed 3 rows containing missing values or values outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range (`geom_point()`).
+## Removed 1 row containing missing values or values outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range (`geom_point()`).
+## Removed 1 row containing missing values or values outside the scale range (`geom_point()`).</code></pre>
 <pre class="r"><code>ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/area-between-curves-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/abc_eachEnvironment.pdf&quot;,
@@ -722,8 +710,8 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = &quot;HAP4&quot;), 
                      top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_all_HAP411_upcer.pdf&quot;, width = 2.5, height = 3)
@@ -738,8 +726,8 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = &quot;HAP4&quot;), 
                      top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_trans_HAP411_upcer.pdf&quot;, width = 3, height = 3)
@@ -755,8 +743,8 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = &quot;HAP4&quot;), 
                      top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-3.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_cis_HAP411_upcer.pdf&quot;, width = 3, height = 3)
@@ -786,8 +774,8 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_all_HAP421.pdf&quot;,
@@ -803,8 +791,8 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_cis_HAP421.pdf&quot;,
@@ -820,8 +808,8 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-3.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_trans_HAP421.pdf&quot;,
@@ -937,8 +925,7 @@ plot_counts &lt;- plotdf |&gt;
   summarise(nComp_Scer = sum(effect_size_allele &gt; 0),
             nComp_Spar = sum(effect_size_allele &lt; 0),
             n = n())</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override
-## using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
   nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
@@ -971,18 +958,15 @@ plot_counts &lt;- plotdf |&gt;
         strip.text = element_text(size = 14)) +
   xlim(c(-5, 5))
 p</code></pre>
-<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 7 rows containing missing values or values outside the scale
-## range (`geom_vline()`).</code></pre>
+<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 7 rows containing missing values or values outside the scale range
+## (`geom_vline()`).</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/compensatory-level-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/compensatory_level.pdf&quot;,
     width = 7, height = 4)
 p</code></pre>
-<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 7 rows containing missing values or values outside the scale
-## range (`geom_vline()`).</code></pre>
+<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale range (`stat_density()`).
+## Removed 7 rows containing missing values or values outside the scale range (`geom_vline()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -1002,8 +986,7 @@ plotdf$plasticity_compensatory &lt;- plotdf$cor_hybrid &lt; low_bounds
 plot_counts &lt;- plotdf |&gt; 
   group_by(experiment, plasticity_compensatory) |&gt; 
   summarise(n = n())</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override
-## using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
   nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
@@ -1056,8 +1039,7 @@ plotdf$plasticity_compensatory &lt;- plotdf$ABC_hybrid &gt; high_bounds
 plot_counts &lt;- plotdf |&gt; 
   group_by(experiment, plasticity_compensatory) |&gt; 
   summarise(n = n())</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override
-## using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override using the `.groups` argument.</code></pre>
 <pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
   nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
@@ -1101,8 +1083,8 @@ plotdf$min_cor &lt;- pmin(plotdf$cor_scer, plotdf$cor_spar)
 plotdf$var_in_cis &lt;- plotdf$cor_hybrid &lt; plotdf$min_cor
 ggplot(plotdf, aes(x = min_cor, y = cor_hybrid)) +
   geom_point(aes(color = experiment)) + facet_wrap(~experiment)</code></pre>
-<pre><code>## Warning: Removed 11 rows containing missing values or values outside the scale
-## range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 11 rows containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/cor-hyb-vs-scer-spar-1.png" width="672" /></p>
 </div>
 <div id="probably-archive-from-here-down" class="section level1">
@@ -1145,56 +1127,34 @@ ggarrange(plotlist[[1]], plotlist[[2]],
           plotlist[[3]], plotlist[[4]],
           p_null, p_null, 
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code>ggarrange(plotlist[[1]], plotlist[[2]],
           p_null, p_null, plotlist[[3]], plotlist[[4]],
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range
-## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale range (`stat_density()`).</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-cor-1.png" width="672" /></p>
 </div>
 <div id="level-divergence-tends-to-be-in-cis" class="section level2">
@@ -1318,8 +1278,8 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-1.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_cis_HAP421.pdf&quot;,
@@ -1335,8 +1295,8 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can
-## override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-2.png" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_trans_HAP421.pdf&quot;,

@@ -1,0 +1,15 @@
+term,group_count,overall_count,exact_pval,sig,genes
+cell wall organization or biogenesis,4,114,4.159881853209956e-6,TRUE,YDR055W YDR077W YHR030C YJL159W
+regulation of cell cycle,2,209,0.024612473884934986,FALSE,YHR030C YPL089C
+signal transduction,2,215,0.025962231019444153,FALSE,YHR030C YPL089C
+regulation of transport,1,82,0.09706882064028499,FALSE,YHR030C
+nucleobase-containing compound transport,1,117,0.1360382597823535,FALSE,YKR095W
+RNA catabolic process,1,128,0.14799226221805672,FALSE,YKR095W
+catabolic process,2,615,0.1697829960655567,FALSE,YHR030C YKR095W
+nuclear transport,1,156,0.17780021184557948,FALSE,YKR095W
+nucleocytoplasmic transport,1,156,0.17780021184557948,FALSE,YKR095W
+mitochondrion organization,1,160,0.18198664569700373,FALSE,YDR077W
+nucleobase-containing compound catabolic process,1,165,0.1871946938746165,FALSE,YKR095W
+response to stress,1,503,0.48086925278943715,FALSE,YHR030C
+transport,1,874,0.6956682357225947,FALSE,YKR095W
+cellular nitrogen compound metabolic process,1,1386,0.8666312298271968,FALSE,YKR095W

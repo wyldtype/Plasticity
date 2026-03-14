@@ -1,0 +1,4 @@
+term,group_count,overall_count,exact_pval,sig,genes
+lyase activity,2,80,0.007023626109451019,FALSE,YDR533C YGL009C
+transmembrane transporter activity,1,278,0.3758551448311106,FALSE,YBR241C
+transferase activity,1,719,0.7223067693613638,FALSE,YOR285W

@@ -353,10 +353,10 @@ scripts (also as Supplementary Table 1)</p>
 <pre class="r"><code>sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, 
          &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr 
-##        TRUE        TRUE        TRUE        TRUE        TRUE 
-##  data.table     ggplot2  data.table matrixStats 
-##        TRUE        TRUE        TRUE        TRUE</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2  data.table 
+##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
+## matrixStats 
+##        TRUE</code></pre>
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)</code></pre>
 <p>Defining our color schemes and category names to be used throughout
 the paper figures</p>
@@ -428,18 +428,16 @@ omit_list &lt;- c(&quot;YLR078C&quot;, &quot;YLR077W&quot;, &quot;YLR074C&quot;,
                &quot;YNL247W&quot;, &quot;YNL244C&quot;)
 finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; gene_name %in% omit_list)</code></pre>
 <pre><code>## # A tibble: 8 × 8
-##   gene_name experiment effect_size_allele effect_size_species
-##   &lt;chr&gt;     &lt;chr&gt;                   &lt;dbl&gt;               &lt;dbl&gt;
-## 1 YLR072W   CC                       8.76             -0.0546
-## 2 YLR073C   CC                       9.16              0.424 
-## 3 YLR074C   CC                       9.85             -0.0309
-## 4 YLR075W   CC                       8.26             -0.469 
-## 5 YLR077W   CC                      42.4               0.930 
-## 6 YLR078C   CC                      42.9               0.469 
-## 7 YNL247W   CC                      12.0               0.429 
-## 8 YNL244C   CC                       8.70             -0.717 
-## # ℹ 4 more variables: padj_allele &lt;dbl&gt;, padj_species &lt;dbl&gt;,
-## #   cer &lt;dbl&gt;, par &lt;dbl&gt;</code></pre>
+##   gene_name experiment effect_size_allele effect_size_species padj_allele padj_species   cer   par
+##   &lt;chr&gt;     &lt;chr&gt;                   &lt;dbl&gt;               &lt;dbl&gt;       &lt;dbl&gt;        &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1 YLR072W   CC                       8.76             -0.0546   1.19e- 27     8.27e- 1     1     1
+## 2 YLR073C   CC                       9.16              0.424    2.60e- 16     3.82e- 1     1     1
+## 3 YLR074C   CC                       9.85             -0.0309   4.67e- 40     8.97e- 1     2     1
+## 4 YLR075W   CC                       8.26             -0.469    5.33e-139     5.87e- 9     2     2
+## 5 YLR077W   CC                      42.4               0.930    1.00e+  0     1.00e- 6     0     1
+## 6 YLR078C   CC                      42.9               0.469    1.00e+  0     4.24e- 2     1     1
+## 7 YNL247W   CC                      12.0               0.429    4.31e- 30     5.08e- 4     2     2
+## 8 YNL244C   CC                       8.70             -0.717    1.81e-186     3.58e-17     2     2</code></pre>
 <pre class="r"><code>dim(finaldf)</code></pre>
 <pre><code>## [1] 25264     8</code></pre>
 <pre class="r"><code>finaldf &lt;- finaldf |&gt; filter(!(experiment == &quot;CC&quot; &amp; gene_name %in% omit_list))

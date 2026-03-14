@@ -1,0 +1,13 @@
+term,group_count,overall_count,exact_pval,sig,genes
+carbohydrate metabolic process,4,106,2.479239481827395e-5,TRUE,YER065C YKR097W YLR377C YNL117W
+small molecule metabolic process,6,556,1.3589345134392404e-4,TRUE,YAL054C YER065C YJR148W YKR097W YLR377C YNL117W
+monocarboxylic acid metabolic process,3,105,7.489012442622596e-4,TRUE,YAL054C YER065C YNL117W
+biosynthetic process,4,973,0.0857777034036923,FALSE,YAL054C YJR148W YKR097W YLR377C
+sulfur compound metabolic process,1,81,0.1404333473717616,FALSE,YAL054C
+generation of precursor metabolites and energy,1,115,0.193952750149749,FALSE,YAL054C
+nucleobase-containing small molecule metabolic process,1,172,0.2770588878719884,FALSE,YAL054C
+amino acid metabolic process,1,173,0.2784461949101871,FALSE,YJR148W
+response to chemical,1,281,0.4150610411571616,FALSE,YJL089W
+catabolic process,1,615,0.7042399438326261,FALSE,YJR148W
+transport,1,874,0.8322138516006445,FALSE,YJR095W
+cellular nitrogen compound metabolic process,1,1386,0.9513481537533481,FALSE,YAL054C

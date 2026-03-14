@@ -1,14 +1,6 @@
-base
-methods
-datasets
-utils
-grDevices
-graphics
-stats
 igraph
 Matrix
 stringr
-grid
 ComplexHeatmap
 tidyr
 ggplot2
@@ -27,3 +19,5 @@ ggExtra
 RColorBrewer
 circlize
 ggridges
+zoo
+lmtest

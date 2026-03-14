@@ -1,0 +1,10 @@
+term,group_count,overall_count,exact_pval,sig,genes
+DNA binding,4,324,0.011377755412250489,FALSE,YDR296W YDR451C YOR344C YPL127C
+nucleotidyltransferase activity,2,72,0.017549838372292664,FALSE,YDL055C YNL299W
+DNA-binding transcription factor activity,2,106,0.036138598713591416,FALSE,YMR016C YOR344C
+enzyme regulator activity,2,249,0.1588599365318685,FALSE,YAL040C YBR088C
+structural molecule activity,2,261,0.17121870069805661,FALSE,YDR296W YJL158C
+chromatin binding,1,110,0.27444193889171564,FALSE,YLR183C
+structural constituent of ribosome,1,179,0.40895906656485614,FALSE,YDR296W
+transmembrane transporter activity,1,278,0.5619524446498187,FALSE,YCL025C
+transferase activity,2,719,0.635532340372466,FALSE,YDL055C YNL299W

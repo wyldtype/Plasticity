@@ -1,0 +1,8 @@
+term,group_count,overall_count,exact_pval,sig,genes
+DNA binding,2,324,0.07440930900152776,FALSE,YKL032C YPR065W
+glycosyltransferase activity,1,92,0.1252423282181807,FALSE,YLR258W
+DNA-binding transcription factor activity,1,106,0.14306793247079153,FALSE,YPR065W
+acyltransferase activity,1,185,0.23793390104273393,FALSE,YOR023C
+transferase activity,2,719,0.2775517275854049,FALSE,YLR258W YOR023C
+structural molecule activity,1,261,0.32055478412185323,FALSE,YER011W
+oxidoreductase activity,1,270,0.32980979036283165,FALSE,YML075C

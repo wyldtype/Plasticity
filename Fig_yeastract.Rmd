@@ -116,24 +116,26 @@ unique(as.vector(ypd)) # binary matrix
 Reading in all environment-specific regmats:
 
 ```{r env-regmats, cache=TRUE, include=FALSE}
-# Diauxic Shift
-hap4 <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/HAP4",
+if (!file.exists("data_files/RegulatoryMatrices.RData")) {
+  # Diauxic Shift
+  hap4 <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/HAP4",
+                                                     file_name_suffix))
+  # Cell Cycle
+  cc <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/CC",
                                                    file_name_suffix))
-# Cell Cycle
-cc <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/CC",
-                                                 file_name_suffix))
-# Low Nitrogen
-lown <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/LowN",
-                                                   file_name_suffix))
-# Low Phosphate
-lowpi <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/LowPi",
-                                                    file_name_suffix))
-# Heat Shock
-heat <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/Heat",
-                                                   file_name_suffix))
-# Cold Shock
-cold <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/Cold",
-                                                   file_name_suffix))
+  # Low Nitrogen
+  lown <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/LowN",
+                                                     file_name_suffix))
+  # Low Phosphate
+  lowpi <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/LowPi",
+                                                      file_name_suffix))
+  # Heat Shock
+  heat <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/Heat",
+                                                     file_name_suffix))
+  # Cold Shock
+  cold <- readInRegulatoryMatrix(.file_name = paste0("data_files/yeastract/Cold",
+                                                     file_name_suffix))
+}
 ```
 
 Our full list of regmats:

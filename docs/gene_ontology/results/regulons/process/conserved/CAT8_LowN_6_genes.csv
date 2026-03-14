@@ -1,0 +1,14 @@
+term,group_count,overall_count,exact_pval,sig,genes
+small molecule metabolic process,4,556,0.002105642861637987,FALSE,YLR174W YNL117W YOL126C YOR095C
+carbohydrate metabolic process,2,106,0.006672993909376217,FALSE,YNL117W YOL126C
+transmembrane transport,2,195,0.021586201395016436,FALSE,YDR384C YOL126C
+vitamin metabolic process,1,32,0.03886548399257117,FALSE,YOR095C
+peroxisome organization,1,40,0.048382574083904895,FALSE,YOL126C
+monocarboxylic acid metabolic process,1,105,0.12283845375629854,FALSE,YNL117W
+generation of precursor metabolites and energy,1,115,0.13384986150355072,FALSE,YOR095C
+protein targeting,1,133,0.1533801526861036,FALSE,YBR230C
+nucleobase-containing small molecule metabolic process,1,172,0.19443951701558126,FALSE,YOR095C
+homeostatic process,1,184,0.2067340076229207,FALSE,YDR384C
+transport,2,874,0.2950767078924226,FALSE,YDR384C YOL126C
+biosynthetic process,2,973,0.3450446421272849,FALSE,YOL126C YOR095C
+cellular nitrogen compound metabolic process,1,1386,0.8666312298271968,FALSE,YOR095C

@@ -1,0 +1,14 @@
+term,group_count,overall_count,exact_pval,sig,genes
+protein folding,2,91,0.009019401331833064,FALSE,YBR169C YDR533C
+response to oxidative stress,1,78,0.1214450884716819,FALSE,YDR533C
+sulfur compound metabolic process,1,81,0.12584610688089914,FALSE,YOR285W
+monocarboxylic acid metabolic process,1,105,0.1603654283756034,FALSE,YDR533C
+small molecule metabolic process,2,556,0.23051545909786575,FALSE,YDR533C YGL009C
+amino acid metabolic process,1,173,0.2517790707314781,FALSE,YGL009C
+proteolysis involved in protein catabolic process,1,186,0.2682263073269793,FALSE,YBR169C
+catabolic process,2,615,0.2684283689713517,FALSE,YBR169C YDR533C
+transmembrane transport,1,195,0.2794267108405062,FALSE,YBR241C
+response to chemical,1,281,0.37911792997525995,FALSE,YDR533C
+response to stress,1,503,0.5828556230932551,FALSE,YDR533C
+transport,1,874,0.7953683506707359,FALSE,YBR241C
+biosynthetic process,1,973,0.8326763105511785,FALSE,YGL009C

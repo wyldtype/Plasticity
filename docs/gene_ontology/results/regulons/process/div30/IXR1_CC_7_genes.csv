@@ -1,0 +1,19 @@
+term,group_count,overall_count,exact_pval,sig,genes
+response to stress,3,503,0.0280638535891761,FALSE,YKL032C YOR023C YPR065W
+response to chemical,2,281,0.05765100882006916,FALSE,YKL032C YPR065W
+response to osmotic stress,1,54,0.07524764756606217,FALSE,YPR065W
+carbohydrate metabolic process,1,106,0.14306793247079153,FALSE,YLR258W
+regulation of DNA metabolic process,1,106,0.14306793247079153,FALSE,YKL032C
+cell wall organization or biogenesis,1,114,0.15311349720322442,FALSE,YER011W
+generation of precursor metabolites and energy,1,115,0.15436206618375903,FALSE,YLR258W
+DNA recombination,1,118,0.15809831095545002,FALSE,YOR023C
+protein-RNA complex assembly,1,120,0.16058127227010066,FALSE,YCR072C
+DNA repair,1,208,0.26379958217595845,FALSE,YOR023C
+DNA damage response,1,249,0.3080445158473375,FALSE,YOR023C
+lipid metabolic process,1,249,0.3080445158473375,FALSE,YML075C
+DNA metabolic process,1,321,0.3802406183096312,FALSE,YOR023C
+biosynthetic process,2,973,0.4237930673017346,FALSE,YLR258W YML075C
+protein-containing complex assembly,1,375,0.4300577019822599,FALSE,YCR072C
+cellular component assembly,1,534,0.5573357782328134,FALSE,YCR072C
+small molecule metabolic process,1,556,0.572859198458838,FALSE,YML075C
+cellular nitrogen compound metabolic process,1,1386,0.9046973573929927,FALSE,YOR023C

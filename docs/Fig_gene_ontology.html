@@ -352,13 +352,72 @@ library(dplyr)
 library(purrr)
 load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
 load(&quot;data_files/GO_Slim.RData&quot;)
+load(&quot;data_files/Cleaned_Counts.RData&quot;)
+load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
 nGenes &lt;- finaldf$gene_name |&gt; unique() |&gt; length() # for exact tests 
 # filtering for just Biological Processess
+goslim_full &lt;- goslim
 goslim &lt;- filter(goslim, GO_aspect == &quot;P&quot;)</code></pre>
 <pre class="r"><code>environmentName(environment(select)) # should be dplyr</code></pre>
 <pre><code>## [1] &quot;dplyr&quot;</code></pre>
 <pre class="r"><code>environmentName(environment(degree)) # should be igraph</code></pre>
-<pre><code>## [1] &quot;circlize&quot;</code></pre>
+<pre><code>## [1] &quot;igraph&quot;</code></pre>
+<div
+id="how-many-genes-diverging-in-plasticity-are-membrane-bound-transporters"
+class="section level2">
+<h2>How many genes diverging in plasticity are membrane-bound
+transporters?</h2>
+<pre class="r"><code>plotdf &lt;- goslim_full |&gt; filter(GO_aspect %in% c(&quot;F&quot;)) |&gt; 
+  dplyr::select(ORF, gene, GO_aspect, GOslim_term) |&gt; 
+  group_by(ORF, gene) |&gt; 
+  summarise(term_list = list(GOslim_term)) |&gt; 
+  ungroup() |&gt; 
+  full_join(y = finaldf,
+            by = c(&quot;ORF&quot;=&quot;gene_name&quot;),
+            relationship = &quot;one-to-many&quot;)</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;ORF&#39;. You can override using the `.groups` argument.</code></pre>
+<pre class="r"><code># plotdf$membrane_transporter &lt;- purrr::map2(plotdf$C, plotdf$P, \(comp, proc) {
+#   &quot;membrane&quot; %in% unlist(comp) &amp; &quot;transport&quot; %in% unlist(proc)
+# }) |&gt; unlist()
+plotdf$membrane_transporter &lt;- purrr::map(plotdf$term_list, \(proc) {
+  &quot;transmembrane transporter activity&quot; %in% unlist(proc)
+}) |&gt; unlist()
+gene_idxs &lt;- filter(plotdf, experiment == &quot;CC&quot; &amp; membrane_transporter) |&gt; 
+  dplyr::select(ORF) |&gt; pull()
+plotGenes(gene_idxs, .experiment_name = &quot;CC&quot;) # 1-2 divergers</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<p><img src="Fig_gene_ontology_files/figure-html/membrane-transporters-1.png" width="672" /></p>
+<pre class="r"><code>plotdf$div12 &lt;- plotdf$cer == 1 &amp; plotdf$par == 2
+plotdf |&gt; filter(experiment == &quot;CC&quot;) |&gt; 
+  dplyr::select(div12, membrane_transporter) |&gt; table() |&gt; 
+  fisher.test() # slight enrichment of genes with transmembrane transporter activity among the HU Shock 1-2 divergers </code></pre>
+<pre><code>## 
+##  Fisher&#39;s Exact Test for Count Data
+## 
+## data:  table(dplyr::select(filter(plotdf, experiment == &quot;CC&quot;), div12, membrane_transporter))
+## p-value = 0.01637
+## alternative hypothesis: true odds ratio is not equal to 1
+## 95 percent confidence interval:
+##  1.078135 2.397507
+## sample estimates:
+## odds ratio 
+##   1.628017</code></pre>
+<pre class="r"><code>plotdf |&gt; filter(experiment == &quot;Cold&quot;) |&gt; 
+  dplyr::select(div12, membrane_transporter) |&gt; table() |&gt; 
+  fisher.test() # also true in Cold (not in any other environments or reversal directions)</code></pre>
+<pre><code>## 
+##  Fisher&#39;s Exact Test for Count Data
+## 
+## data:  table(dplyr::select(filter(plotdf, experiment == &quot;Cold&quot;), div12, membrane_transporter))
+## p-value = 0.0106
+## alternative hypothesis: true odds ratio is not equal to 1
+## 95 percent confidence interval:
+##  1.127379 2.883814
+## sample estimates:
+## odds ratio 
+##   1.838415</code></pre>
+</div>
 <div id="print-gene-lists-for-saccharomyces-genome-database-sgd"
 class="section level2">
 <h2>Print gene lists for Saccharomyces Genome Database (SGD)</h2>
@@ -401,7 +460,7 @@ class="section level2">
       dplyr::select(ORF) |&gt; pull() |&gt; unique()
     return(purrr::reduce(termgenes, paste, sep = &quot; &quot;))
   }) |&gt; unlist()
-  
+  # writing to csv
   write_csv(arrange(testdf, exact_pval, desc(group_count)), 
             file = paste0(.file_prefix, .group_name, &quot;.csv&quot;),
             quote = &quot;none&quot;, 
@@ -411,28 +470,23 @@ class="section level2">
 
 # tests for getGOSlimDf
 test &lt;- getGOSlimDf(.idxs = c(&quot;YGR192C&quot;, &quot;YJR009C&quot;, &quot;YJL052W&quot;),
-                    .group_name = &quot;tdhs&quot;, .min_hits = 1)</code></pre>
-<p>Looping through all the plasticity reversal categories to get GOSlim
-results:</p>
-<pre class="r"><code>griddf &lt;- expand_grid(experiment = ExperimentNames,
-                      cer_clust = c(1, 2))
-slimlist &lt;- vector(mode = &quot;list&quot;, length = nrow(griddf))
-for (i in 1:nrow(griddf)) {
-  e &lt;- griddf$experiment[i]
-  cer_clust &lt;- griddf$cer_clust[i]
-  par_clust &lt;- setdiff(c(1, 2), cer_clust)
-  gene_idxs &lt;- filter(finaldf, experiment == e &amp;
-                        cer == cer_clust &amp;
-                        par == par_clust) |&gt; 
-    dplyr::select(gene_name) |&gt; pull()
-  slimlist[[i]] &lt;- getGOSlimDf(.idxs = gene_idxs,
-                               .group_name = paste0(e, cer_clust, par_clust))
-}
-names(slimlist) &lt;- as.character(apply(griddf, 1, \(x) {paste(x[1], x[2], sep = &quot;_&quot;)}))</code></pre>
-</div>
-<div id="combining-go-terms-for-main-paper-summary-table"
-class="section level2">
-<h2>Combining GO terms for main paper summary table</h2>
+                    .group_name = &quot;tdhs&quot;, .min_hits = 1)
+test</code></pre>
+<pre><code>## # A tibble: 12 × 6
+##    term                                           group_count overall_count exact_pval sig   genes
+##    &lt;chr&gt;                                                &lt;dbl&gt;         &lt;int&gt;      &lt;dbl&gt; &lt;lgl&gt; &lt;chr&gt;
+##  1 biosynthetic process                                     3           973 0.00800    FALSE YGR1…
+##  2 carbohydrate metabolic process                           3           106 0.0000101  TRUE  YGR1…
+##  3 catabolic process                                        3           615 0.00202    FALSE YGR1…
+##  4 cell death                                               2            23 0.0000641  TRUE  YGR1…
+##  5 cellular nitrogen compound metabolic process             3          1386 0.0232     FALSE YGR1…
+##  6 generation of precursor metabolites and energy           3           115 0.0000129  TRUE  YGR1…
+##  7 monoatomic ion transport                                 1            71 0.0432     FALSE YGR1…
+##  8 monocarboxylic acid metabolic process                    3           105 0.00000980 TRUE  YGR1…
+##  9 nucleobase-containing compound catabolic proc…           3           165 0.0000384  TRUE  YGR1…
+## 10 nucleobase-containing small molecule metaboli…           3           172 0.0000436  TRUE  YGR1…
+## 11 small molecule metabolic process                         3           556 0.00149    FALSE YGR1…
+## 12 transport                                                1           874 0.448      FALSE YGR1…</code></pre>
 <p>Manually selecting groups of terms related to broader but meaningful
 biological processes.</p>
 <pre class="r"><code># @input: GOslim enrichment results df for one ccm, character vector of GOslim terms to combine
@@ -638,17 +692,96 @@ term_stress &lt;- c(&quot;response to stress&quot;,
                  &quot;DNA damage response&quot;,
                  &quot;response to oxidative stress&quot;,
                  &quot;response to chemical&quot;)</code></pre>
-<p>Counting number of genes in each plasticity group that are associated
-with terms belong to the combined term (the combined term was decided by
-visually inspecting the Supplementary_Table2.xlsx full GOslim
-results):</p>
+</div>
+<div id="regulon-based-go-analysis" class="section level2">
+<h2>Regulon-based GO analysis</h2>
+<p>GO analysis of specific regulons with over 30% diverged plasticity
+genes (regulons of PDR1, PDR3, RLM1, RPN4, YAP1, etc.)</p>
+<pre class="r"><code>goslim &lt;- goslim_full |&gt; filter(GO_aspect == &quot;F&quot;)
+load(&quot;data_files/GOinput.RData&quot;)
+GOgriddf &lt;- group_by(GOdf, regulator, regulator_common, environment) |&gt; 
+  summarise(nTargets = n()) |&gt; 
+  ungroup()</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;regulator&#39;, &#39;regulator_common&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre class="r"><code>GOlist &lt;- purrr::map2(GOgriddf$regulator, GOgriddf$environment, \(tf, e) {
+  tf_common &lt;- GOdf |&gt; filter(regulator == tf) |&gt; dplyr::select(regulator_common) |&gt; 
+    pull() |&gt; unique()
+  GOgene_idxs &lt;- filter(GOdf, environment == e &amp; regulator == tf) |&gt; 
+    dplyr::select(target) |&gt; pull()
+  gene_idxs &lt;- filter(finaldf, gene_name %in% GOgene_idxs &amp;
+                        experiment == e &amp; plasticity == &quot;diverged&quot;) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+  if (length(gene_idxs) &gt; 5) {
+    slimlist &lt;- getGOSlimDf(.idxs = gene_idxs,
+                            .group_name = paste(tf_common, e, length(gene_idxs), &quot;genes&quot;, sep = &quot;_&quot;),
+                            .file_prefix = &quot;gene_ontology/results/regulons/function/div30/&quot;,
+                            .min_hits = 0)
+  }
+  if (length(gene_idxs) &lt;= 5) {
+    slimlist &lt;- NA
+  }
+  
+  return(slimlist)
+})
+names(GOlist) &lt;- paste(GOgriddf$regulator_common, GOgriddf$environment, sep = &quot;_&quot;)</code></pre>
+<p>GO analysis of remaining regulons with higher conserved
+proportions</p>
+<pre class="r"><code>goslim &lt;- goslim_full |&gt; filter(GO_aspect == &quot;F&quot;)
+load(&quot;data_files/GOinputConserved.RData&quot;)
+GOgriddf &lt;- group_by(GOdf_conserved, regulator, regulator_common, environment) |&gt; 
+  summarise(nTargets = n()) |&gt; 
+  ungroup()</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;regulator&#39;, &#39;regulator_common&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre class="r"><code>GOlist &lt;- purrr::map2(GOgriddf$regulator, GOgriddf$environment, \(tf, e) {
+  tf_common &lt;- GOdf_conserved |&gt; filter(regulator == tf) |&gt; dplyr::select(regulator_common) |&gt; 
+    pull() |&gt; unique()
+  GOgene_idxs &lt;- filter(GOdf_conserved, environment == e &amp; regulator == tf) |&gt; 
+    dplyr::select(target) |&gt; pull()
+  gene_idxs &lt;- filter(finaldf, gene_name %in% GOgene_idxs &amp;
+                        experiment == e &amp; plasticity == &quot;conserved&quot;) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+  if (length(gene_idxs) &gt; 5) {
+    slimlist &lt;- getGOSlimDf(.idxs = gene_idxs,
+                            .group_name = paste(tf_common, e, length(gene_idxs), &quot;genes&quot;, sep = &quot;_&quot;),
+                            .file_prefix = &quot;gene_ontology/results/regulons/function/conserved/&quot;,
+                            .min_hits = 0)
+  }
+  if (length(gene_idxs) &lt;= 5) {
+    slimlist &lt;- NA
+  }
+  
+  return(slimlist)
+})
+names(GOlist) &lt;- paste(GOgriddf$regulator_common, GOgriddf$environment, sep = &quot;_&quot;)</code></pre>
+<p>Archive: Counting number of genes in each plasticity group that are
+associated with terms belong to the combined term (the combined term was
+decided by visually inspecting the full GOslim results):</p>
+<p>Looping through all the plasticity reversal categories to get GOSlim
+results:</p>
+<pre class="r"><code>griddf &lt;- expand_grid(experiment = ExperimentNames,
+                      cer_clust = c(1, 2))
+slimlist &lt;- vector(mode = &quot;list&quot;, length = nrow(griddf))
+for (i in 1:nrow(griddf)) {
+  e &lt;- griddf$experiment[i]
+  cer_clust &lt;- griddf$cer_clust[i]
+  par_clust &lt;- setdiff(c(1, 2), cer_clust)
+  gene_idxs &lt;- filter(finaldf, experiment == e &amp;
+                        cer == cer_clust &amp;
+                        par == par_clust) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+  slimlist[[i]] &lt;- getGOSlimDf(.idxs = gene_idxs,
+                               .group_name = paste0(e, cer_clust, par_clust))
+}
+names(slimlist) &lt;- as.character(apply(griddf, 1, \(x) {paste(x[1], x[2], sep = &quot;_&quot;)}))</code></pre>
 <pre class="r"><code># HAP4, 1-2, chaperone and transport
 term_genes &lt;- getCombinedTermGenes(slimlist$HAP4_1, .term_vec = c(term_chaperone, term_transport))
 all_genes &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; par == 2) |&gt; dplyr::select(gene_name) |&gt; pull()
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
-<pre><code>## [1] 1</code></pre>
+<pre><code>## [1] NaN</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 24</code></pre>
+<pre><code>## [1] 0</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 55</code></pre>
 <pre class="r"><code># HAP4, 2-1, DNA repair and golgi/vessicle transport
@@ -657,7 +790,7 @@ all_genes &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp; cer ==
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
 <pre><code>## [1] 1</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 104</code></pre>
+<pre><code>## [1] 26</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 289</code></pre>
 <pre class="r"><code># CC, 1-2, respiration and metabolism
@@ -666,7 +799,7 @@ all_genes &lt;- finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; cer == 1
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
 <pre><code>## [1] 1</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 186</code></pre>
+<pre><code>## [1] 52</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 405</code></pre>
 <pre class="r"><code># CC, 2-1, ribosome and tRNA processing
@@ -675,25 +808,25 @@ all_genes &lt;- finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; cer == 2
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
 <pre><code>## [1] 1</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 129</code></pre>
+<pre><code>## [1] 24</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 567</code></pre>
 <pre class="r"><code># LowN, 1-2, protein folding and translation
 term_genes &lt;- getCombinedTermGenes(slimlist$LowN_1, .term_vec = c(term_chaperone, term_translation))
 all_genes &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; cer == 1 &amp; par == 2) |&gt; dplyr::select(gene_name) |&gt; pull()
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
-<pre><code>## [1] 1</code></pre>
+<pre><code>## [1] NaN</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 23</code></pre>
+<pre><code>## [1] 0</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 52</code></pre>
 <pre class="r"><code># LowN, 2-1, lipid/amino acid/tRNA synthesis
 term_genes &lt;- getCombinedTermGenes(slimlist$LowN_2, .term_vec = term_bioMoleculeSynthesis)
 all_genes &lt;- finaldf |&gt; filter(experiment == &quot;LowN&quot; &amp; cer == 2 &amp; par == 1) |&gt; dplyr::select(gene_name) |&gt; pull()
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
-<pre><code>## [1] 1</code></pre>
+<pre><code>## [1] NaN</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 32</code></pre>
+<pre><code>## [1] 0</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 75</code></pre>
 <pre class="r"><code># LowPi, 1-2, stress and protein folding
@@ -702,21 +835,21 @@ all_genes &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; cer =
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
 <pre><code>## [1] 1</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 121</code></pre>
+<pre><code>## [1] 9</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 375</code></pre>
 <pre class="r"><code># LowPi, 2-1, ribosome, tRNA, and small molecule biosynthesis
 term_genes &lt;- getCombinedTermGenes(slimlist$LowPi_2, .term_vec = c(term_ribosome, term_tRNA, term_bioMoleculeSynthesis))
 term_genes_cc &lt;- getCombinedTermGenes(slimlist$CC_2, .term_vec = c(term_ribosome, term_tRNA))
 length(intersect(term_genes, term_genes_cc)) # comparing to CC 2-1 which had the same term enrichment</code></pre>
-<pre><code>## [1] 53</code></pre>
+<pre><code>## [1] 10</code></pre>
 <pre class="r"><code>length(union(term_genes, term_genes_cc)) # some overlap</code></pre>
-<pre><code>## [1] 445</code></pre>
+<pre><code>## [1] 34</code></pre>
 <pre class="r"><code>all_genes &lt;- finaldf |&gt; filter(experiment == &quot;LowPi&quot; &amp; cer == 2 &amp; par == 1) |&gt; dplyr::select(gene_name) |&gt; pull()
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
 <pre><code>## [1] 1</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 369</code></pre>
+<pre><code>## [1] 20</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 803</code></pre>
 <pre class="r"><code># Heat, 1-2, translation, RNA processing, ribosome
@@ -725,16 +858,16 @@ all_genes &lt;- finaldf |&gt; filter(experiment == &quot;Heat&quot; &amp; cer ==
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
 <pre><code>## [1] 1</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 36</code></pre>
+<pre><code>## [1] 26</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 118</code></pre>
 <pre class="r"><code># Heat, 2-1, transcription, small molecule synthesis
 term_genes &lt;- getCombinedTermGenes(slimlist$Heat_2, .term_vec = c(term_transcription, term_tRNA, term_bioMoleculeSynthesis))
 all_genes &lt;- finaldf |&gt; filter(experiment == &quot;Heat&quot; &amp; cer == 2 &amp; par == 1) |&gt; dplyr::select(gene_name) |&gt; pull()
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
-<pre><code>## [1] 1</code></pre>
+<pre><code>## [1] NaN</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 167</code></pre>
+<pre><code>## [1] 0</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 431</code></pre>
 <pre class="r"><code># Cold, 1-2, translation, ribosome, and cellular nitrogen compound metabolic process
@@ -743,16 +876,16 @@ all_genes &lt;- finaldf |&gt; filter(experiment == &quot;Cold&quot; &amp; cer ==
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
 <pre><code>## [1] 1</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 130</code></pre>
+<pre><code>## [1] 67</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 262</code></pre>
 <pre class="r"><code># Cold, 2-1, translation, transport
 term_genes &lt;- getCombinedTermGenes(slimlist$Cold_2, .term_vec = c(term_translation, term_transport))
 all_genes &lt;- finaldf |&gt; filter(experiment == &quot;Cold&quot; &amp; cer == 2 &amp; par == 1) |&gt; dplyr::select(gene_name) |&gt; pull()
 sum(term_genes %in% all_genes)/length(term_genes)</code></pre>
-<pre><code>## [1] 1</code></pre>
+<pre><code>## [1] NaN</code></pre>
 <pre class="r"><code>sum(term_genes %in% all_genes)</code></pre>
-<pre><code>## [1] 39</code></pre>
+<pre><code>## [1] 0</code></pre>
 <pre class="r"><code>length(all_genes)</code></pre>
 <pre><code>## [1] 97</code></pre>
 </div>

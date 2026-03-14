@@ -1,0 +1,8 @@
+term,group_count,overall_count,exact_pval,sig,genes
+amino acid transport,2,40,9.700184983561004e-4,TRUE,YKR039W YPL265W
+nitrogen cycle metabolic process,1,1,0.0012340600575895255,FALSE,YBR208C
+transport,3,874,0.0755654618214913,FALSE,YJL212C YKR039W YPL265W
+small molecule metabolic process,2,556,0.1435353322738885,FALSE,YBR208C YJR148W
+catabolic process,2,615,0.1697829960655567,FALSE,YBR208C YJR148W
+amino acid metabolic process,1,173,0.19547008479765093,FALSE,YJR148W
+biosynthetic process,1,973,0.7383007832525716,FALSE,YJR148W

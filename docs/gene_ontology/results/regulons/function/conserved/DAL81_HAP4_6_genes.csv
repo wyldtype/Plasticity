@@ -1,0 +1,7 @@
+term,group_count,overall_count,exact_pval,sig,genes
+transmembrane transporter activity,3,278,0.0032542406262716927,FALSE,YJL212C YKR039W YPL265W
+hydrolase activity, acting on carbon-nitrogen (but not peptide) bonds,1,52,0.06251088225400647,FALSE,YBR208C
+ligase activity,1,103,0.12062223426432317,FALSE,YBR208C
+oxidoreductase activity,1,270,0.29035245137416277,FALSE,YDL215C
+hydrolase activity,1,567,0.5249796023193933,FALSE,YBR208C
+transferase activity,1,719,0.6173804519699326,FALSE,YJR148W

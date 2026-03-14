@@ -1,0 +1,11 @@
+term,group_count,overall_count,exact_pval,sig,genes
+transmembrane transporter activity,5,278,3.360861347173486e-4,TRUE,YDL210W YJR152W YKR039W YNL142W YPL265W
+ligase activity,2,103,0.02555413203982785,FALSE,YBR208C YPR035W
+hydrolase activity, acting on carbon-nitrogen (but not peptide) bonds,1,52,0.12118466393220262,FALSE,YBR208C
+oxidoreductase activity,2,270,0.14064227113874095,FALSE,YDL215C YLR142W
+peptidase activity,1,85,0.1909443897479679,FALSE,YJL172W
+DNA-binding transcription factor activity,1,106,0.23265424863816608,FALSE,YFL021W
+hydrolase activity,2,567,0.41665823237565147,FALSE,YBR208C YJL172W
+ion binding,2,576,0.4248928250765558,FALSE,YFL021W YJL172W
+DNA binding,1,324,0.5633104077333991,FALSE,YFL021W
+transferase activity,1,719,0.8537907439862586,FALSE,YGR019W

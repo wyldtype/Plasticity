@@ -1,0 +1,9 @@
+term,group_count,overall_count,exact_pval,sig,genes
+unfolded protein binding,3,67,1.3351640281467796e-4,TRUE,YCL043C YDR518W YJL034W
+isomerase activity,2,56,0.0034914598722099767,FALSE,YCL043C YDR518W
+oxidoreductase activity,2,270,0.06893703989445456,FALSE,YCL043C YDR518W
+hydrolase activity, acting on carbon-nitrogen (but not peptide) bonds,1,52,0.08248344676451658,FALSE,YJL035C
+ATP hydrolysis activity,1,83,0.12876939095461382,FALSE,YJL034W
+hydrolase activity,2,567,0.23752876681899382,FALSE,YJL034W YJL035C
+ion binding,1,576,0.635614400243235,FALSE,YJL035C
+transferase activity,1,719,0.7223067693613638,FALSE,YKL165C
