@@ -1,9 +1,7 @@
 *.Rproj.user
 *.Rhistory
-*.RData
 *.Ruserdata
 *.ai
-/data_files
 /gene_ontology
 /paper_figures*
 /docs/data_files
