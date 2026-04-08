@@ -1065,11 +1065,22 @@ test_observed_pct < quantile(test_sample, probs = 0.05)
 Plotting for each environment-specific regulon:
 
 ```{r bootstrap-plotting, cache=TRUE}
-griddf <- regdf |> filter(environment != "YPD") |> 
-  group_by(regulator, regulator_common, environment) |> 
+griddf <- regdf |> filter(environment != "YPD")
+# filtering out regulators that are not highly expressed in focal environment
+target_is_expressed_in_e <- map2(griddf$target, griddf$environment, \(g, e) {
+  g %in% finaldf$gene_name[finaldf$experiment == e]
+}) |> unlist()
+griddf <- griddf[target_is_expressed_in_e,]
+# filtering regulons smaller than 20 genes
+griddf <- griddf |> group_by(regulator, regulator_common, environment) |> 
   summarise(size = n()) |> 
   filter(size >= 20) |> 
   select(regulator, regulator_common, environment)
+# filtering out regulators that are not highly expressed in focal environment
+regulator_is_expressed_in_e <- map2(griddf$regulator, griddf$environment, \(tf, e) {
+  tf %in% finaldf$gene_name[finaldf$experiment == e]
+}) |> unlist()
+griddf <- griddf[regulator_is_expressed_in_e,]
 # bootstrapping and generating plots
 nIter <- 1000
 plotlist <- vector(mode = "list", length = nrow(griddf))
@@ -1097,12 +1108,14 @@ for (i in 1:nrow(griddf)) {
                    LongExperimentNames[ExperimentNames == test_environment], 
                    sep = " regulon\nin ")
   siglist[[i]] <- test_observed_pct < quantile(test_sample, probs = 0.05)
+  asterisk_if_sig <- if_else(test_observed_pct < quantile(test_sample, probs = 0.05),
+                             true = " *", false = "")
   plotlist[[nm]] <- ggplot(test_plotdf, aes(x = null_dist)) +
     geom_histogram(binwidth = 0.05) +
     theme_classic() +
     geom_vline(xintercept = test_observed_pct, color = "red") +
     xlab("Percent of regulon with\ndiverged plasticity") +
-    ggtitle(nm_long)
+    ggtitle(paste0(nm_long, asterisk_if_sig))
 }
 ```
 
@@ -1115,14 +1128,10 @@ Plotting for figure:
 cat("number of regulons outside of boostrap range with 95% confidence:",
     sum(unlist(siglist)), "out of", length(siglist), "total regulons\n")
 ggarrange(plotlist = sample(plotlist, size = 10), nrow = 2, ncol = 5)
-p <- ggarrange(plotlist = plotlist, nrow = 13, ncol = 4)
-pdf("paper_figures/Supplement/bootstrap.pdf",
-    width = 10, height = 30)
-annotate_figure(p, top = paste0("number of boostrap samples = ", nIter))
-dev.off()
+p <- ggarrange(plotlist = plotlist, nrow = 6, ncol = 7)
+ggsave(plot = p,
+       filename = "paper_figures/Supplement/bootstrap.tiff", width = 20, height = 20)
 ```
-
-
 
 ### Histograms of how conserved genes tend to have more regulators in each environment
 
@@ -1191,9 +1200,9 @@ pdf("paper_figures/Yeastract/histogram_allEnv.pdf",
 p + theme(legend.position = "none")
 dev.off()
 ```
-## Supplemental Table 3: regulators and their regulons in each environment
+## Supplemental Table 4: regulators and their regulons in each environment
 
-```{r supp3-regulator-regulon}
+```{r supp4-regulator-regulon}
 plotdf <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name"))
 # dataframe of fraction conserved plasticity in each environment (same starting code as from regulon-pct-conserved-plasticity)
 consplastdf <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
@@ -1220,7 +1229,7 @@ consplastdf <- purrr::map2(plotdf$tf, plotdf$home, \(tf, h) {
               names_from = "experiment",
               values_from = "pct_cons_plast",
               names_prefix = "percent_conserved_plasticity_")
-suppTable3 <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name", 
+suppTable4 <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name", 
                                "regulon_size"="out_degree_e", 
                                "log2foldChange_parents"="effect_size_species",
                                "log2foldChange_hybrid"="effect_size_allele",
@@ -1239,8 +1248,8 @@ suppTable3 <- tfdf |> dplyr::rename(c("home"="experiment", "tf"="gene_name",
 
 Writing supp table to csv:
 
-```{r supp3-csv}
-# write_csv(suppTable3, file = "data_files/Supplementary_Table3.csv",
+```{r supp4-csv}
+# write_csv(suppTable4, file = "data_files/Supplementary_Table4.csv",
 #           col_names = TRUE)
 ```
 
@@ -1248,14 +1257,18 @@ Writing supp table to csv:
 
 ```{r pct-div-plast-per-TF-table}
 plotdf <- regdf |> filter(environment != "YPD") |> 
-  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+  inner_join(dplyr::select(finaldf, gene_name, experiment),
+                             by = c("regulator"="gene_name",
+                                    "environment"="experiment")) |> 
+  inner_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
                              by = c("target"="gene_name",
                                     "environment"="experiment")) |> 
   group_by(regulator_common, regulator) |> 
-  summarise(nTargets = n(),
+  summarise(nTargets = length(unique(target)),
+            nTargets_nonunique = n(), # some might be the same target in multiple environments. This won't affect pctDivPlast as long as we count them twice in the denominator, but it will affect our filter. We want 20 unique targets as our cutoff.
             nDivPlast = sum(plasticity == "diverged", na.rm = TRUE)) |> 
   filter(nTargets >= 20) |> 
-  mutate(pctDivPlast = nDivPlast/nTargets) 
+  mutate(pctDivPlast = nDivPlast/nTargets_nonunique) 
 plotdf |> 
   arrange(desc(pctDivPlast))
 div30regulators <- plotdf |> filter(pctDivPlast > 0.3) |> 
@@ -1326,6 +1339,32 @@ GOdf_conserved <- regdf |> filter(!(regulator %in% div30regulators) & environmen
 GOdf_conserved |> dplyr::select(regulator_common, environment) |> table()
 save(GOdf_conserved, file = "data_files/GOinputConserved.RData")
 ```
+How overlapping are the regulons of the PDR regulators?
+
+```{r regulon-overlap}
+plotdf <- regdf |> 
+  filter((regulator_common %in% c("PDR1", "PDR3", "RPN4", "YAP1") & environment == "CC") | 
+           (regulator_common == "YRR1" & environment %in% c("CC", "HAP4"))) |>
+  select(regulator_common, target) |> unique()
+makeUpsetPlot(plotdf, 
+              .group_name = "regulator_common", 
+              .group_members = c("PDR1", "PDR3", "RPN4", "YAP1", "YRR1"),
+              .item_names = "target", .min_comb_size = 1)
+
+# what if you filter for targets with diverged plasticity?
+plotdf <- regdf |> 
+  filter((regulator_common %in% c("PDR1", "PDR3", "RPN4", "YAP1") & environment == "CC") | 
+           (regulator_common == "YRR1" & environment %in% c("CC", "HAP4"))) |>
+  left_join(y = dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("target"="gene_name", "environment"="experiment")) |> 
+  filter(plasticity == "diverged") |> 
+  dplyr::select(regulator_common, target) |> unique()
+makeUpsetPlot(plotdf, 
+              .group_name = "regulator_common", 
+              .group_members = c("PDR1", "PDR3", "RPN4", "YAP1", "YRR1"),
+              .item_names = "target", .min_comb_size = 1)
+```
+
 
 ## Investigating interesting examples from GO results
 
