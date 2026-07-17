@@ -1,5 +1,5 @@
 ---
-title: "Comparing results using different numbers of clusters and dispersion thresholds"
+title: "Comparing results using different numbers of clusters and low-variability thresholds"
 ---
 
 ```{r setup, include=FALSE}
@@ -11,15 +11,16 @@ Quality-Control script to compare how..
 
 or
 
-2) a user-specified threshold for miniumum dispersion (variance/mean of expression) a gene can exhibit to be considered to have expression plasticity
+2) a user-specified threshold for miniumum variability a gene can exhibit to be considered to have expression plasticity
 
 ...influence which genes are called as diverging in plasticity between species.
 
 ```{r package-loading, include=FALSE}
-sapply(c("WGCNA", "stringr", "ggplot2", "RColorBrewer", "ggpubr", "grid", "ComplexHeatmap", "circlize", "huxtable"), require, character.only=TRUE)
+# library(ComplexHeatmap) #TODO: complexheatmap not available anymore, remove dependencies
+sapply(c("WGCNA", "stringr", "ggplot2", "RColorBrewer", "ggpubr", "grid", "circlize", "huxtable"), require, character.only=TRUE)
 source("functions_for_figure_scripts.R")
 load("data_files/QC_CorrelationClustering.RData")
-load("data_files/FinalDataframe3Disp.RData")
+load("data_files/FinalDataframe_SNR1.RData")
 clusterdf_list2 <- clusterdf_list
 rm(clusterdf_list)
 library(dplyr)

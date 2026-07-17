@@ -8,7 +8,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r loading}
 source("functions_for_figure_scripts.R")
-load("data_files/FinalDataframe3Disp.RData")
+load("data_files/FinalDataframe_SNR5pct.RData")
 load("data_files/Cleaned_Counts.RData")
 load("data_files/Cleaned_Counts_Allele.RData")
 

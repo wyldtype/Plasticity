@@ -7,14 +7,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r package-loading}
+#library("ComplexHeatmap")
 sapply(c("stringr", "RColorBrewer", "circlize", "ggridges",
-         "ComplexHeatmap"), require, character.only=TRUE)
+         "pheatmap"), require, character.only=TRUE)
 source("functions_for_figure_scripts.R")
-load("data_files/FinalDataframe3Disp.RData")
+load("data_files/FinalDataframe_SNR5pct.RData")
 load("data_files/Cleaned_Counts.RData")
 load("data_files/Cleaned_Counts_Allele.RData")
-load("data_files/CorrelationClustering3Disp.RData")
-load(file = "data_files/GO_Slim.RData")
+
+# TODO for re-submission: giant-plasticity-heatmap is likely the version of figure 7 we will take forward. We just need to turn each environment's correlations into some kind of z-score so they are more comparable between experiments. And do a permutation test to see if plasticity-diverging genes really do have the same likelihood of diverging in other environments as the rest of the genes 
+
+#load("data_files/CorrelationClustering3Disp.RData")
+#load(file = "data_files/GO_Slim.RData")
 ```
 
 Plotting a number-line of sampling timepoints proportional to time ellapsed (min) for the Experimental Design figure
@@ -71,7 +75,7 @@ for (e in ExperimentNames) {
 ```
 Visualizing cluster average expression for all environments:
 
-```{r brewer-pallets}
+```{r brewer- <- pallets}
 display.brewer.all()
 ```
 Color palettes we'll use for the 6 environments: 
@@ -914,14 +918,54 @@ test_plotmat2 <- matrix(test_cors2[1:(test_plotmat_n2*test_plotmat_n2)],
 
 # plotting
 test_plotmat_full <- cbind(test_plotmat, test_plotmat2)
-col_fun = colorRamp2(c(-1, 0, 1), c("red2", "white", "skyblue"))
-Heatmap(test_plotmat_full, col = col_fun,
-        row_order = c(1:nrow(test_plotmat_full)),
-        column_order =  c(1:ncol(test_plotmat_full)),
-        na_col = "grey30")
+#col_fun = colorRamp2(c(-1, 0, 1), c("red2", "white", "skyblue"))
+pheatmap(test_plotmat_full,
+        cluster_rows = FALSE, cluster_cols = FALSE)
 ```
 
 Environment-specificity of plasticity divergence is driven by the strongest divergers:
+
+```{r giant-plasticity-heatmap}
+plotlist <- vector(mode = "list", length = length(ExperimentNames))
+names(plotlist) <- ExperimentNames
+plotlist_names <- vector(mode = "list", length = length(ExperimentNames))
+names(plotlist_names) <- ExperimentNames
+for (e_detect in ExperimentNames) {
+  e_idxs <- finaldf |> filter(experiment == e_detect &
+                                   plasticity == "diverged" &
+                                   cer != 0 & par != 0) |> 
+    dplyr::select(gene_name) |> pull()
+  e_plotmat_n <- ceiling(sqrt(length(e_idxs)))
+  plot_mat_row <- matrix(nrow = e_plotmat_n, ncol = 0)
+  plotlist_names[[e_detect]] <- matrix(e_idxs[1:(e_plotmat_n*e_plotmat_n)], 
+                                       nrow = e_plotmat_n, ncol = e_plotmat_n)
+  for (e_measure in ExperimentNames) {
+    e_cors <- getplasticityCorrEachGene(.gene_idxs = e_idxs, 
+                                        .experiment_name = e_measure)
+    # uncomment below line to have a binary threshold of leq 0 versus greater than 0
+    #e_cors <- as.numeric(e_cors <= 0)
+    e_plotmat <- matrix(e_cors[1:(e_plotmat_n*e_plotmat_n)], 
+                           nrow = e_plotmat_n, ncol = e_plotmat_n)
+    plot_mat_row <- cbind(plot_mat_row, e_plotmat)
+  }
+  plotlist[[e_detect]] <- plot_mat_row
+}
+# plotting
+#col_fun = colorRamp2(c(-1, 0, 1), c("red2", "white", "skyblue"))
+for (e_detect in names(plotlist)) {
+  # print(Heatmap(plotlist[[e_detect]], col = col_fun,
+  #               row_order = rownames(plotlist[[e_detect]]),
+  #               row_labels = rownames(plotlist[[e_detect]]),
+  #               column_order =  c(1:ncol(plotlist[[e_detect]])),
+  #               show_heatmap_legend = FALSE,
+  #               na_col = "grey30"))
+  print(pheatmap(plotlist[[e_detect]], cluster_rows = FALSE, cluster_cols = FALSE))
+  #print(plotlist_names[[e_detect]]) # to ID specific genes of interest
+}
+
+# TODO: looks like some sort of scaling to control for how certain environments
+# have higher correlations overall would help show the pattern more
+```
 
 ```{r giant-plasticity-heatmap-strongestDiverged}
 plotlist <- vector(mode = "list", length = length(ExperimentNames))
