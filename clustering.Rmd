@@ -10,11 +10,22 @@ Hierarchical clustering of expression data observation from combined-experiment 
 ```{r}
 options(stringsAsFactors = FALSE)
 source("functions_for_figure_scripts.R")
+library(ggridges)
+
+# for heiarchical clustering, we used counts 
+# that have been "collapsed", averaged across replicates
+# at each timepoint
 load("data_files/Clustering_Counts.RData")
+# for deciding low-varying genes we use the signal to noise ratio of
+# time-dependent expression variability versus noise between replicates,
+# so we need non-collapsed counts for this:
+load("data_files/Cleaned_Count_Data.RData")
+degree_val <- 3
+snr_thresh <- 1
 set.seed(23)
 
 # Method:
-# 1) Filter out genes with low var/mean ratio (low dispersion)
+# 1) Filter out genes with low signal-to-noise ratio
 # 2) Correlation cluster remaining genes
 
 # initial values for low var filter applied in corCluster (decided in following section)
@@ -65,23 +76,85 @@ bootstrapClustering <- function(.filtered_cts, .nClust,
 }
 ```
 
+```{r getData}
+### Helper for signal-to-noise modeling, get the counts and time data for the model from
+# the gene name, environment, and organism (cer or par)
+getData <- function(.gene, .environment, .organism, .cts, .info) {
+  .cts_vec <- .cts[.gene, .info$experiment == .environment & .info$organism == .organism]
+  ctsdf <- tibble(counts = .cts_vec,
+                  sample_name = names(.cts_vec)) |> 
+    left_join(y = select(.info, sample_name, time_point_num), by = "sample_name")
+  return(list(counts = as.numeric(ctsdf$counts), 
+              timepoint = as.numeric(ctsdf$time_point_num)))
+}
+```
+
+```{r fitModel}
+### Fit our polynomial linear model
+fitModel <- function(.counts_vec, .time_vec, .degree = 3) {
+  x <- data.frame(count = .counts_vec,
+                  timepoint = .time_vec)
+  mod <- lm(count ~ poly(timepoint, degree = .degree), data = x)
+  return(mod)
+}
+```
+
+```{r getSNR}
+getSNR <- function(.mod) {
+  mod_anova <- anova(.mod)
+  snr <- mod_anova[1,"Sum Sq"]/mod_anova["Residuals", "Sum Sq"]
+  return(snr)
+}
+```
+
+```{r test-getSNR}
+# tests for fitModel and getData and getSNR
+test_data <- getData(.gene = "YGR192C", .environment = "CC", .organism = "par", 
+                     .cts = counts, .info = sample_info)
+test_mod <- fitModel(.counts_vec = test_data$counts, 
+                     .time_vec = test_data$timepoint)
+getSNR(test_mod)
+```
+```{r getting-SNRs, cache=TRUE}
+# Given an environment name and a list of gene idxs, 
+# collect a vector with all the SNRs in that environment
+griddf <- expand_grid(environment = unique(sample_info$experiment),
+                      organism = c("cer", "par"))
+snrdf <- map2(griddf$environment, griddf$organism, \(e, org) {
+  cat("************", e, org, "************\n")
+  modeldf <- map(rownames(counts),
+                \(g) {
+                  #cat(which(g == rownames(counts)), "/", nrow(counts), "\n")
+                  e_degree <- if_else(e == "LowN",
+                                      true = 2, false = degree_val)
+                  g_data <- getData(.gene = g, .cts = counts,
+                                    .info = sample_info, .environment = e, .organism = org)
+                  mod <- fitModel(.counts_vec = g_data$counts,
+                                  .time_vec = g_data$timepoint,
+                                  .degree = e_degree)
+                  snr <- getSNR(mod)
+                  outdf <- tibble("gene_name" = g, "environment" = e,
+                                  "organism" = org,
+                                  "signal_to_noise" = snr)
+                  return(outdf)
+                }) |> purrr::reduce(.f = bind_rows)
+  return(modeldf)
+}) |> purrr::reduce(.f = bind_rows)
+```
+
 Clustering function
 given a count matrix where rows are genes and columns are samples/conditions, returns heirarchical cluster assignments as vector of length nGenes labels follow convention:
   1) NA = too lowly expressed (mean expression < .min_expr)
   2) 0 = too low variance (mean expression >= .min_expr & var expression < .min_var)
   3) 1 - .nClust = clusters of co-varying genes
 
-```{r}
-corCluster <- function(.cts, .nClust, .min_var = var_thresh,
+```{r corCluster}
+corCluster <- function(.cts, .nClust, .is_low_var_vec,
                        .tree_too = FALSE, .gap_stat = FALSE, 
                        .just_counts = FALSE, .bootstrapIter = 100,
                        .bootstrapFrac = 0.75) {
   gene_idxs <- rownames(.cts)
-  gene_means <- apply(.cts, 1, mean, na.rm = TRUE)
-  gene_disps <- apply(.cts, 1, \(x) {var(x, na.rm = TRUE)/abs(mean(x, na.rm = TRUE))})
-  gene_disps[gene_means == 0] <- 0 # avoiding divide by 0 NaN if gene is fully not expressed
-  # identifying low var and low expr genes
-  low_var_genes <- gene_idxs[gene_disps < .min_var]
+  low_var_genes <- gene_idxs[.is_low_var_vec]
   cat(length(low_var_genes), "low variance genes, assigned to 0 label\n")
   good_clustering_genes <- setdiff(x = gene_idxs, y = low_var_genes)
   filtered_cts <- .cts[good_clustering_genes,]
@@ -138,7 +211,7 @@ corCluster <- function(.cts, .nClust, .min_var = var_thresh,
 ```
 
 Unit tests for boostrapClustering and corCluster
-```{r}
+```{r tests-corCluster}
 ### tests for corCluster/bootstrapClustering
 # toy genes
 # known co-expressed genes in LowN
@@ -148,7 +221,9 @@ toy_idxs <- c("YBR172C", "YML015C", # v genes
               "YBR162W-A", "YKL196C", "YBR171W") # ^ genes (the excess of YBRs are coincidental, as I was just scrolling through that part of the module --- although the 171 172 W/C gene pair is probably overlapping)
 toy_mat <- counts_list$par_LowN[toy_idxs,]
 toydf <- makeDf(toy_mat, info, .join_by = "condition")
-toyoutput <- corCluster(toy_mat, .nClust = 2, .tree_too = TRUE, 
+toyoutput <- corCluster(toy_mat, .nClust = 2, 
+                        .is_low_var_vec = rep(FALSE, nrow(toy_mat)), 
+                        .tree_too = TRUE, 
                         .bootstrapIter = 0)
 toydf <- left_join(toydf, toyoutput$df, by = "gene_name")
 ggplot(toydf, aes(x = time_point_str, y = log2(expr + 1))) + 
@@ -158,12 +233,18 @@ ggplot(toydf, aes(x = time_point_str, y = log2(expr + 1))) +
 
 # full dataset
 toy_mat <- counts_list$cer_LowN
+lowVarGenes <- snrdf |> filter(environment == "LowN" & organism == "cer" &
+                                 (is.na(signal_to_noise) | signal_to_noise < snr_thresh)) |> 
+  select(gene_name) |> pull()
+isLowVar <- rownames(toy_mat) %in% lowVarGenes
 toydf <- makeDf(toy_mat, info, .join_by = "condition")
 # no bootstrap
-test_labels <- corCluster(toy_mat, .nClust = 4, .min_var = 2,
+test_labels <- corCluster(toy_mat, .nClust = 4, 
+                          .is_low_var_vec = isLowVar,
                           .bootstrapIter = 0)
 # yes bootstrap
-test_labels <- corCluster(toy_mat, .nClust = 4, .min_var = 2,
+test_labels <- corCluster(toy_mat, .nClust = 4, 
+                          .is_low_var_vec = isLowVar,
                           .bootstrapIter = 10)
 plotdf <- toydf |> 
   group_by(gene_name, time_point_str) |> 
@@ -183,22 +264,51 @@ ggplot(plotdf, aes(x = time_point_str, y = scaled_expr)) +
 
 Wrapper function for corCluster, repeatedly clusters list of environmental datasets
 
-```{r}
+```{r clusterCountsList}
 # Wrapper function that converts named list of counts (from 1 experiment) into
 # tidy counts data frame with nGenes * nConditions * length(counts list) number of rows
 clusterCountsList <- function(.cts_list, .nClust = 4,
-                              .bootstrapIter = 100,
+                              .environment,
+                              .bootstrapIter = 10,
                               .bootstrapFrac = 0.75,
-                              .min_var = var_thresh,
+                              .is_low_var_df, 
+                              .snr_thresh = NULL,
+                              .snr_frac = NULL,
                               .tree_too = FALSE,
                               .gap_stat = FALSE,
                               .just_counts = FALSE) {
   # giving each ortholog a unique name: YGR192C becomes YGR192C_cer
   cts <- map2(.cts_list, names(.cts_list), .f = \(x, nm) {
     nm <- gsub("_.*", "", nm)
-    rownames(x) <- paste(nm, rownames(x), sep = "_")
+    rownames(x) <- paste(rownames(x), nm, sep = "_")
     return(x)
   })
+  # adjusting this environment's snrdf to name orthologs uniquely: YGR192C becomes YGR192C_cer
+  low_var_df_e <- .is_low_var_df |> 
+    filter(environment == .environment) |> 
+    mutate(gene_name = paste(gene_name, organism, sep = "_"))
+  # filtering lowly-varying genes
+  if (!is.null(.snr_frac) & !is.null(.snr_thresh)) {
+    stop("cannot specify both a threshold and a fraction for SNR filtering\n")
+  }
+  # if a hard cutoff was given, filtering low varying gens based on it
+  if (!is.null(.snr_thresh)) {
+    # filtering low varying genes based on given threshold
+    low_var_genes <- filter(low_var_df_e, is.na(signal_to_noise) | signal_to_noise < .snr_thresh) |> 
+      select(gene_name) |> pull()
+  }
+  if (!is.null(.snr_frac)) {
+    # filtering low varying genes based on quantile
+    snr_thresh_cer <- filter(low_var_df_e, organism == "cer") |> 
+      drop_na() |> select(signal_to_noise) |> pull() |> quantile(probs = .snr_frac)
+    snr_thresh_par <- filter(low_var_df_e, organism == "par") |> 
+      drop_na() |> select(signal_to_noise) |> pull() |> quantile(probs = .snr_frac)
+    low_var_genes <- filter(low_var_df_e, is.na(signal_to_noise) |
+                            (organism == "cer" & signal_to_noise < snr_thresh_cer) | 
+                              (organism == "par" & signal_to_noise < snr_thresh_par)) |>
+      select(gene_name) |> pull()
+  }
+  
   dfs <- map(cts, makeDf, .info = info, .join_by = "condition")
   outdf <- purrr::reduce(dfs, bind_rows)
   if (all(unlist(map(cts, \(x) {all(colnames(x) == colnames(cts[[1]]))})))) {
@@ -211,21 +321,28 @@ clusterCountsList <- function(.cts_list, .nClust = 4,
   }
   # after collapsing replicates, samples should be in the same condition order
   # and able to be rbound
+  
+  # converting low var genes list to a TRUE/FALSE vector the same lenght as cts
+  is_low_var_vec <- rownames(cts) %in% low_var_genes
+
   if (.just_counts) {
-    filtered_cts <- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+    filtered_cts <- corCluster(cts, .nClust = .nClust, 
+                               .is_low_var_vec = is_low_var_vec,
                                .just_counts = TRUE, .bootstrapIter = .bootstrapIter,
                                .bootstrapFrac = .bootstrapFrac)
     return(filtered_cts)
   }
   if (!.tree_too) {
-    labeldf <- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+    labeldf <- corCluster(cts, .nClust = .nClust, 
+                          .is_low_var_vec = is_low_var_vec,
                           .bootstrapIter = .bootstrapIter,
                           .bootstrapFrac = .bootstrapFrac)
     outdf <- left_join(outdf, labeldf, by = "gene_name")
     return(outdf)
   }
   if (.tree_too) {
-    output <- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+    output <- corCluster(cts, .nClust = .nClust, 
+                         .is_low_var_vec = is_low_var_vec,
                          .bootstrapIter = .bootstrapIter,
                          .bootstrapFrac = .bootstrapFrac,
                          .tree_too = TRUE)
@@ -237,7 +354,10 @@ clusterCountsList <- function(.cts_list, .nClust = 4,
 # par is missing 1 condition versus cer
 testout <- clusterCountsList(list("cer_LowN" = counts_list$cer_LowN,
                                   "par_LowN" = counts_list$par_LowN),
-                             .bootstrapIter = 10, .min_var = 3)
+                             .environment = "LowN",
+                             .bootstrapIter = 10, 
+                             .is_low_var_df = snrdf,
+                             .snr_thresh = 1)
 testout$gene_name[1:10]
 ```
 Visualize clustering
@@ -283,110 +403,72 @@ plotClusters <- function(.df, .nDownsample = 0, .normalization = "scale",
     facet_wrap(~ label)
   return(p)
 }
+plotClusters(testout)
 ```
 
 ## Choosing a low variance threshold
 
-Blue line in below plots represents dispersion threshold. Genes below the line will be assigned to lowly varying (static) cluster. Yellow line is best fit for mean/var relationship
+First checking all the instances where signal-to-noise wasn't able to be calculated (returned NA):
 
-```{r var-thresh-exploration, cache=TRUE}
-var_thresh <- 3
-
-getCollapsedCountsByExperiment <- function(.experiment) {
-  name_cer <- paste("cer", .experiment, sep = "_")
-  name_par <- paste("par", .experiment, sep = "_")
-  .cts_list <- list(name_cer = counts_list[[name_cer]],
-                    name_par = counts_list[[name_par]])
-  cts <- map2(.cts_list, names(.cts_list), .f = \(x, nm) {
-    nm <- gsub("_.*", "", nm)
-    rownames(x) <- paste(nm, rownames(x), sep = "_")
-    return(x)
-  }) 
-  dfs <- map(cts, makeDf, .info = info, .join_by = "condition")
-  outdf <- purrr::reduce(dfs, bind_rows)
-  # after collapsing replicates, samples should be in the same condition order
-  # and able to be rbound
-  cts <- cts |> 
-    purrr::reduce(rbind)
-  return(cts)
-}
-# HAP4
-toy_mat_collapsed <- getCollapsedCountsByExperiment("HAP4")
-# note that it is important to specify whether we're thresholding based on log2(mean(expr))
-# versus mean(log2(expr)):
-plot(rowMeans(log2(toy_mat_collapsed)), 
-     log2(rowMeans(toy_mat_collapsed)))
-abline(a = 0, b = 1, col = "gold") 
-# they're mostly a similar measure, 
-# but for genes with high variance,
-# log2(mean(expr)) tends to be higher 
-# (hence those spikes of genes well above the y=x)
-# we are thresholding by log2(mean(expr)) because it makes more intuitive sense
-plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = "Diauxic Shift")
-mod <- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
-abline(a = mod$coefficients[1], 
-       b = mod$coefficients[2], col = "gold")
-# the point where the low expr genes "lift off" this mean-var relationship line is where 
-# lowly expressed genes have an abnormally high variance, variance that is more likely
-# due to noise than response to the environment, and should therefore be in the low expr group
-# low var filtering:
-# var thresh is actually a dispersion thresh --- var/mean
-# to filter out lowly varying genes, we apply disp threshold after the expr threshold
-# the higher you're expressed, the more you need to vary in order to not be put in low var category
-abline(a = 0, b = log2(var_thresh), col = "blue") 
-# HU Shock
-toy_mat_collapsed <- getCollapsedCountsByExperiment("CC")
-plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = "HU Shock")
-mod <- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
-abline(a = mod$coefficients[1], 
-       b = mod$coefficients[2], col = "gold") 
-abline(a = 0, b = log2(var_thresh), col = "blue")
-# LowN
-toy_mat_collapsed <- getCollapsedCountsByExperiment("LowN")
-plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = "LowN")
-mod <- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
-abline(a = mod$coefficients[1], 
-       b = mod$coefficients[2], col = "gold") 
-abline(a = 0, b = log2(var_thresh), col = "blue")
-# LowPi
-toy_mat_collapsed <- getCollapsedCountsByExperiment("LowPi")
-plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = "LowPi")
-mod <- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
-abline(a = mod$coefficients[1], 
-       b = mod$coefficients[2], col = "gold") 
-abline(a = 0, b = log2(var_thresh), col = "blue")
-# Heat
-toy_mat_collapsed <- getCollapsedCountsByExperiment("Heat")
-plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = "Heat")
-mod <- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
-abline(a = mod$coefficients[1], 
-       b = mod$coefficients[2], col = "gold") 
-abline(a = 0, b = log2(var_thresh), col = "blue")
-# Cold
-toy_mat_collapsed <- getCollapsedCountsByExperiment("Cold")
-plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = "Cold")
-mod <- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collapsed) + 1))
-abline(a = mod$coefficients[1], 
-       b = mod$coefficients[2], col = "gold") 
-abline(a = 0, b = log2(var_thresh), col = "blue")
+```{r snr-NA-QC}
+mean_expr_df <- map2(counts_list, names(counts_list), \(mat, nm) {
+  outdf <- tibble(gene_name = rownames(mat),
+                  mean_expr = rowMeans(mat),
+                  mat_name = nm)
+  return(outdf)
+}) |> purrr::reduce(.f = bind_rows) |> 
+  mutate(organism = unlist(tstrsplit(mat_name, split = "_", keep = 1)),
+         environment = unlist(tstrsplit(mat_name, split = "_", keep = 2))) |> 
+  dplyr::select(-mat_name)
+plotdf <- snrdf |> mutate(hasNA_SNR = is.na(signal_to_noise)) |> 
+  left_join(mean_expr_df, by = c("gene_name", "organism", "environment"))
+# If the gene had an NA for its SNR value, it either has has a mean expr of 0:
+filter(plotdf, hasNA_SNR) |> select(mean_expr) |> pull() |> max(na.rm = TRUE) # should output 0
+# Or it was below the low-expr threshold in both species (mean expr NA b/c it was missing from counts list in that environment):
+filter(plotdf, is.na(mean_expr)) |> select(hasNA_SNR) |> table() # should have some "TRUE" values
 ```
+
+Conclusion: all the instances of SNR = NA were either genes with mean expression of 0 in one species or genes that were excluded for low expression because they were below our cutoff in both species.
+
+```{r snr-distributions}
+# visualzing if SNR distributions vary substantially between environments
+# or if we can use the same cutoff for all of them (SNR = 1 probably)
+plotdf <- snrdf |> filter(signal_to_noise > 0)
+p <- ggplot(data = plotdf, aes(x = log2(signal_to_noise), 
+                               y = paste0(environment, organism, sep = "_"), 
+                                          fill = environment)) +
+  geom_density_ridges(data = plotdf) +
+  geom_vline(xintercept = 1) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  ylab("") +
+  xlab("log2 SNR")
+p
+```
+
+Mostly similar distributions between species and experiments, the exception is Heat and Cold, where both species have higher SNR but Spar has higher SNR than Scer. Interestingly, 71% of genes that were diverging in level in Cold and 65% in Heat had higher expression in Scer, i.e. it was not symmetrical. These could be real differences in biology, but they could also be differences in sequencing techniques
+
+Conclusion: A common SNR threshold that removes about 5-10% of genes for being lowly varying in the non-temperature environments would likely work well in most cases. Fewer genes would be eliminated from temperature, but we saw that previously.
+
+...of course an SNR of 1 would preserve some genes in all environments and it is intuitive. Ideally we try both a hard threshold and a percentile-based threshold
 
 ## Clustering
 
 Running the heirarchical clustering using 2, 3, or 4 clusters per environment and a dispersion threshold of 1, 3, or 5 (using nClust=2 when modulating dispersion threshold)
 
 ```{r clustering, cache=TRUE}
-# setting dispersion threshold
-var_thresh <- 3
 
-# clustering with nClust=2, disp=3
+### SNR cutoff is hard threshold
+# clustering with nClust=2
 clusterdf_list <- vector(mode = "list", length = 0)
 for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
-  cat("*********** working on 2 clusters disp=", var_thresh, "in", e, "*********** \n")
+  cat("*********** working on 2 clusters, SNR > 1", "in", e, "*********** \n")
   output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
                           .nClust = 2, 
-                          .tree_too = TRUE,
-                          .min_var = var_thresh)
+                          .environment = e,
+                          .snr_thresh = 1,
+                          .is_low_var_df = snrdf,
+                          .tree_too = TRUE)
   clusterdf_list[[paste(e, 2, sep = "_")]] <- output
 }
 
@@ -400,10 +482,10 @@ getClusterCombination <- function(.clust_list) {
       select(label, gene_name) |> 
       unique()
     e_clust$gene_ID <- map(e_clust$gene_name, \(.g) {
-      return(gsub(".*_", "", .g))
+      return(gsub("_.*", "", .g))
     }) |> unlist()
     e_clust$species <- map(e_clust$gene_name, \(.g) {
-      return(gsub("_.*", "", .g))
+      return(gsub(".*_", "", .g))
     }) |> unlist()
     e_clust <- e_clust |> 
       select(gene_ID, species, label) |> 
@@ -415,48 +497,103 @@ getClusterCombination <- function(.clust_list) {
 }
 clusterdf <- getClusterCombination(clusterdf_list)
 
-# clustering with nClust=2, disp=1
-clusterdf_list_1disp <- vector(mode = "list", length = 0)
+# clustering with nClust=2, snr = 0.5
+clusterdf_list_snr0.5 <- vector(mode = "list", length = 0)
 for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
-  cat("*********** working on 2 clusters disp=1 in", e, "*********** \n")
+  cat("*********** working on 2 clusters, SNR > 0.5 in", e, "*********** \n")
   output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
                           .nClust = 2, 
-                          .tree_too = TRUE,
-                          .min_var = 1) # changed dispersion threshold for this run
-  clusterdf_list_1disp[[paste(e, 2, sep = "_")]] <- output
+                          .environment = e,
+                          .is_low_var_df = snrdf,
+                          .snr_thresh = 0.5,
+                          .tree_too = TRUE) # changed dispersion threshold for this run
+  clusterdf_list_snr0.5[[paste(e, 2, sep = "_")]] <- output
 }
-clusterdf_1disp <- getClusterCombination(clusterdf_list_1disp)
+clusterdf_snr0.5 <- getClusterCombination(clusterdf_list_snr0.5)
 
-# clustering with nClust=2, disp=5
-clusterdf_list_5disp <- vector(mode = "list", length = 0)
+# clustering with nClust=2, SNR = 0.1
+clusterdf_list_snr0.1 <- vector(mode = "list", length = 0)
 for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
-  cat("*********** working on 2 clusters disp=5 in", e, "*********** \n")
+  cat("*********** working on 2 clusters, SNR > 0.1 in", e, "*********** \n")
   output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
                           .nClust = 2, 
-                          .tree_too = TRUE,
-                          .min_var = 5) # changed dispersion threshold for this run
-  clusterdf_list_5disp[[paste(e, 2, sep = "_")]] <- output
+                          .environment = e,
+                          .is_low_var_df = snrdf,
+                          .snr_thresh = 0.1,
+                          .tree_too = TRUE)
+  clusterdf_list_snr0.1[[paste(e, 2, sep = "_")]] <- output
 }
-clusterdf_5disp <- getClusterCombination(clusterdf_list_5disp)
+clusterdf_snr0.1 <- getClusterCombination(clusterdf_list_snr0.1)
 
-# clustering with nClust=3, disp=3
+### SNR cutoff os percentile instead of solid threshold
+# clustering with nClust = 2
+# 10% lowest SNR per species
+clusterdf_list_snr10pct <- vector(mode = "list", length = 0)
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters, SNR @ 10%", "in", e, "*********** \n")
+  output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
+                          .nClust = 2, 
+                          .environment = e,
+                          .snr_frac = 0.1,
+                          .is_low_var_df = snrdf,
+                          .tree_too = TRUE)
+  clusterdf_list_snr10pct[[paste(e, 2, sep = "_")]] <- output
+}
+clusterdf_snr10pct <- getClusterCombination(clusterdf_list_snr10pct)
+
+# 5% lowest SNR per species
+clusterdf_list_snr5pct <- vector(mode = "list", length = 0)
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters, SNR @ 5%", "in", e, "*********** \n")
+  output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
+                          .nClust = 2, 
+                          .environment = e,
+                          .snr_frac = 0.05,
+                          .is_low_var_df = snrdf,
+                          .tree_too = TRUE)
+  clusterdf_list_snr5pct[[paste(e, 2, sep = "_")]] <- output
+}
+clusterdf_snr5pct <- getClusterCombination(clusterdf_list_snr5pct)
+
+# 1% lowest SNR per species
+clusterdf_list_snr1pct <- vector(mode = "list", length = 0)
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters, SNR @ 1%", "in", e, "*********** \n")
+  output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
+                          .nClust = 2, 
+                          .environment = e,
+                          .snr_frac = 0.01,
+                          .is_low_var_df = snrdf,
+                          .tree_too = TRUE)
+  clusterdf_list_snr1pct[[paste(e, 2, sep = "_")]] <- output
+}
+clusterdf_snr1pct <- getClusterCombination(clusterdf_list_snr1pct)
+
+### changing nClust
+# clustering with nClust=3, SNR = 0.05%
 clusterdf_list3 <- vector(mode = "list", length = 0)
 for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
-  cat("*********** working on 3 clusters disp=", var_thresh, "in", e, "*********** \n")
+  cat("*********** working on 3 clusters SNR < 0.5 in", e, "*********** \n")
   output <- clusterCountsList(counts_list[grepl(e, names(counts_list))],
-                              .nClust = 3, .tree_too = TRUE,
-                              .min_var = var_thresh)
+                              .nClust = 3, 
+                              .environment = e,
+                              .tree_too = TRUE,
+                              .snr_frac = 0.05,
+                              .is_low_var_df = snrdf)
   clusterdf_list3[[paste(e, 3, sep = "_")]] <- output
 }
 clusterdf3 <- getClusterCombination(clusterdf_list3)
 
-# clustering with nClust=4, disp=3
+# clustering with nClust=4, SNR = 0.05%
 clusterdf_list4 <- vector(mode = "list", length = 0)
 for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
-  cat("*********** working on 4 clusters disp=", var_thresh, "in", e, "*********** \n")
+  cat("*********** working on 4 clusters SNR < 0.5 in", e, "*********** \n")
   output <- clusterCountsList(counts_list[grepl(e, names(counts_list))],
-                              .nClust = 4, .tree_too = TRUE,
-                              .min_var = var_thresh)
+                              .nClust = 4, 
+                              .environment = e,
+                              .tree_too = TRUE,
+                              .snr_frac = 0.05,
+                              .is_low_var_df = snrdf)
   clusterdf_list4[[paste(e, 4, sep = "_")]] <- output
 }
 clusterdf4 <- getClusterCombination(clusterdf_list4)
@@ -466,11 +603,14 @@ clusterdf4 <- getClusterCombination(clusterdf_list4)
 
 ```{r saving}
 # primary clustering set we'll use:
-save(clusterdf, clusterdf_list, file = "data_files/CorrelationClustering3Disp.RData")
+save(clusterdf, clusterdf_list, file = "data_files/CorrelationClustering_SNR1.RData")
 # QC changing nClust or dispersion threshold
 save(clusterdf, clusterdf_list,
-     clusterdf_1disp, clusterdf_list_1disp,
-     clusterdf_5disp, clusterdf_list_5disp,
+     clusterdf_snr0.5, clusterdf_list_snr0.5,
+     clusterdf_snr0.1, clusterdf_list_snr0.1,
+     clusterdf_snr10pct, clusterdf_list_snr10pct,
+     clusterdf_snr5pct, clusterdf_list_snr5pct,
+     clusterdf_snr1pct, clusterdf_list_snr1pct,
      clusterdf3, clusterdf_list3,
      clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering.RData")
 ```
