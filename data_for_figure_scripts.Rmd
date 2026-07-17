@@ -54,7 +54,7 @@ colordf <- bind_rows(group4_colordf, experiment_colordf, plasticity_colordf)
 Loading heiarchical clustering and DESeq2 model outputs:
 
 ```{r data-loading}
-load("data_files/CorrelationClustering3Disp.RData")
+load("data_files/QC_CorrelationClustering.RData")
 load("data_files/single_gene_models.RData")
 load("data_files/Cleaned_Count_Data.RData")
 load("data_files/Cleaned_Counts.RData")
@@ -72,6 +72,34 @@ Benjamini-Hochberg FDR correction:
 spaldf$padj <- p.adjust(spaldf$pvalue, method = "BH")
 sum(spaldf$pvalue < p_thresh)
 sum(spaldf$padj < p_thresh)
+```
+
+Selecting which clustering scheme to use for finaldf
+```{r select-clustering-df}
+getClusterCombination <- function(.clust_list) {
+  cluster_comb <- tibble()
+  for (nm in names(.clust_list)) {
+    e <- gsub("_.*", "", nm)
+    nclust <- gsub(".*_", "", nm)
+    e_clust <- .clust_list[[paste(e, nclust, sep = "_")]]$df |> 
+      select(label, gene_name) |> 
+      unique()
+    e_clust$gene_ID <- map(e_clust$gene_name, \(.g) {
+      return(gsub("_.*", "", .g))
+    }) |> unlist()
+    e_clust$species <- map(e_clust$gene_name, \(.g) {
+      return(gsub(".*_", "", .g))
+    }) |> unlist()
+    e_clust <- e_clust |> 
+      select(gene_ID, species, label) |> 
+      pivot_wider(id_cols = gene_ID, names_from = species, values_from = label) |> 
+      mutate(experiment = e)
+    cluster_comb <- bind_rows(cluster_comb, e_clust)
+  }
+  return(cluster_comb)
+}
+finaldf_filename <- "data_files/FinalDataframe_SNR5pct.RData"
+clusterdf <- getClusterCombination(clusterdf_list_snr5pct)
 ```
 
 Creating mutually exclusive sets of genes based on
@@ -488,7 +516,7 @@ finaldf$group <- apply(finaldf, 1, \(x) {
 
 ```{r saving}
 save(finaldf, colordf, ExperimentNames,
-     LongExperimentNames, file = "data_files/FinalDataframe3Disp.RData")
+     LongExperimentNames, file = finaldf_filename)
 ```
 
 Renaming some column names and selecting specific finaldf columns for the supplementary table, so that it appears as close to the workflow figure as possible
