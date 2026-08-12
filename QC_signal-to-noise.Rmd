@@ -1,0 +1,86 @@
+---
+title: 'QC: comparing lowly-varying gene detection criteria, signal-to-noise versus dispersion'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Goal: output a table of cluster assignments that use SNR instead of dispersion as the criteria for lowly-varying genes. This table will be loaded into the non-SNR branch of the repository to compare clustering results to dispersion.
+
+```{r environment-setup}
+source("functions_for_figure_scripts.R")
+load("data_files/FinalDataframe_SNR5pct.RData")
+load("data_files/QC_CorrelationClustering.RData")
+```
+
+This function comes from the clustering script but there was a bug in it when clustering data was originally obtained, so using it again here:
+
+```{r getClusterCombination}
+getClusterCombination <- function(.clust_list) {
+  cluster_comb <- tibble()
+  for (nm in names(.clust_list)) {
+    e <- gsub("_.*", "", nm)
+    nclust <- gsub(".*_", "", nm)
+    e_clust <- .clust_list[[paste(e, nclust, sep = "_")]]$df |> 
+      select(label, gene_name) |> 
+      unique()
+    e_clust$gene_ID <- map(e_clust$gene_name, \(.g) {
+      return(gsub("_.*", "", .g))
+    }) |> unlist()
+    e_clust$species <- map(e_clust$gene_name, \(.g) {
+      return(gsub(".*_", "", .g))
+    }) |> unlist()
+    e_clust <- e_clust |> 
+      select(gene_ID, species, label) |> 
+      pivot_wider(id_cols = gene_ID, names_from = species, values_from = label) |> 
+      mutate(experiment = e)
+    cluster_comb <- bind_rows(cluster_comb, e_clust)
+  }
+  return(cluster_comb)
+}
+```
+
+Making outdf with one column for each SNR threshold. Number of rows = nSpecies x nGenes x nEnvironments (in contrast to finaldf, where species have separate columns)
+
+```{r outdf}
+outdf <- list(clusterdf_list |> 
+                getClusterCombination() |> 
+                pivot_longer(cols = c("cer", "par"),
+                             names_to = c("species"),
+                             values_to = c("SNR_1")),
+              clusterdf_list_snr0.1 |> 
+                getClusterCombination() |> 
+                pivot_longer(cols = c("cer", "par"),
+                             names_to = c("species"),
+                             values_to = c("SNR_0.1")),
+              clusterdf_list_snr0.5 |> 
+                getClusterCombination() |> 
+                pivot_longer(cols = c("cer", "par"),
+                             names_to = c("species"),
+                             values_to = c("SNR_0.5")),
+              clusterdf_list_snr1pct |> 
+                getClusterCombination() |> 
+                pivot_longer(cols = c("cer", "par"),
+                             names_to = c("species"),
+                             values_to = c("SNR_1pct")),
+              clusterdf_list_snr5pct |> 
+                getClusterCombination() |> 
+                pivot_longer(cols = c("cer", "par"),
+                             names_to = c("species"),
+                             values_to = c("SNR_5pct")),
+              clusterdf_list_snr10pct |> 
+                getClusterCombination() |> 
+                pivot_longer(cols = c("cer", "par"),
+                             names_to = c("species"),
+                             values_to = c("SNR_10pct"))
+) |> purrr::reduce(.f = left_join, by = c("gene_ID", "experiment", "species"))
+```
+
+Saving
+
+```{r saving}
+write_csv(outdf, file = "data_files/QC_signal-to-noise.csv")
+```
+
+
