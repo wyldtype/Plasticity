@@ -525,8 +525,23 @@ for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
 }
 clusterdf_snr0.1 <- getClusterCombination(clusterdf_list_snr0.1)
 
-### SNR cutoff os percentile instead of solid threshold
+### SNR cutoff as percentile instead of solid threshold
 # clustering with nClust = 2
+
+# 30% lowest SNR per species
+clusterdf_list_snr30pct <- vector(mode = "list", length = 0)
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters, SNR @ 30%", "in", e, "*********** \n")
+  output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
+                          .nClust = 2, 
+                          .environment = e,
+                          .snr_frac = 0.3,
+                          .is_low_var_df = snrdf,
+                          .tree_too = TRUE)
+  clusterdf_list_snr30pct[[paste(e, 2, sep = "_")]] <- output
+}
+clusterdf_snr30pct <- getClusterCombination(clusterdf_list_snr30pct)
+
 # 10% lowest SNR per species
 clusterdf_list_snr10pct <- vector(mode = "list", length = 0)
 for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
@@ -554,20 +569,6 @@ for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
   clusterdf_list_snr5pct[[paste(e, 2, sep = "_")]] <- output
 }
 clusterdf_snr5pct <- getClusterCombination(clusterdf_list_snr5pct)
-
-# 1% lowest SNR per species
-clusterdf_list_snr1pct <- vector(mode = "list", length = 0)
-for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
-  cat("*********** working on 2 clusters, SNR @ 1%", "in", e, "*********** \n")
-  output <- clusterCountsList(counts_list[grepl(e, names(counts_list))], 
-                          .nClust = 2, 
-                          .environment = e,
-                          .snr_frac = 0.01,
-                          .is_low_var_df = snrdf,
-                          .tree_too = TRUE)
-  clusterdf_list_snr1pct[[paste(e, 2, sep = "_")]] <- output
-}
-clusterdf_snr1pct <- getClusterCombination(clusterdf_list_snr1pct)
 
 ### changing nClust
 # clustering with nClust=3, SNR = 0.05%
@@ -610,8 +611,8 @@ save(clusterdf, clusterdf_list,
      clusterdf_snr0.1, clusterdf_list_snr0.1,
      clusterdf_snr10pct, clusterdf_list_snr10pct,
      clusterdf_snr5pct, clusterdf_list_snr5pct,
-     clusterdf_snr1pct, clusterdf_list_snr1pct,
+     clusterdf_snr30pct, clusterdf_list_snr30pct,
      clusterdf3, clusterdf_list3,
-     clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering.RData")
+     clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering_SignalToNoise.RData")
 ```
 
