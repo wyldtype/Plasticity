@@ -40,8 +40,8 @@ clrs <- structure(c("grey", "red"),
 col_order_vec <- order(factor(plot_mat["Disp3",], levels = c(1, 0)))
 
 # ordering full plotmat
-ordered_plot_mat <- orderGenesByGroup(.mat = plot_mat, .labels = c(1, 0))
-rownames(ordered_plot_mat) <- rownames(plot_mat)
+ordered_plot_mat <- orderGenesByGroup(.mat = plot_mat[c("Disp3", "SNR_30pct"),], .labels = c(1, 0))
+rownames(ordered_plot_mat) <- c("Disp3", "SNR_30pct")
 pheatmap(ordered_plot_mat, cluster_rows = FALSE, cluster_cols = FALSE, show_colnames = FALSE)
 ```
 
