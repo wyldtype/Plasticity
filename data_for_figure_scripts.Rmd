@@ -54,7 +54,7 @@ colordf <- bind_rows(group4_colordf, experiment_colordf, plasticity_colordf)
 Loading heiarchical clustering and DESeq2 model outputs:
 
 ```{r data-loading}
-load("data_files/QC_CorrelationClustering.RData")
+load("data_files/QC_CorrelationClustering_SignalToNoise.RData")
 load("data_files/single_gene_models.RData")
 load("data_files/Cleaned_Count_Data.RData")
 load("data_files/Cleaned_Counts.RData")
