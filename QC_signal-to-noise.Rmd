@@ -11,66 +11,33 @@ Goal: output a table of cluster assignments that use SNR instead of dispersion a
 ```{r environment-setup}
 source("functions_for_figure_scripts.R")
 load("data_files/FinalDataframe_SNR5pct.RData")
-load("data_files/QC_CorrelationClustering.RData")
-```
-
-This function comes from the clustering script but there was a bug in it when clustering data was originally obtained, so using it again here:
-
-```{r getClusterCombination}
-getClusterCombination <- function(.clust_list) {
-  cluster_comb <- tibble()
-  for (nm in names(.clust_list)) {
-    e <- gsub("_.*", "", nm)
-    nclust <- gsub(".*_", "", nm)
-    e_clust <- .clust_list[[paste(e, nclust, sep = "_")]]$df |> 
-      select(label, gene_name) |> 
-      unique()
-    e_clust$gene_ID <- map(e_clust$gene_name, \(.g) {
-      return(gsub("_.*", "", .g))
-    }) |> unlist()
-    e_clust$species <- map(e_clust$gene_name, \(.g) {
-      return(gsub(".*_", "", .g))
-    }) |> unlist()
-    e_clust <- e_clust |> 
-      select(gene_ID, species, label) |> 
-      pivot_wider(id_cols = gene_ID, names_from = species, values_from = label) |> 
-      mutate(experiment = e)
-    cluster_comb <- bind_rows(cluster_comb, e_clust)
-  }
-  return(cluster_comb)
-}
+load("data_files/QC_CorrelationClustering_SignalToNoise.RData")
 ```
 
 Making outdf with one column for each SNR threshold. Number of rows = nSpecies x nGenes x nEnvironments (in contrast to finaldf, where species have separate columns)
 
 ```{r outdf}
-outdf <- list(clusterdf_list |> 
-                getClusterCombination() |> 
+outdf <- list(clusterdf |> 
                 pivot_longer(cols = c("cer", "par"),
                              names_to = c("species"),
                              values_to = c("SNR_1")),
-              clusterdf_list_snr0.1 |> 
-                getClusterCombination() |> 
+              clusterdf_snr0.1 |> 
                 pivot_longer(cols = c("cer", "par"),
                              names_to = c("species"),
                              values_to = c("SNR_0.1")),
-              clusterdf_list_snr0.5 |> 
-                getClusterCombination() |> 
+              clusterdf_snr0.5 |> 
                 pivot_longer(cols = c("cer", "par"),
                              names_to = c("species"),
                              values_to = c("SNR_0.5")),
-              clusterdf_list_snr1pct |> 
-                getClusterCombination() |> 
+              clusterdf_snr30pct |> 
                 pivot_longer(cols = c("cer", "par"),
                              names_to = c("species"),
-                             values_to = c("SNR_1pct")),
-              clusterdf_list_snr5pct |> 
-                getClusterCombination() |> 
+                             values_to = c("SNR_30pct")),
+              clusterdf_snr5pct |> 
                 pivot_longer(cols = c("cer", "par"),
                              names_to = c("species"),
                              values_to = c("SNR_5pct")),
-              clusterdf_list_snr10pct |> 
-                getClusterCombination() |> 
+              clusterdf_snr10pct |> 
                 pivot_longer(cols = c("cer", "par"),
                              names_to = c("species"),
                              values_to = c("SNR_10pct"))
