@@ -1,0 +1,48 @@
+---
+title: 'QC: Signal to Noise vs Dispersion'
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r environment-setup}
+source("functions_for_figure_scripts.R")
+library("pheatmap")
+load("data_files/FinalDataframe3Disp.RData")
+snrdf <- read_csv("data_files/QC_signal-to-noise.csv")
+```
+Discrete heatmaps of genes assigned to 0 cluster using different thresholds/criteria.
+
+Comparing the main paper's cluster criterion of Disp = 3 versus each version of signal to noise to find the one that is most similar to Disp = 3 assignments
+
+```{r discrete-heatmap}
+# TODO: adapt this code to signal to noise csv
+plot_mat <- finaldf |> dplyr::select(gene_name, experiment, cer, par) |> 
+  pivot_longer(cols = c("cer", "par"),
+               names_to = "species",
+               values_to = "Disp3") |> 
+  left_join(snrdf, by = c("gene_name"="gene_ID", "experiment", "species"))
+colnames_plotmat <- paste(plot_mat$gene_name, plot_mat$species, 
+                          plot_mat$experiment, sep = "_")
+rownames_plotmat <- colnames(plot_mat)
+plot_mat <- data.frame(plot_mat) |> t()
+colnames(plot_mat) <- colnames_plotmat
+rownames(plot_mat) <- rownames_plotmat
+plot_mat <- plot_mat[!(rownames(plot_mat) %in% c("gene_name", "experiment", "species")),]
+plot_mat <- plot_mat |> as.matrix()
+mode(plot_mat) <- "numeric"
+plot_mat[is.na(plot_mat)] <- 1 # currently only 1 NA value: YPR148C, Heat, cer, SNR 1pct
+plot_mat[plot_mat != 0] <- 1
+clrs <- structure(c("grey", "red"), 
+                  names = c(1, 0))
+# sorting cols by Disp3's order
+col_order_vec <- order(factor(plot_mat["Disp3",], levels = c(1, 0)))
+
+# ordering full plotmat
+ordered_plot_mat <- orderGenesByGroup(.mat = plot_mat[c("Disp3", "SNR_30pct"),], .labels = c(1, 0))
+rownames(ordered_plot_mat) <- c("Disp3", "SNR_30pct")
+pheatmap(ordered_plot_mat, cluster_rows = FALSE, cluster_cols = FALSE, show_colnames = FALSE)
+```
+
+
