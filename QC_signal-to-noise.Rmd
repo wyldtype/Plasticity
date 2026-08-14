@@ -16,8 +16,7 @@ Discrete heatmaps of genes assigned to 0 cluster using different thresholds/crit
 
 Comparing the main paper's cluster criterion of Disp = 3 versus each version of signal to noise to find the one that is most similar to Disp = 3 assignments
 
-```{r discrete-heatmap}
-# TODO: adapt this code to signal to noise csv
+```{r discrete-heatmap-lowly-varying}
 plot_mat <- finaldf |> dplyr::select(gene_name, experiment, cer, par) |> 
   pivot_longer(cols = c("cer", "par"),
                names_to = "species",
@@ -45,4 +44,33 @@ rownames(ordered_plot_mat) <- c("Disp3", "SNR_30pct")
 pheatmap(ordered_plot_mat, cluster_rows = FALSE, cluster_cols = FALSE, show_colnames = FALSE)
 ```
 
+4-group comparison between Disp3 and signal-to-noise 30%:
+
+```{r discrete-heatmap-group4, cache=TRUE}
+plotdf <- finaldf |> dplyr::select(gene_name, experiment, group4) |> 
+  dplyr::rename(c("group4_disp3"="group4"))
+load("data_files/FinalDataframe_SNR30pct.RData")
+plotdf <- left_join(plotdf, select(finaldf, gene_name, experiment, group4), by = c("gene_name", "experiment")) |> 
+  dplyr::rename(c("group4_SNR30pct"="group4"))
+plot_mat <- select(plotdf, group4_disp3, group4_SNR30pct) |> t() |> as.matrix()
+ordered_plot_mat <- orderGenesByGroup(.mat = plot_mat)
+rownames(ordered_plot_mat) <- c("Dispersion 3", "Signal-to-noise 30%")
+plotdf <- map(c("Dispersion 3", "Signal-to-noise 30%"), \(e) {
+  idx <- which(c("Dispersion 3", "Signal-to-noise 30%") == e)
+  return(tibble(gene_name = colnames(ordered_plot_mat),
+                environment = e,
+                group4 = ordered_plot_mat[idx,],
+                x = c(1:ncol(ordered_plot_mat)),
+                y = c(length(LongExperimentNames):1)[idx])) # descending from top
+}) |> purrr::reduce(.f = bind_rows)
+p <- ggplot(plotdf, aes(x = x, y = y, fill = group4)) +
+  geom_tile_pattern(aes(fill = group4, pattern = group4), pattern_fill = "black",
+                    pattern_density = 0.05, pattern_size = 0.05) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == "group4",]$limits,
+                      type = colordf[colordf$scheme == "group4",]$type) +
+  scale_pattern_discrete(limits = colordf[colordf$scheme == "group4",]$limits,
+                         choices = colordf[colordf$scheme == "group4",]$pattern) +
+  theme_void()
+p
+```
 
