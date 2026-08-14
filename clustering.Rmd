@@ -475,3 +475,16 @@ save(clusterdf, clusterdf_list,
      clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering.RData")
 ```
 
+## Visualizing clustering dendrograms
+
+```{r dendrograms}
+for (e in c("HAP4_2", "CC_2", "LowN_2", "LowPi_2", "Heat_2", "Cold_2")) {
+  nm <- c("Diauxic Shift", "Hydroxyurea Shock", 
+          "Low Nitrogen", "Low Phosphate", 
+          "Heat Stress", "Cold Stress")[which(c("HAP4_2", "CC_2", "LowN_2", "LowPi_2", "Heat_2", "Cold_2") == e)]
+  pdf(file = paste0("paper_figures/Supplement/dendro_", e, ".pdf"), height = 4, width = 4)
+  print(plot(clusterdf_list[[e]]$tree, labels = FALSE, main = nm))
+  dev.off() 
+}
+```
+
