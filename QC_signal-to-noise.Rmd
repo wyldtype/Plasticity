@@ -9,7 +9,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r environment-setup}
 source("functions_for_figure_scripts.R")
 library("pheatmap")
+library("ggalluvial")
 load("data_files/FinalDataframe3Disp.RData")
+finaldf_Disp3 <- finaldf
+rm(finaldf)
+load("data_files/FinalDataframe_SNR30pct.RData")
+finaldf_SNR30pct <- finaldf
+rm(finaldf)
 snrdf <- read_csv("data_files/QC_signal-to-noise.csv")
 ```
 Discrete heatmaps of genes assigned to 0 cluster using different thresholds/criteria.
@@ -17,7 +23,7 @@ Discrete heatmaps of genes assigned to 0 cluster using different thresholds/crit
 Comparing the main paper's cluster criterion of Disp = 3 versus each version of signal to noise to find the one that is most similar to Disp = 3 assignments
 
 ```{r discrete-heatmap-lowly-varying}
-plot_mat <- finaldf |> dplyr::select(gene_name, experiment, cer, par) |> 
+plot_mat <- finaldf_Disp3 |> dplyr::select(gene_name, experiment, cer, par) |> 
   pivot_longer(cols = c("cer", "par"),
                names_to = "species",
                values_to = "Disp3") |> 
@@ -47,11 +53,14 @@ pheatmap(ordered_plot_mat, cluster_rows = FALSE, cluster_cols = FALSE, show_coln
 4-group comparison between Disp3 and signal-to-noise 30%:
 
 ```{r discrete-heatmap-group4, cache=TRUE}
-plotdf <- finaldf |> dplyr::select(gene_name, experiment, group4) |> 
-  dplyr::rename(c("group4_disp3"="group4"))
-load("data_files/FinalDataframe_SNR30pct.RData")
-plotdf <- left_join(plotdf, select(finaldf, gene_name, experiment, group4), by = c("gene_name", "experiment")) |> 
-  dplyr::rename(c("group4_SNR30pct"="group4"))
+plotdf <- finaldf_Disp3 |> dplyr::select(gene_name, experiment, group4, cer, par) |> 
+  dplyr::rename(c("group4_disp3"="group4",
+                  "cer_disp3"="cer",
+                  "par_disp3"="par"))
+plotdf <- left_join(plotdf, select(finaldf_SNR30pct, gene_name, experiment, group4, cer, par), by = c("gene_name", "experiment")) |> 
+  dplyr::rename(c("group4_SNR30pct"="group4",
+                  "cer_SNR30pct"="cer",
+                  "par_SNR30pct"="par"))
 plot_mat <- select(plotdf, group4_disp3, group4_SNR30pct) |> t() |> as.matrix()
 ordered_plot_mat <- orderGenesByGroup(.mat = plot_mat)
 rownames(ordered_plot_mat) <- c("Dispersion 3", "Signal-to-noise 30%")
@@ -73,4 +82,100 @@ p <- ggplot(plotdf, aes(x = x, y = y, fill = group4)) +
   theme_void()
 p
 ```
+
+What types of plasticity divergence are the most different between dispersion and SNR?
+
+```{r plasticity-groups}
+plotdf <- finaldf_Disp3 |> dplyr::select(gene_name, experiment, group4, cer, par) |> 
+  dplyr::rename(c("group4_disp3"="group4",
+                  "cer_disp3"="cer",
+                  "par_disp3"="par"))
+plotdf <- left_join(plotdf, select(finaldf_SNR30pct, gene_name, experiment, group4, cer, par), by = c("gene_name", "experiment")) |> 
+  dplyr::rename(c("group4_SNR30pct"="group4",
+                  "cer_SNR30pct"="cer",
+                  "par_SNR30pct"="par"))
+plotlist <- vector(mode = "list", length = length(ExperimentNames))
+names(plotlist) <- ExperimentNames
+for (e in ExperimentNames) {
+  plot_mat_e <- plotdf |> filter(experiment == e) |> 
+    mutate(disp3 = paste(cer_disp3, par_disp3, sep = "_"),
+           SNR30pct = paste(cer_SNR30pct, par_SNR30pct, sep = "_")) |> 
+    dplyr::select(disp3, SNR30pct) |> t() |> as.matrix()
+  ordered_plot_mat_e <- orderGenesByGroup(.mat = plot_mat_e,
+                                          .labels = unique(c(plot_mat_e[1,], plot_mat_e[2,])))
+  rownames(ordered_plot_mat_e) <- c("Dispersion 3", "Signal-to-noise 30%")
+  plotdf_e <- map(c("Dispersion 3", "Signal-to-noise 30%"), \(nm) {
+    idx <- which(c("Dispersion 3", "Signal-to-noise 30%") == nm)
+    return(tibble(gene_name = colnames(ordered_plot_mat_e),
+                  method = nm,
+                  clusters = ordered_plot_mat_e[idx,],
+                  x = c(1:ncol(ordered_plot_mat_e)),
+                  y = c(length(LongExperimentNames):1)[idx])) # descending from top
+  }) |> purrr::reduce(.f = bind_rows)
+  plotlist[[e]] <- ggplot(plotdf_e, aes(x = x, y = y, fill = clusters)) +
+    geom_tile(aes(fill = clusters)) +
+    theme_void()
+}
+ggarrange(plotlist = plotlist, nrow = 3, ncol = 2, common.legend = TRUE)
+```
+
+Alluvial plots of which of 4 plasticity categories are different between dispersion and signal to noise:
+1) single 0s: 10, 01, 20, 02
+2) conserved 0s: 00
+3) reversals: 12, 21
+4) conserved varying: 11, 22
+
+```{r alluvial}
+# helper function to collapse 9 plasticity combinations into 4 categories we are interested in here
+getPlasticityCategory <- function(.cer, .par) {
+  if (.cer == 0 & .par == 0) {
+    return("ConsZero")
+  }
+  if (.cer == 0 | .par == 0) {
+    return("SingleZero")
+  }
+  if (.cer  != .par) {
+    return("Reversal")
+  }
+  if (.cer == .par) {
+    return("ConsVar")
+  }
+}
+# tests for getPlasticityCategory
+getPlasticityCategory(0, 1)
+getPlasticityCategory(0, 0)
+getPlasticityCategory(0, 56)
+getPlasticityCategory("bugs", 1)
+getPlasticityCategory(1, 1)
+
+plotdf$plasticity_category_disp3 <- purrr::map2(plotdf$cer_disp3, 
+                                                plotdf$par_disp3, .f = getPlasticityCategory) |> unlist()
+plotdf$plasticity_category_SNR30pct <- purrr::map2(plotdf$cer_SNR30pct, 
+                                                   plotdf$par_SNR30pct, .f = getPlasticityCategory) |> unlist()
+plotdf_counts <- plotdf |> 
+  group_by(experiment, plasticity_category_disp3, plasticity_category_SNR30pct) |> 
+  summarise(ngenes = n()) |> 
+  ungroup()
+category_counts <- plotdf |> 
+  group_by(experiment, plasticity_category_disp3) |> 
+  summarise(ncategory = n()) |> 
+  ungroup()
+plotdf_counts <- left_join(plotdf_counts, category_counts,
+                           by = c("plasticity_category_disp3", "experiment"),
+                           relationship = "many-to-one")
+plotdf_counts$pctcategory <- plotdf_counts$ngenes/plotdf_counts$ncategory
+is_alluvia_form(plotdf_counts, silent = TRUE)
+p <- ggplot(filter(plotdf_counts, plasticity_category_disp3 != plasticity_category_SNR30pct),
+       aes(y = ngenes, axis1 = plasticity_category_disp3, axis2 = plasticity_category_SNR30pct)) +
+  geom_alluvium(aes(fill = plasticity_category_disp3), width = 1/12) +
+  geom_stratum(width = 1/12, fill = "black", color = "grey") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum))) +
+  scale_x_discrete(limits = c("Disp 3", "SNR 30%"), expand = c(.05, .05)) +
+  scale_fill_brewer(type = "qual", palette = "Set1") +
+  facet_wrap(~experiment) +
+  theme_classic() +
+  ylab("number of genes")
+p
+```
+
 
