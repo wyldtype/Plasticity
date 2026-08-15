@@ -356,10 +356,9 @@ save(spcts, spinfo, alcts, alinfo, file = "data_files/GLM_Counts.RData")
 
 ```{r}
 load("data_files/Cleaned_Counts.RData")
-load("data_files/Cleaned_Counts_Allele.RData")
 ExperimentNames <- c("LowN", "CC", "HAP4", "LowPi", "Heat", "Cold")
 
-# parents only for clustering
+# parental counts for main clustering
 # using info and collapsed counts from parents only, all WT samples, replicates averaged
 dim(info)
 dim(collapsed$cer)
@@ -397,6 +396,57 @@ dim(counts_list$par_Cold)
 dim(info)
 # saving
 save(counts_list, info, file = "data_files/Clustering_Counts.RData")
+
+# hybrid counts for clustering, for cis/trans test
+# all WT samples, replicates averaged
+load("data_files/Cleaned_Counts_Allele.RData")
+dim(info_allele)
+dim(collapsed_allele$cer)
+dim(collapsed_allele$par)
+sum(grepl("WT", info_allele$condition))/nrow(info_allele) # should have all WT, ratio is 1
+sum(grepl("WT", colnames(collapsed_allele$cer)))/ncol(collapsed_allele$cer) # should have all WT, ratio is 1
+table(colnames(collapsed_allele$cer)) |> table() # should all have one entry, 1 for each condition
+
+### Splitting counts into species/experiments
+counts_list_allele <- vector(mode = "list", length = 0)
+for (e in unique(info_allele$experiment)) {
+  for (a in c("cer", "par")) {
+    cts <- collapsed_allele[[a]][, info_allele$experiment == e]
+    cts <- cts[apply(cts, 1, \(x) !all(is.na(x))),] # removing na genes from Heat/Cold
+    counts_list_allele[[paste(a, e, sep = "_")]] <- cts
+  }
+}
+rm(cts)
+# removing genes that are lowly expressed in BOTH PARENTAL species
+# using pre-low-expression filtered parental counts as reference
+counts_list_parents_preFilter <- vector(mode = "list", length = 0)
+for (e in unique(info$experiment)) {
+  for (a in c("cer", "par")) {
+    cts <- collapsed[[a]][, info$experiment == e]
+    cts <- cts[apply(cts, 1, \(x) !all(is.na(x))),] 
+    counts_list_parents_preFilter[[paste(a, e, sep = "_")]] <- cts
+  }
+}
+rm(cts)
+
+expr_thresh <- 30
+for (e in ExperimentNames) {
+  cer_name <- paste("cer", e, sep = "_")
+  par_name <- paste("par", e, sep = "_")
+  low_cer <- rowMeans(counts_list_parents_preFilter[[cer_name]]) <= expr_thresh # intentionally based on parental counts, not hybrid
+  low_par <- rowMeans(counts_list_parents_preFilter[[par_name]]) <= expr_thresh
+  good_idxs <- !(low_cer & low_par)
+  counts_list_allele[[cer_name]] <- counts_list_allele[[cer_name]][good_idxs,]
+  counts_list_allele[[par_name]] <- counts_list_allele[[par_name]][good_idxs,]
+}
+# now experiments have different nGenes (but species from the same experiment will have the same nGenes, and should be the same length as parents above)
+dim(counts_list_allele$cer_CC)
+dim(counts_list_allele$par_CC)
+dim(counts_list_allele$cer_Cold)
+dim(counts_list_allele$par_Cold)
+dim(info_allele)
+# saving
+save(counts_list_allele, info_allele, file = "data_files/Clustering_Counts_Allele.RData")
 ```
 
 Done with data cleaning, on to GLMs and Heiarchical Clustering!
