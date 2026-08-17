@@ -11,6 +11,7 @@ Hierarchical clustering of expression data observation from combined-experiment 
 options(stringsAsFactors = FALSE)
 source("functions_for_figure_scripts.R")
 load("data_files/Clustering_Counts.RData")
+load("data_files/Clustering_Counts_Allele.RData")
 set.seed(23)
 
 # Method:
@@ -475,6 +476,24 @@ save(clusterdf, clusterdf_list,
      clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering.RData")
 ```
 
+## Clustering hybrid for cis/trans test
+```{r clustering-hybrid}
+clusterdf_list_hyb <- vector(mode = "list", length = 0)
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters disp=", var_thresh, "in", e, "*********** \n")
+  output <- clusterCountsList(counts_list_allele[grepl(e, names(counts_list_allele))], 
+                          .nClust = 2, 
+                          .tree_too = TRUE,
+                          .min_var = var_thresh)
+  clusterdf_list_hyb[[paste(e, 2, sep = "_")]] <- output
+}
+```
+```{r saving-hybrid}
+clusterdf_hyb <- getClusterCombination(clusterdf_list_hyb)
+# only clustering set we'll use:
+save(clusterdf_hyb, clusterdf_list_hyb, file = "data_files/CorrelationClustering3Disp_Allele.RData")
+```
+
 ## Visualizing clustering dendrograms
 
 ```{r dendrograms}
@@ -484,6 +503,16 @@ for (e in c("HAP4_2", "CC_2", "LowN_2", "LowPi_2", "Heat_2", "Cold_2")) {
           "Heat Stress", "Cold Stress")[which(c("HAP4_2", "CC_2", "LowN_2", "LowPi_2", "Heat_2", "Cold_2") == e)]
   pdf(file = paste0("paper_figures/Supplement/dendro_", e, ".pdf"), height = 4, width = 4)
   print(plot(clusterdf_list[[e]]$tree, labels = FALSE, main = nm))
+  dev.off() 
+}
+```
+```{r dendrograms-hybrid}
+for (e in c("HAP4_2", "CC_2", "LowN_2", "LowPi_2", "Heat_2", "Cold_2")) {
+  nm <- c("Diauxic Shift", "Hydroxyurea Shock", 
+          "Low Nitrogen", "Low Phosphate", 
+          "Heat Stress", "Cold Stress")[which(c("HAP4_2", "CC_2", "LowN_2", "LowPi_2", "Heat_2", "Cold_2") == e)]
+  pdf(file = paste0("paper_figures/Supplement/hyb_dendro_", e, ".pdf"), height = 4, width = 4)
+  print(plot(clusterdf_list_hyb[[e]]$tree, labels = FALSE, main = nm))
   dev.off() 
 }
 ```

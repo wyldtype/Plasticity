@@ -55,6 +55,7 @@ Loading heiarchical clustering and DESeq2 model outputs:
 
 ```{r data-loading}
 load("data_files/CorrelationClustering3Disp.RData")
+load("data_files/CorrelationClustering3Disp_Allele.RData")
 load("data_files/single_gene_models.RData")
 load("data_files/Cleaned_Count_Data.RData")
 load("data_files/Cleaned_Counts.RData")
@@ -348,6 +349,13 @@ round(p_par/sum(p_par), digits = 2)
 # proportions are the same between the three groups
 ```
 
+Adding hybrid clustering results for cis/trans test:
+
+```{r hybrid-clustering}
+finaldf <- clusterdf_hyb |> dplyr::rename(c("gene_name"="gene_ID", "hyc"="cer", "hyp"="par")) |> 
+  right_join(y = finaldf, by = c("experiment", "gene_name"))
+```
+
 Numbers for the workflow figure:
 
 ```{r workflow-numbers}
@@ -366,6 +374,8 @@ min(n_per_experiment)
 finaldf |> group_by(experiment) |> 
   summarise(n_cer_lowvar = sum(cer == 0),
             n_par_lowvar = sum(par == 0),
+            n_hyc_lowvar = sum(hyc == 0),
+            n_hyp_lowvar = sum(hyp == 0),
             n_genes = n()*2) |> 
   mutate(pct_low_var = (n_cer_lowvar + n_par_lowvar)/n_genes)
 ```
