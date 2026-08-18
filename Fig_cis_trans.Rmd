@@ -9,6 +9,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r package-loading}
 source("functions_for_figure_scripts.R")
 library(ggExtra)
+library(ggVennDiagram)
 load("data_files/FinalDataframe3Disp.RData")
 load("data_files/Cleaned_Counts.RData")
 load("data_files/Cleaned_Counts_Allele.RData")
@@ -21,6 +22,196 @@ eff_thresh <- log2(1.5)
 cis_plast_thresh <- -0.25 
 trans_lev_thresh <- log2(2)
 ```
+
+## Cross-parent tests to compare the cis basis of level divergence vs plasticity divergence
+
+Is having the "correct" parental allele more informative than having the "incorrect" parental allele? It should be, at least if there is cis-regulatory divergence
+
+Here we compare the frequency with which a hybrid allele has the same direction of level difference (+ or - log2 fold change) or plasticity (same cluster 0, 1, or 2) as a parental allele (either the "correct" parent of the "cross" parent) versus randomly assigned hybrid-parent pairs of different genes.
+
+8 permutation distributions total: correct vs incorrect parent x level vs plasticity x diverged vs conserved = 2^3 = 8
+
+```{r getPlasticityCrossSpeciesDataset}
+getPlasticityCrossSpeciesDataset <- function(.df, .separate_species = FALSE, .nIter = 10000) {
+  nGenes <- nrow(.df)
+  cer_clusters <- .df$cer
+  par_clusters <- .df$par
+  hyc_clusters <- .df$hyc
+  hyp_clusters <- .df$hyp
+  if (!.separate_species) {
+    observed_same <- sum(c(cer_clusters, par_clusters) == c(hyc_clusters, hyp_clusters))/(nGenes*2)
+    observed_cross <- sum(c(cer_clusters, par_clusters) == c(hyp_clusters, hyc_clusters))/(nGenes*2)
+    null_same <- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hybrid_clusters <- sample(c(hyc_clusters, hyp_clusters), size = nGenes*2, replace = FALSE)
+      return(sum(c(cer_clusters, par_clusters) == scrambled_hybrid_clusters)/(nGenes*2))
+    }) |> unlist()
+    null_cross <- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hybrid_clusters <- sample(c(hyp_clusters, hyc_clusters), size = nGenes*2, replace = FALSE)
+      return(sum(c(cer_clusters, par_clusters) == scrambled_hybrid_clusters)/(nGenes*2))
+    }) |> unlist()
+    return(list(observed_samespecies = observed_same,
+                observed_crossspecies = observed_cross,
+                null_samespecies = null_same,
+                null_crossspecies = null_cross))
+  }
+  if (.separate_species) {
+    observed_cerhyc <- sum(cer_clusters == hyc_clusters)/nGenes
+    observed_cerhyp <- sum(cer_clusters == hyp_clusters)/nGenes
+    observed_parhyc <- sum(par_clusters == hyc_clusters)/nGenes
+    observed_parhyp <- sum(par_clusters == hyp_clusters)/nGenes
+    null_cerhyc <- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hyc_clusters <- sample(hyc_clusters, size = nGenes, replace = FALSE)
+      return(sum(cer_clusters == scrambled_hyc_clusters)/nGenes)
+    }) |> unlist()
+    null_cerhyp <- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hyp_clusters <- sample(hyp_clusters, size = nGenes, replace = FALSE)
+      return(sum(cer_clusters == scrambled_hyp_clusters)/nGenes)
+    }) |> unlist()
+    null_parhyc <- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hyc_clusters <- sample(hyc_clusters, size = nGenes, replace = FALSE)
+      return(sum(par_clusters == scrambled_hyc_clusters)/nGenes)
+    }) |> unlist()
+    null_parhyp <- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hyp_clusters <- sample(hyp_clusters, size = nGenes, replace = FALSE)
+      return(sum(par_clusters == scrambled_hyp_clusters)/nGenes)
+    }) |> unlist()
+    return(list(observed_samespecies_Scer = observed_cerhyc,
+                observed_samespecies_Spar = observed_parhyp,
+                observed_crossspecies_Scer = observed_cerhyp,
+                observed_crossspecies_Spar = observed_parhyc,
+                null_samespecies_Scer = null_cerhyc,
+                null_samespecies_Spar = null_parhyp,
+                null_crossspecies_Scer = null_cerhyp,
+                null_crossspecies_Spar = null_parhyc))
+  }
+}
+# tests for getPlasticityCrossSpeciesDataset
+# hard to test this one, so we'll just use the separate species option to verify that results are not different for Scer versus Spar
+test <- getPlasticityCrossSpeciesDataset(.df = filter(finaldf, plasticity == "diverged"), # change btween conserved/diverged plasticity or filter for different environments
+                                         .nIter = 100, .separate_species = TRUE)
+# Scer, same species
+p_scer_same <- plotPermutationTestOn0to1Scale(.observed_value = test$observed_samespecies_Scer,
+                                   .null_vector = test$null_samespecies_Scer,
+                                   .xlab = "fraction of Hyc genes in same cluster as Scer")
+# Scer, cross species
+p_scer_cross <- plotPermutationTestOn0to1Scale(.observed_value = test$observed_crossspecies_Scer,
+                                    .null_vector = test$null_crossspecies_Scer,
+                                    .xlab = "fraction of Hyp genes in same cluster as Scer")
+# Spar, same species
+p_spar_same <- plotPermutationTestOn0to1Scale(.observed_value = test$observed_samespecies_Spar,
+                                   .null_vector = test$null_samespecies_Spar,
+                                   .xlab = "fraction of Hyp genes in same cluster as Spar")
+# Spar, cross species
+p_spar_cross <- plotPermutationTestOn0to1Scale(.observed_value = test$observed_crossspecies_Spar,
+                                    .null_vector = test$null_crossspecies_Spar,
+                                    .xlab = "fraction of Hyc genes in same cluster as Spar")
+ggarrange(p_scer_same, p_scer_cross, p_spar_same, p_spar_cross, nrow = 2, ncol = 2)
+```
+
+Repeat for checking the direction of level differences
+
+```{r getLevelCrossSpeciesDataset}
+getLevelCrossSpeciesDataset <- function(.df, .nIter = 10000) {
+  nGenes <- nrow(.df)
+  parental_signs <- .df$effect_size_species |> sign()
+  hybrid_signs <- .df$effect_size_allele |> sign()
+  observed_same <- sum(parental_signs == hybrid_signs)/nGenes
+  observed_cross <- sum(parental_signs == -hybrid_signs)/nGenes
+  null_same <- purrr::map(c(1:.nIter), \(i) {
+    scrambled_hybrid_signs <- sample(hybrid_signs, size = nGenes, replace = FALSE)
+    return(sum(parental_signs == scrambled_hybrid_signs)/nGenes)
+  }) |> unlist()
+  null_cross <- purrr::map(c(1:.nIter), \(i) {
+    scrambled_hybrid_signs <- sample(-hybrid_signs, size = nGenes, replace = FALSE)
+    return(sum(parental_signs == scrambled_hybrid_signs)/nGenes)
+  }) |> unlist()
+  return(list(observed_samespecies = observed_same,
+              observed_crossspecies = observed_cross,
+              null_samespecies = null_same,
+              null_crossspecies = null_cross))
+}
+# tests for getLevelCrossSpeciesDataset
+test <- getLevelCrossSpeciesDataset(.df = filter(finaldf, level == "diverged"), # change btween conserved/diverged plasticity or filter for different environments
+                                         .nIter = 100)
+# Same species
+p_same <- plotPermutationTestOn0to1Scale(.observed_value = test$observed_samespecies,
+                              .null_vector = test$null_samespecies,
+                              .xlab = "fraction of hybrid alleles with same l2fc direction as same parent")
+# Cross species
+p_cross <- plotPermutationTestOn0to1Scale(.observed_value = test$observed_crossspecies,
+                                    .null_vector = test$null_crossspecies,
+                                    .xlab = "fraction of hybrid alleles with same l2fc direction as cross parent")
+ggarrange(p_same, p_cross, nrow = 1, ncol = 2)
+```
+
+#### Permutation plots for supplemental figure
+
+Collecting permutation datasets
+
+```{r cross-species-permutation-datasets, cache=TRUE}
+# level, conserved
+lev_cons_df <- getLevelCrossSpeciesDataset(.df = filter(finaldf, level == "conserved"))
+# level, diverged
+lev_div_df <- getLevelCrossSpeciesDataset(.df = filter(finaldf, level == "diverged"))
+# plasticity, conserved
+plast_cons_df <- getPlasticityCrossSpeciesDataset(.df = filter(finaldf, plasticity == "conserved"))
+# plasticity, diverged
+plast_div_df <- getPlasticityCrossSpeciesDataset(.df = filter(finaldf, plasticity == "diverged"))
+```
+
+Plots for pdf:
+
+```{r pdf-cross-species-permutation}
+# Conserved level
+# Same species
+p_lev_cons_same <- plotPermutationTestOn0to1Scale(.observed_value = lev_cons_df$observed_samespecies,
+                                                  .null_vector = lev_cons_df$null_samespecies,
+                                                  .xlab = "same parent, conserved level")
+# Cross species
+p_lev_cons_cross <- plotPermutationTestOn0to1Scale(.observed_value = lev_cons_df$observed_crossspecies,
+                                                  .null_vector = lev_cons_df$null_crossspecies,
+                                                  .xlab = "cross parent, conserved level")
+# Diverged level
+# Same species
+p_lev_div_same <- plotPermutationTestOn0to1Scale(.observed_value = lev_div_df$observed_samespecies,
+                                                  .null_vector = lev_div_df$null_samespecies,
+                                                  .xlab = "same parent, diverged level")
+# Cross species
+p_lev_div_cross <- plotPermutationTestOn0to1Scale(.observed_value = lev_div_df$observed_crossspecies,
+                                                  .null_vector = lev_div_df$null_crossspecies,
+                                                  .xlab = "cross parent, diverged level")
+# Conserved plasticity
+# Same species
+p_plast_cons_same <- plotPermutationTestOn0to1Scale(.observed_value = plast_cons_df$observed_samespecies,
+                                                  .null_vector = plast_cons_df$null_samespecies,
+                                                  .xlab = "same parent, conserved plasticity")
+# Cross species
+p_plast_cons_cross <- plotPermutationTestOn0to1Scale(.observed_value = plast_cons_df$observed_crossspecies,
+                                                     .null_vector = plast_cons_df$null_crossspecies,
+                                                     .xlab = "cross parent, conserved plasticity")
+# Diverged plasticity
+# Same species
+p_plast_div_same <- plotPermutationTestOn0to1Scale(.observed_value = plast_div_df$observed_samespecies,
+                                                   .null_vector = plast_div_df$null_samespecies,
+                                                   .xlab = "same parent, diverged plasticity")
+# Cross species
+p_plast_div_cross <- plotPermutationTestOn0to1Scale(.observed_value = plast_div_df$observed_crossspecies,
+                                                    .null_vector = plast_div_df$null_crossspecies,
+                                                    .xlab = "cross parent, diverged plasticity")
+ggarrange(p_lev_cons_same, p_lev_cons_cross, 
+          p_lev_div_same, p_lev_div_cross,
+          p_plast_cons_same, p_plast_cons_cross, 
+          p_plast_div_same, p_plast_div_cross, nrow = 4, ncol = 2)
+ggsave(filename = "paper_figures/CisTrans/cross_species_tests.pdf", width = 10, height = 7)
+```
+
+
+
+## Maybe: Direction Tests to compare cis basis of level divergence vs plasticity divergence
+
+Level direction test: fraction of Scer and Spar hybrid genes that have the same direction of expression between parents and hybrid alleles
+
+Plasticity direction test: fraction of Scer and Spar hybrid genes that are in the same cluster between parents and hybrid alleles
 
 ## Log2 fold changes between parents and hybrid are correlated
 
@@ -117,7 +308,7 @@ p
 dev.off()
 ```
 
-## Less of the plasticity divergence observed between parents is explained by the hybrid
+## Less of the plasticity divergence observed between parents is explained by the hybrid, using R-squared
 
 ```{r plasticity-unexplained, warning=FALSE}
 # R squared for effect sizes between parents and hybrid for all genes
@@ -748,3 +939,136 @@ p
 dev.off()
 ```
 
+## Permutation tests (probably archive)
+Testing whether hybrid has more genes with level and plasticity divergence in common with parents than expected by chance.
+
+Putting these at the bottom of the script because, as expected, they do, but there's also lots of non-overlap.
+
+Permutation test for level, to compare to plasticity below:
+
+```{r level-explained-permutation}
+getLevelDivergedGeneSets <- function(.environment, .df = finaldf) {
+  diverged_genes_parents <- .df |> filter(experiment == .environment &
+                                            level == "diverged") |> 
+    dplyr::select(gene_name) |> pull()
+  real_diverged_genes_hybrids <- .df |> filter(experiment == .environment &
+                                                 finaldf$padj_allele < 0.05 &
+                                                 abs(effect_size_allele) > log2(1.5)) |> 
+    dplyr::select(gene_name) |> pull()
+  return(list(parents = diverged_genes_parents, hybrids = real_diverged_genes_hybrids))
+}
+getLevelPermutationDataset <- function(.environment, .df = finaldf,
+                                            .nIter = 10000) {
+  gene_sets <- getLevelDivergedGeneSets(.environment = .environment, .df = .df)
+  # measuring observed jaccard index
+  observed <- getJaccardIndex(gene_sets$parents, gene_sets$hybrids)
+  # creating a null distribution of jaccard indices
+  null_set <- purrr::map(c(1:.nIter), \(i) {
+    fake_diverged_genes_hybrids <- .df |> filter(experiment == .environment) |> 
+      dplyr::select(gene_name) |> pull() |> 
+      sample(size = length(gene_sets$hybrids), replace = FALSE)
+    return(getJaccardIndex(gene_sets$parents, fake_diverged_genes_hybrids))
+  }) |> unlist()
+  return(list(observed_jaccard = observed, null_jaccard = null_set))
+}
+# tests for getPlasticityPermutationDataset
+test_dataset <- getLevelPermutationDataset(.environment = "HAP4", .nIter = 10)
+unlist(test_dataset)
+```
+Collecting permutation datasets for each environment:
+
+```{r level-permutation-datasets, cache=TRUE}
+df_list_level <- purrr::map(ExperimentNames, \(e) {
+  cat(e, "\n")
+  getLevelPermutationDataset(.environment = e, .nIter = 10000)
+})
+```
+
+```{r plotting-level-permutation-tests}
+plotlist <- purrr::map(df_list_level, \(df) {
+  plotPlasticityPermutationTest(.observed_value = df$observed_jaccard, .null_distribution = df$null_jaccard, .xlab = "Jaccard Index ([A & B]/[A or B])")
+})
+ggarrange(plotlist = plotlist, ncol = 2, nrow = 3)
+```
+
+Accompanying Venn Diagrams:
+
+```{r venn-level}
+plotlist_venn <- purrr::map(ExperimentNames, \(e) {
+  gene_sets <- getLevelDivergedGeneSets(.environment = e)
+  ggVennDiagram(gene_sets) + ggtitle(e)
+})
+ggarrange(plotlist = plotlist, ncol = 2, nrow = 3, legend = "none")
+```
+
+## New version: Less of the plasticity divergence observed between parents is explained by the hybrid, tested using permuted labels
+
+```{r plasticity-unexplained-permutation}
+getPlasticityDivergedGeneSets <- function(.environment, .df = finaldf,
+                                            .just_reversals = FALSE) {
+  if (.just_reversals) {
+    diverged_genes_parents <- .df |> filter(experiment == .environment &
+                                              plasticity == "diverged" &
+                                              cer != 0 & par != 0) |> 
+      dplyr::select(gene_name) |> pull()
+    real_diverged_genes_hybrids <- .df |> filter(experiment == .environment &
+                                                   hyc != hyp &
+                                                   hyc != 0 & hyp != 0) |> 
+      dplyr::select(gene_name) |> pull()
+  }
+  if (!.just_reversals) {
+    diverged_genes_parents <- .df |> filter(experiment == .environment &
+                                              plasticity == "diverged") |> 
+      dplyr::select(gene_name) |> pull()
+    real_diverged_genes_hybrids <- .df |> filter(experiment == .environment &
+                                                   hyc != hyp) |> 
+      dplyr::select(gene_name) |> pull()
+  }
+  return(list(parents = diverged_genes_parents, hybrids = real_diverged_genes_hybrids))
+}
+getPlasticityPermutationDataset <- function(.environment, .df = finaldf,
+                                            .just_reversals = FALSE,
+                                            .nIter = 10000) {
+  gene_sets <- getPlasticityDivergedGeneSets(.environment = .environment,
+                                             .df = .df, .just_reversals = .just_reversals)
+  # measuring observed jaccard index
+  observed <- getJaccardIndex(gene_sets$parents, gene_sets$hybrids)
+  # creating a null distribution of jaccard indices
+  null_set <- purrr::map(c(1:.nIter), \(i) {
+    fake_diverged_genes_hybrids <- .df |> filter(experiment == .environment) |> 
+      dplyr::select(gene_name) |> pull() |> 
+      sample(size = length(gene_sets$hybrids), replace = FALSE)
+    return(getJaccardIndex(gene_sets$parents, fake_diverged_genes_hybrids))
+  }) |> unlist()
+  return(list(observed_jaccard = observed, null_jaccard = null_set))
+}
+# tests for getPlasticityPermutationDataset
+test_dataset1 <- getPlasticityPermutationDataset(.environment = "HAP4", .nIter = 10)
+test_dataset2 <- getPlasticityPermutationDataset(.environment = "HAP4", .nIter = 10, .just_reversals = TRUE) # should have lower jaccard b/c smaller set
+rbind(unlist(test_dataset1), unlist(test_dataset2))
+```
+Collecting permutation datasets for each environment:
+
+```{r permutation-datasets, cache=TRUE}
+df_list_plasticity <- purrr::map(ExperimentNames, \(e) {
+  cat(e, "\n")
+  getPlasticityPermutationDataset(.environment = e, .nIter = 10000)
+})
+```
+Plotting null distributions and observed Jaccard index for each environment:
+
+```{r plotting-plasticity-permutation-tests}
+plotlist <- purrr::map(df_list_plasticity, \(df) {
+  plotPlasticityPermutationTest(.observed_value = df$observed_jaccard, .null_distribution = df$null_jaccard, .xlab = "Jaccard Index ([A & B]/[A or B])")
+})
+ggarrange(plotlist = plotlist, ncol = 2, nrow = 3)
+```
+Accompanying Venn diagram:
+
+```{r venn-plasticity}
+plotlist <- purrr::map(ExperimentNames, \(e) {
+  gene_sets <- getPlasticityDivergedGeneSets(.environment = e)
+  ggVennDiagram(gene_sets) + ggtitle(e)
+})
+ggarrange(plotlist = plotlist, ncol = 2, nrow = 3, legend = "none")
+```
