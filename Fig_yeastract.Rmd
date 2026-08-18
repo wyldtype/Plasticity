@@ -16,7 +16,7 @@ load("data_files/FinalDataframe3Disp.RData")
 load("data_files/Cleaned_Count_Data.RData")
 load("data_files/Cleaned_Counts.RData")
 load("data_files/Cleaned_Counts_Allele.RData")
-sapply(c("Matrix", "stringr", "ComplexHeatmap"), require, character.only=TRUE)
+sapply(c("Matrix", "stringr"), require, character.only=TRUE)
 source("functions_for_figure_scripts.R")
 library(dplyr)
 library(igraph)
@@ -741,6 +741,39 @@ plotHomeAndAltEnvironments(.tf_common = test_tf, .e = test_home, .e2 = test_alt,
                            .reg_idxs = test_idxs, .regulon_normalization = "log2")
 ```
 
+## Target vs regulator plasticity divergence
+
+In the three examples above, we see that the regulons appear to have more conserved plasticity than their regulators, especially in the home environment. How common is this?
+
+```{r regulator-target-plasticity-permutation, cache=TRUE}
+plotdf <- regdf |> dplyr::select(regulator, target, environment) |> 
+  pivot_longer(cols = c("regulator", "target"),
+               names_to = "type", values_to = "gene_name") |> 
+  filter(environment!= "YPD") |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("gene_name", "environment"="experiment")) |> 
+  drop_na() |> 
+  unique() # regulators have multiple rows, one for each target gene
+observed_pct_div_plast <- plotdf |> group_by(type) |> 
+  summarise(pct_div_plast = sum(plasticity == "diverged")/n())
+null_pct_diverged_plast <- purrr::map(c(1:10000), \(i) {
+  null_genes <- setdiff(paste(finaldf$gene_name, finaldf$experiment, sep = "_"),
+                        paste(plotdf$gene_name, plotdf$environment, sep = "_")) |> 
+    sample(size = nrow(plotdf), replace = FALSE)
+  nulldf <- tibble("gene_name" = str_split_i(null_genes, pattern = "_", i = 1),
+                   "environment" = str_split_i(null_genes, pattern = "_", i = 2)) |> left_join(dplyr::select(finaldf, gene_name, experiment, plasticity), by = c("gene_name", "environment"="experiment"))
+  pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
+  return(pct_null)
+}) |> unlist()
+plotPermutationTestOn0to1Scale(.observed_value = observed_pct_div_plast$pct_div_plast, .null_vector = null_pct_diverged_plast, .observed_color = c("red", "green") , .xlab = "percent of genes with diverged plasticity\ntargets: green, regulators: red", .testAboveNull = FALSE, .xlim = NULL)
+```
+Saving to PDF:
+
+```{r permutation-pdf}
+ggsave("paper_figures/Yeastract/permutation.pdf", width = 5, height = 3)
+```
+
+
 ### Are regulators diverging in expression level associated with more divergent regulons?
 
 "Volcano"-style plots of log2 fold change on the x axis and percent of regulon that is divergent on the y axis (where p-value would normally go)
@@ -959,10 +992,6 @@ p2 <- ggplot(plotdf, aes(x = log2(var_expr_par))) +
 annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
                           legend = "right", ncol = 1, nrow = 2), top = "Spar")
 ```
-
-## Regulon plasticity divergence across environments
-
-In the three examples above, we see that the regulons have strongly conserved plasticity in their home environment and tend to have more divergent plasticity in alternative environments. How common is this?
 
 ### Fisher exact tests of regulatory interactions being enriched among conserved plasticity target genes
 
