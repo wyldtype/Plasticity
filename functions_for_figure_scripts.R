@@ -1,6 +1,7 @@
 sapply(c("tidyr", "ggpubr", "readr",
          "data.table", "ggplot2", "data.table",
-         "matrixStats", "ggpattern", "WGCNA"), require, character.only=TRUE)
+         "matrixStats", "ggpattern", "WGCNA",
+         "ComplexHeatmap"), require, character.only=TRUE)
 library(dplyr)
 library(purrr) # because their function names keep getting over-written
 
@@ -1061,25 +1062,43 @@ getJaccardIndex <- function(.set1, .set2) {
   return(nCommon/nTotal)
 }
 
-plotPermutationTestOn0to1Scale <- function(.observed_value, .null_vector, .xlab = "Null distribution") {
-  fraction_of_null_higher_than_observed <- sum(.null_vector > .observed_value)/length(.null_vector)
+plotPermutationTestOn0to1Scale <- function(.observed_value, .null_vector,
+                                           .testAboveNull = TRUE,
+                                           .xlab = "Null distribution",
+                                           .xlim = c(0, 1), 
+                                           .observed_color = rep("red", times = length(.observed_value))) {
+  fraction_of_null_higher_than_observed <- sum(.null_vector > max(.observed_value))/length(.null_vector)
+  if (.testAboveNull) {
+    pval <- fraction_of_null_higher_than_observed
+  }
+  if (!.testAboveNull) {
+    pval <- (1 - fraction_of_null_higher_than_observed)
+  }
   if (fraction_of_null_higher_than_observed >= 0.5) {
     label_text <- paste0("        ", round(.observed_value, digits = 2))
   }
   if (fraction_of_null_higher_than_observed < 0.5) {
     label_text <- paste0(round(.observed_value, digits = 2), "        ")
   }
-  pval_text <- if_else(fraction_of_null_higher_than_observed == 0, 
+  observeddf <- tibble(value = .observed_value,
+                       label = label_text,
+                       y_pos = 50,
+                       color = .observed_color)
+  pval_text <- if_else(pval == 0, 
                        true = "permutation p-value < 1e-6", 
-                       false = paste0("permutation p-value = ", fraction_of_null_higher_than_observed))
-  p <- ggplot(tibble(null = .null_vector), aes(x = .null_vector)) +
+                       false = paste0("permutation p-value = ", pval))
+  p <- ggplot(tibble(null = .null_vector), aes(x = null)) +
     geom_density(fill = "grey80", color = "black", alpha = 1) +
-    geom_vline(xintercept = .observed_value, color = "red") +
-    geom_text(x = .observed_value, y = 50, label = label_text, color = "red") +
+    geom_vline(xintercept = .observed_value, color = .observed_color) +
+    geom_text(data = observeddf, aes(x = value, y = y_pos, 
+              label = label), color = .observed_color) +
     ggtitle(pval_text) +
     theme_classic() +
     theme(legend.position = "none") +
     xlab(.xlab) +
-    xlim(c(0, 1))
+    ylab("density")
+  if (!is.null(.xlim)) {
+    p <- p + xlim(.xlim)
+  }
   return(p)
 }
