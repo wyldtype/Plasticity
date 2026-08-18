@@ -646,8 +646,17 @@ plotdf <- finaldf |> filter(level == "conserved") |>
 # establishing parental range (2-tailed)
 #low_bounds <- mean(plotdf$effect_size_species) - 2*sd(plotdf$effect_size_species)
 #high_bounds <- mean(plotdf$effect_size_species) + 2*sd(plotdf$effect_size_species)
-low_bounds <- -eff_thresh*2
-high_bounds <- eff_thresh*2
+low_bounds1 <- -eff_thresh
+high_bounds1 <- eff_thresh
+low_bounds2 <- -eff_thresh*1.5
+high_bounds2 <- eff_thresh*1.5
+low_bounds3 <- -eff_thresh*2
+high_bounds3 <- eff_thresh*2
+# choosing low and high bounds
+low_bounds <- low_bounds3
+high_bounds <- high_bounds3
+plot_filename <- "paper_figures/CisTrans/compensatory_level3.pdf"
+
 plotdf$level_compensatory <- plotdf$effect_size_allele < low_bounds |
   plotdf$effect_size_allele > high_bounds
 plot_counts <- plotdf |> 
@@ -681,7 +690,7 @@ p <- ggplot(plotdf, aes(x = effect_size_species, fill = experiment)) +
         strip.text = element_text(size = 14)) +
   xlim(c(-5, 5))
 p
-pdf("paper_figures/CisTrans/compensatory_level.pdf",
+pdf(plot_filename,
     width = 7, height = 4)
 p
 dev.off()
@@ -697,7 +706,13 @@ plotdf <- finaldf |> filter(!is.na(cor_hybrid) & !is.na(cor_parents)) |>
   dplyr::select(gene_name, experiment, cor_parents, cor_hybrid)
 # establishing parental range (1-tailed)
 #low_bounds <- mean(plotdf$cor_parents) - 2*sd(plotdf$cor_parents)
-low_bounds <- 0.5
+low_bounds1 <- 0.75
+low_bounds2 <- 0.625
+low_bounds3 <- 0.5
+# choosing bounds
+low_bounds <- low_bounds3
+plot_filename <- "paper_figures/CisTrans/compensatory_plasticity3.pdf"
+
 plotdf$plasticity_compensatory <- plotdf$cor_hybrid < low_bounds
 plot_counts <- plotdf |> 
   group_by(experiment, plasticity_compensatory) |> 
@@ -724,7 +739,7 @@ p <- ggplot(plotdf, aes(x = cor_parents, fill = experiment)) +
         strip.text = element_text(size = 14)) +
   xlim(c(-1.25, 1.25))
 p
-pdf("paper_figures/CisTrans/compensatory_plasticity.pdf",
+pdf(plot_filename,
     width = 7, height = 4)
 p
 dev.off()
