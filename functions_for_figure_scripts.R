@@ -264,12 +264,12 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
   if (.normalization == "none" | .normalization == "scale") {
     gdf$norm_expr <- gdf$mean_expr
     if (.confidence_type == "mean") { # 95% confidence in the mean (standard error)
-      gdf$norm_upperBound <- gdf$mean_expr + gdf$CI
-      gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$CI*1.96
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI*1.96
     }
     if (.confidence_type == "all") { # 95% of genes fall in this range
-      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr
-      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr*1.96
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr*1.96
     }
   }
   if (.normalization == "log2") {
@@ -279,12 +279,12 @@ plotExpressionProfilePairBasic <- function(.cts1, .cts2,
     }
     gdf$norm_expr <- log2(gdf$mean_expr)
     if (.confidence_type == "mean") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$CI)
-      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$CI*1.96)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI*1.96)
     }
     if (.confidence_type == "all") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr) # log(expr + confidence interval) != log(expression) + log(confidence interval)
-      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr*1.96)
     }
   }
   # creating consistent plotlims across all experiments
@@ -449,12 +449,12 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
   if (.normalization == "none" | .normalization == "scale") {
     gdf$norm_expr <- gdf$mean_expr
     if (.confidence_type == "mean") { # 95% confidence in the mean (standard error)
-      gdf$norm_upperBound <- gdf$mean_expr + gdf$CI
-      gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$CI*1.96
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$CI*1.96
     }
     if (.confidence_type == "all") { # 95% of genes fall in this range
-      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr
-      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr
+      gdf$norm_upperBound <- gdf$mean_expr + gdf$sd_expr*1.96
+      gdf$norm_lowerBound <- gdf$mean_expr - gdf$sd_expr*1.96
     }
   }
   if (.normalization == "log2") {
@@ -464,12 +464,12 @@ plotExpressionProfileQuartetBasic <- function(.cts1, .cts2, .cts3, .cts4,
     }
     gdf$norm_expr <- log2(gdf$mean_expr)
     if (.confidence_type == "mean") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$CI)
-      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$CI*1.96)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$CI*1.96)
     }
     if (.confidence_type == "all") {
-      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr) # log(expr + confidence interval) != log(expression) + log(confidence interval)
-      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr)
+      gdf$norm_upperBound <- log2(gdf$mean_expr + gdf$sd_expr*1.96) # log(expr + confidence interval) != log(expression) + log(confidence interval)
+      gdf$norm_lowerBound <- log2(gdf$mean_expr - gdf$sd_expr*1.96)
     }
   }
   # creating consistent plotlims across all experiments
@@ -1053,3 +1053,33 @@ getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/result
 # tests for getGOSlimDf
 # test <- getGOSlimDf(.idxs = c("YGR192C", "YJR009C", "YJL052W"),
 #                     .group_name = "tdhs", .min_hits = 1)
+
+#### Permutation Tests ####
+getJaccardIndex <- function(.set1, .set2) {
+  nCommon <- length(intersect(.set1, .set2))
+  nTotal <- length(union(.set1, .set2))
+  return(nCommon/nTotal)
+}
+
+plotPermutationTestOn0to1Scale <- function(.observed_value, .null_vector, .xlab = "Null distribution") {
+  fraction_of_null_higher_than_observed <- sum(.null_vector > .observed_value)/length(.null_vector)
+  if (fraction_of_null_higher_than_observed >= 0.5) {
+    label_text <- paste0("        ", round(.observed_value, digits = 2))
+  }
+  if (fraction_of_null_higher_than_observed < 0.5) {
+    label_text <- paste0(round(.observed_value, digits = 2), "        ")
+  }
+  pval_text <- if_else(fraction_of_null_higher_than_observed == 0, 
+                       true = "permutation p-value < 1e-6", 
+                       false = paste0("permutation p-value = ", fraction_of_null_higher_than_observed))
+  p <- ggplot(tibble(null = .null_vector), aes(x = .null_vector)) +
+    geom_density(fill = "grey80", color = "black", alpha = 1) +
+    geom_vline(xintercept = .observed_value, color = "red") +
+    geom_text(x = .observed_value, y = 50, label = label_text, color = "red") +
+    ggtitle(pval_text) +
+    theme_classic() +
+    theme(legend.position = "none") +
+    xlab(.xlab) +
+    xlim(c(0, 1))
+  return(p)
+}
