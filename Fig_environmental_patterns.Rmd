@@ -127,6 +127,21 @@ ggarrange(plotClusterPatternByExperiment(clusterdf_list$HAP4_2$df, .experiment =
           nrow = 3, ncol = 3, common.legend = FALSE, widths = c(2, 0.5, 2))
 dev.off()
 ```
+Repeat for hybrid clusters, just to verify that cluster 1 is still increasing cluster
+
+```{r cluster-lineplots-hybrid}
+ggarrange(plotClusterPatternByExperiment(clusterdf_list_hyb$HAP4_2$df, .experiment = "HAP4"),
+          p_blank,
+          plotClusterPatternByExperiment(clusterdf_list_hyb$CC_2$df, .experiment = "CC"),
+          plotClusterPatternByExperiment(clusterdf_list_hyb$LowN_2$df, .experiment = "LowN"),
+          p_blank,
+          plotClusterPatternByExperiment(clusterdf_list_hyb$LowPi_2$df, .experiment = "LowPi"),
+          plotClusterPatternByExperiment(clusterdf_list_hyb$Heat_2$df, .experiment = "Heat"),
+          p_blank,
+          plotClusterPatternByExperiment(clusterdf_list_hyb$Cold_2$df, .experiment = "Cold"),
+          nrow = 3, ncol = 3, common.legend = FALSE, widths = c(2, 0.5, 2))
+```
+
 ## Similar proportions of genes are diverging in each environment
 
 Stacked bars of 4 divergence categories in each environment:
