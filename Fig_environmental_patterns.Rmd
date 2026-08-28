@@ -543,9 +543,82 @@ lgd <- Legend(col_fun = col_fun, title = "avgerage log2 fold change",  direction
 
 ### Plasticity divergence is unique to each environment
 
-Fisher exact statistical tests for plasticity divergence, any type of plasticity divergence. One-sided test b/c we only want to test if diverged-plasticity genes are MORE likely than the rest of genes to be diverging in plasticity in other environments.
+Bootstrapped Fisher exact statistical tests for plasticity divergence. One-sided test b/c we only want to test if diverged-plasticity genes are MORE likely than the rest of genes to be diverging in plasticity in other environments.
 
-```{r fisher-test-matrix}
+```{r calculateFisherPlastictyTest}
+calculateFisherPlastictyTest <- function(.divergent_genes, .home_environment, .test_environment) {
+  # set of non-diverging genes in home environment (same size as diverging):
+    e_gene_idxs_conserved <- finaldf |> filter(experiment == .home_environment) |> 
+      dplyr::select(gene_name) |> pull() |> 
+      setdiff(y = .divergent_genes) |> sample(size = length(.divergent_genes))
+    # number of diverged-plasticity genes that are also diverging in test environment:
+    nDivHomeDivTest <- finaldf |> filter(experiment == .test_environment & 
+                                         gene_name %in% .divergent_genes) |>
+      filter(plasticity == "diverged") |> nrow()
+    # number of diverged-plasticity genes that are not diverging in test environment:
+    nDivHomeConsTest <- finaldf |> filter(experiment == .test_environment & 
+                                            gene_name %in% .divergent_genes) |>
+      filter(plasticity == "conserved") |> nrow()
+    # number of conserved-plasticity genes that are diverging in test environment:
+    nConsHomeDivTest <- finaldf |> filter(experiment == .test_environment & 
+                                            gene_name %in% e_gene_idxs_conserved) |>
+      filter(plasticity == "diverged") |> nrow()
+    # number of conserved-plasticity genes that are not diverging in test environment:
+    nConsHomeConsTest <- finaldf |> filter(experiment == .test_environment & 
+                                            gene_name %in% e_gene_idxs_conserved) |>
+      filter(plasticity == "conserved") |> nrow()
+    # test statistic and p-value
+    test_res <- fisher.test(bind_cols(c(nDivHomeDivTest, nDivHomeConsTest),
+                                      c(nConsHomeDivTest, nConsHomeConsTest)), 
+                            alternative = "greater")
+    return(list(prop_divergent = nDivHomeDivTest/(nDivHomeDivTest+nDivHomeConsTest),
+                prop_null = nConsHomeDivTest/(nConsHomeDivTest+nConsHomeConsTest),
+                n_divhome_divtest = nDivHomeDivTest,
+                n_divhome_constest = nDivHomeConsTest,
+                n_conshome_divtest = nConsHomeDivTest,
+                n_conshome_constest = nConsHomeConsTest,
+                odds_ratio = test_res$estimate,
+                fisher_pval = test_res$p.value))
+}
+# tests for calculateFisherPlastictyTest
+test_div_genes <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> 
+  select(gene_name) |> pull() # our most significant hit
+calculateFisherPlastictyTest(.divergent_genes = test_div_genes,
+                             .home_environment = "HAP4",
+                             .test_environment = "LowN")
+```
+
+```{r bootstrapNullPlasticityDivergenceProportion}
+# Note: .df is finaldf filtered for environment
+calculatePlasticityDivergenceProportion <- function(.divergent_genes, .df, 
+                                                    .nIter = 1000) {
+  out_vec <- purrr::map(c(1:.nIter), \(i) {
+    null_set <- .df |> filter(!(gene_name %in% .divergent_genes)) |> 
+      select(gene_name) |> pull() |> sample(size = length(.divergent_genes))
+    n_diverged_null <- .df |> filter(gene_name %in% null_set & 
+                                       plasticity == "diverged") |> 
+      nrow()
+    prop_diverged_null <- n_diverged_null/length(null_set)
+    return(prop_diverged_null)
+  }) |> unlist()
+  return(out_vec)
+}
+# tests for calculatePlasticityDivergenceProportion
+test_div_genes <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> 
+  select(gene_name) |> pull() # our most significant hit
+test_null_props <- calculatePlasticityDivergenceProportion(.divergent_genes = test_div_genes,
+                                                           .df = filter(finaldf, experiment == "LowN"))
+observed_n_div_test <- finaldf |> filter(experiment == "LowN" & 
+                                           gene_name %in% test_div_genes) |> 
+  filter(plasticity == "diverged") |> nrow()
+observed_prop <- observed_n_div_test/length(test_div_genes)
+plotPermutationTestOn0to1Scale(.observed_value = observed_prop,
+                               .null_vector = test_null_props)
+```
+
+Bootstrapped proportions of 1-2 diverging genes that are diverging in a second environment versus a random sampling distribution:
+
+```{r 1-2-boostrapped-plasticity-tests, cache=TRUE}
 plotlist <- purrr::map(ExperimentNames, \(e) {
   outlist <- vector(mode = "list", length = length(ExperimentNames))
   names(outlist) <- ExperimentNames
@@ -556,55 +629,58 @@ plot_tests <- matrix(nrow = length(ExperimentNames),
                      ncol = length(ExperimentNames))
 for (e_row in ExperimentNames) {
   for (e_col in ExperimentNames) {
-    # set of upSpar genes in home environment:
+    cat("home:", e_row, "test:", e_col, "\n")
     e_gene_idxs_diverged <- finaldf |> filter(experiment == e_row &
-                                                plasticity == "diverged") |> 
+                                                cer == 1 & par == 2) |> 
       dplyr::select(gene_name) |> pull()
-    # set of non-upSpar genes in home environment (not necessarily same size):
-    e_gene_idxs_conserved <- finaldf |> filter(experiment == e_row &
-                                                plasticity == "conserved") |> 
-      dplyr::select(gene_name) |> pull()
-    # number of diverged-plasticity genes that are also diverging in test environment:
-    nDivHomeDivTest <- finaldf |> filter(experiment == e_col & 
-                                         gene_name %in% e_gene_idxs_diverged) |>
+    null_props <- calculatePlasticityDivergenceProportion(.divergent_genes = e_gene_idxs_diverged,
+                                                          .df = filter(finaldf, experiment == e_col))
+    observed_n_div <- finaldf |> filter(experiment == e_col & 
+                                          gene_name %in% e_gene_idxs_diverged) |> 
       filter(plasticity == "diverged") |> nrow()
-    # number of diverged-plasticity genes that are not diverging in test environment:
-    nDivHomeConsTest <- finaldf |> filter(experiment == e_col & 
-                                            gene_name %in% e_gene_idxs_diverged) |>
-      filter(plasticity == "conserved") |> nrow()
-    # number of conserved-plasticity genes that are diverging in test environment:
-    nConsHomeDivTest <- finaldf |> filter(experiment == e_col & 
-                                            gene_name %in% e_gene_idxs_conserved) |>
-      filter(plasticity == "diverged") |> nrow()
-    # number of conserved-plasticity genes that are not diverging in test environment:
-    nConsHomeConsTest <- finaldf |> filter(experiment == e_col & 
-                                            gene_name %in% e_gene_idxs_conserved) |>
-      filter(plasticity == "conserved") |> nrow()
-    # test statistic and p-value
-    test_res <- fisher.test(bind_cols(c(nDivHomeDivTest, nDivHomeConsTest),
-                                      c(nConsHomeDivTest, nConsHomeConsTest)), alternative = "greater")
-    # plot of distributions
-    plotdf <- tibble(l2fc = c(lfcs_diverged, lfcs_conserved),
-                     type = c(rep("diverged", times = length(lfcs_diverged)),
-                              rep("conserved", times = length(lfcs_conserved))))
-    plotlist[[e_row]][[e_col]] <- plotPropAreaSingle(.counts = c(nDivHomeDivTest,
-                                                                 nDivHomeConsTest,
-                                                                 nConsHomeConsTest,
-                                                                 nConsHomeDivTest), 
-                                                     .colors = c("grey80", "grey80",
-                                                                 "grey80", "grey80"),
-                                                     .patterns = c("none", "none",
-                                                                   "none", "none")) +
-      ggtitle(paste0("odds ratio = ", sprintf("%.4g", test_res$estimate),
-                     "\np-value = ", sprintf("%.4g", test_res$p.value)))
+    observed_prop <- observed_n_div/length(e_gene_idxs_diverged)
+    plotlist[[e_row]][[e_col]] <- plotPermutationTestOn0to1Scale(.observed_value = observed_prop,
+                                                                 .null_vector = null_props)
   }
 }
 ggarrange(plotlist = unlist(plotlist), nrow = length(ExperimentNames), 
           ncol = length(ExperimentNames))
-ggsave(file = "paper_figures/EnvironmentalPatterns/plasticity_fisher_mat.pdf", width = 15, height = 15)
+ggsave(file = "paper_figures/EnvironmentalPatterns/plasticity_1-2_bootstrap.pdf", width = 15, height = 15)
 ```
 
-Fisher exact statistical tests for 1-2 plasticity divergence versus a same-sized sample of all other genes:
+Bootstrapped proportions of 2-1 diverging genes that are diverging in a second environment versus a random sampling distribution:
+
+```{r 2-1-boostrapped-plasticity-tests, cache=TRUE}
+plotlist <- purrr::map(ExperimentNames, \(e) {
+  outlist <- vector(mode = "list", length = length(ExperimentNames))
+  names(outlist) <- ExperimentNames
+  return(outlist)
+})
+names(plotlist) <- ExperimentNames
+plot_tests <- matrix(nrow = length(ExperimentNames),
+                     ncol = length(ExperimentNames))
+for (e_row in ExperimentNames) {
+  for (e_col in ExperimentNames) {
+    cat("home:", e_row, "test:", e_col, "\n")
+    e_gene_idxs_diverged <- finaldf |> filter(experiment == e_row &
+                                                cer == 2 & par == 1) |> 
+      dplyr::select(gene_name) |> pull()
+    null_props <- calculatePlasticityDivergenceProportion(.divergent_genes = e_gene_idxs_diverged,
+                                                          .df = filter(finaldf, experiment == e_col))
+    observed_n_div <- finaldf |> filter(experiment == e_col & 
+                                          gene_name %in% e_gene_idxs_diverged) |> 
+      filter(plasticity == "diverged") |> nrow()
+    observed_prop <- observed_n_div/length(e_gene_idxs_diverged)
+    plotlist[[e_row]][[e_col]] <- plotPermutationTestOn0to1Scale(.observed_value = observed_prop,
+                                                                 .null_vector = null_props)
+  }
+}
+ggarrange(plotlist = unlist(plotlist), nrow = length(ExperimentNames), 
+          ncol = length(ExperimentNames))
+ggsave(file = "paper_figures/EnvironmentalPatterns/plasticity_2-1_bootstrap.pdf", width = 15, height = 15)
+```
+
+2x2 plots of single Fisher exact tests for 1-2 plasticity divergence versus a same-sized sample of all other genes:
 
 ```{r 1-2-fisher-test-matrix, warning = FALSE}
 plotlist <- purrr::map(ExperimentNames, \(e) {
@@ -621,29 +697,7 @@ for (e_row in ExperimentNames) {
     e_gene_idxs_diverged <- finaldf |> filter(experiment == e_row &
                                                 cer == 1 & par == 2) |> 
       dplyr::select(gene_name) |> pull()
-    # set of non-1-2 diverging genes in home environment (not necessarily same size):
-    e_gene_idxs_conserved <- finaldf |> filter(experiment == e_row &
-                                                !(cer == 1 & par == 2)) |> 
-      dplyr::select(gene_name) |> pull() |> sample(size = length(e_gene_idxs_diverged))
-    # number of diverged-plasticity genes that are also diverging in test environment:
-    nDivHomeDivTest <- finaldf |> filter(experiment == e_col & 
-                                         gene_name %in% e_gene_idxs_diverged) |>
-      filter(plasticity == "diverged") |> nrow()
-    # number of diverged-plasticity genes that are not diverging in test environment:
-    nDivHomeConsTest <- finaldf |> filter(experiment == e_col & 
-                                            gene_name %in% e_gene_idxs_diverged) |>
-      filter(plasticity == "conserved") |> nrow()
-    # number of conserved-plasticity genes that are diverging in test environment:
-    nConsHomeDivTest <- finaldf |> filter(experiment == e_col & 
-                                            gene_name %in% e_gene_idxs_conserved) |>
-      filter(plasticity == "diverged") |> nrow()
-    # number of conserved-plasticity genes that are not diverging in test environment:
-    nConsHomeConsTest <- finaldf |> filter(experiment == e_col & 
-                                            gene_name %in% e_gene_idxs_conserved) |>
-      filter(plasticity == "conserved") |> nrow()
-    # test statistic and p-value
-    test_res <- fisher.test(bind_cols(c(nDivHomeDivTest, nDivHomeConsTest),
-                                      c(nConsHomeDivTest, nConsHomeConsTest)), alternative = "greater")
+    test_res <- calculateFisherPlastictyTest(.divergent_genes = e_gene_idxs_diverged)
     # plot of distributions
     plotlist[[e_row]][[e_col]] <- plotPropAreaSingle(.counts = c(nDivHomeDivTest,
                                                                  nDivHomeConsTest,
@@ -654,8 +708,8 @@ for (e_row in ExperimentNames) {
                                                      .patterns = c("none", "none",
                                                                    "none", "none"),
                                                      .size_bounds = 0) +
-      ggtitle(paste0("odds ratio = ", sprintf("%.4g", test_res$estimate),
-                     "\np-value = ", sprintf("%.4g", test_res$p.value)))
+      ggtitle(paste0("odds ratio = ", sprintf("%.4g", test_res$odds_ratio),
+                     "\np-value = ", sprintf("%.4g", test_res$fisher_pval)))
   }
 }
 ggarrange(plotlist = unlist(plotlist), nrow = length(ExperimentNames), 
