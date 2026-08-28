@@ -1082,12 +1082,12 @@ plotPermutationTestOn0to1Scale <- function(.observed_value, .null_vector,
   }
   observeddf <- tibble(value = .observed_value,
                        label = label_text,
-                       y_pos = 50,
+                       y_pos = 0.5,
                        color = .observed_color)
   pval_text <- if_else(pval == 0, 
-                       true = "permutation p-value < 1e-6", 
-                       false = paste0("permutation p-value = ", pval))
-  p <- ggplot(tibble(null = .null_vector), aes(x = null)) +
+                       true = "p-value < 1e-6", 
+                       false = paste0("p-value = ", pval))
+  p <- ggplot(tibble(null = .null_vector), aes(x = null, y = after_stat(scaled))) +
     geom_density(fill = "grey80", color = "black", alpha = 1) +
     geom_vline(xintercept = .observed_value, color = .observed_color) +
     geom_text(data = observeddf, aes(x = value, y = y_pos, 
