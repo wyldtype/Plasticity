@@ -10,6 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 source("functions_for_figure_scripts.R")
 library(ggExtra)
 library(ggVennDiagram)
+library(ggalluvial)
 load("data_files/FinalDataframe3Disp.RData")
 load("data_files/Cleaned_Counts.RData")
 load("data_files/Cleaned_Counts_Allele.RData")
@@ -22,6 +23,109 @@ eff_thresh <- log2(1.5)
 cis_plast_thresh <- -0.25 
 trans_lev_thresh <- log2(2)
 ```
+
+## Discrete heatmap of hybrid vs parent plasticity
+
+```{r discrete-heatmap}
+# HAP4
+plot_mat <- finaldf |> filter(experiment == "HAP4") |> 
+  dplyr::select(cer, par, hyc, hyp) |> 
+  drop_na() |> 
+  mutate(parent_code = paste0(cer, par),
+         hybrid_code = paste0(hyc, hyp)) |> 
+  dplyr::select(parent_code, hybrid_code) |> 
+    as.matrix() |> t()
+ordered_plot_mat <- orderGenesByGroup(plot_mat, .labels = c("00", "11", "22", "01", "02", "10", "12", "20", "21"))
+plotDiscreteHeatmap(ordered_plot_mat, .row_names = c("parents", "hybrid"))
+```
+
+### Alluvial
+
+```{r alluvial}
+plotdf_counts <- finaldf |> 
+  #filter(cer != 0 & par != 0 & hyc != 0 & hyp != 0) |> 
+  dplyr::select(experiment, 
+                cer, par, hyc, hyp) |> 
+  drop_na() |> 
+  mutate(parents = if_else(cer == par,
+                           true = "parents_same",
+                           false = "parents_different"),
+         hybrids = if_else(hyc == hyp,
+                           true = "hybrids_same",
+                           false = "hybrids_different"),
+         `hybrid allele matches parental` = cer == hyc & par == hyp) |>
+  group_by(experiment, parents, hybrids, `hybrid allele matches parental`) |> 
+  summarise(ngenes = n()) |> 
+  ungroup()
+# frequency of matching among genes with plasticity 
+# divergence in parents and hybrid (20% would be random chance)
+plotdf_counts |> filter(parents == "parents_different" &
+                            hybrids == "hybrids_different") |> select(experiment, `hybrid allele matches parental`, ngenes) |> pivot_wider(id_cols = "experiment", names_from = "hybrid allele matches parental", values_from = "ngenes") |> mutate(prop_match = `TRUE`/(`TRUE`+`FALSE`))
+# plotting alluvial
+p <- ggplot(plotdf_counts, aes(y = ngenes, axis1 = parents, axis2 = hybrids)) +
+  geom_alluvium(aes(fill = `hybrid allele matches parental`), color = "black", width = 1/12) +
+  #scale_fill_discrete(type = c(TRUE = "red", FALSE = "black")) +
+  geom_stratum(width = 1/12, fill = "white", color = "black") +
+  geom_label(stat = "stratum", aes(label = after_stat(stratum)),
+             angle = 90, size = 1) +
+  theme_classic() +
+  facet_wrap(~factor(experiment, levels = ExperimentNames, 
+                     labels = LongExperimentNames)) +
+  xlab("") +
+  ylab("number of genes") +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = "top")
+p
+```
+
+Saving for figure:
+
+```{r alluvial-pdf}
+ggsave("paper_figures/CisTrans/alluvial.pdf", width = 5, height = 5)
+```
+
+Plotting average expression for random cis group and random trans group in each environment, provided parents are 1 or 2
+
+```{r cis-trans-avg-expr}
+plotlist_cis <- purrr::map(ExperimentNames, \(e) {
+  scer_clust <- sample(c(1, 2), size = 1)
+  spar_clust <- setdiff(c(1, 2), scer_clust)
+  gene_idxs <- finaldf |> 
+    dplyr::filter(cer == scer_clust & 
+                    par == spar_clust &
+                    hyc == scer_clust &
+                    hyp == spar_clust &
+                    experiment == e) |> 
+    select(gene_name) |> pull()
+  p <- plotGenes(gene_idxs, .normalization = "scale", .quartet = TRUE, .experiment_name = e, .plot_titles = paste0(e, " ", length(gene_idxs), " genes"))
+  return(p)
+})
+ggarrange(plotlist = plotlist_cis,
+          nrow = 1, ncol = 6)
+#ggsave("paper_figures/CisTrans/examples_cis.pdf",
+       #width = 12, height = 2)
+plotlist_trans <- purrr::map(ExperimentNames, \(e) {
+  scer_clust <- sample(c(1, 2), size = 1)
+  spar_clust <- setdiff(c(1, 2), scer_clust)
+  gene_idxs <- finaldf |> 
+    dplyr::filter(cer == scer_clust & 
+                    par == spar_clust &
+                    hyc == hyp &
+                    experiment == e) |> 
+    select(gene_name) |> pull()
+  p <- plotGenes(gene_idxs, .normalization = "scale", .quartet = TRUE, .experiment_name = e, .plot_titles = paste0(e, " ", length(gene_idxs), " genes"))
+  return(p)
+})
+ggarrange(plotlist = plotlist_trans,
+          nrow = 1, ncol = 6)
+#ggsave("paper_figures/CisTrans/examples_trans.pdf",
+       #width = 12, height = 2)
+```
+
+
+Do those genes with 
+
 
 ## Cross-parent tests to compare the cis basis of level divergence vs plasticity divergence
 

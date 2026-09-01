@@ -1019,6 +1019,22 @@ orderGenesByGroup <- function(.mat, .row_idx = 1,
 #                                c("der", "der", "der", "hai")),
 #                   .labels = c("hai", "der"))
 
+plotDiscreteHeatmap <- function(.ordered_plot_mat,
+                                .row_names) {
+  plotdf <- map(.row_names, \(nm) {
+    idx <- which(.row_names == nm)
+    return(tibble(col_name = colnames(.ordered_plot_mat),
+                  row_name = nm,
+                  group = .ordered_plot_mat[idx,],
+                  x = c(1:ncol(.ordered_plot_mat)),
+                  y = c(length(.row_names):1)[idx])) # descending from top
+  }) |> purrr::reduce(.f = bind_rows)
+  p <- ggplot(plotdf, aes(x = x, y = y, fill = group)) +
+    geom_tile(aes(fill = group)) +
+    theme_void()
+  return(p)
+}
+
 #### Gene Ontology Enrichment ####
 getGOSlimDf <- function(.idxs, .group_name, .file_prefix = "gene_ontology/results/",
                         .min_hits = 5) {
