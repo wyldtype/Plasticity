@@ -130,17 +130,88 @@ dev.off()
 Repeat for hybrid clusters, just to verify that cluster 1 is still increasing cluster
 
 ```{r cluster-lineplots-hybrid}
-ggarrange(plotClusterPatternByExperiment(clusterdf_list_hyb$HAP4_2$df, .experiment = "HAP4"),
-          p_blank,
-          plotClusterPatternByExperiment(clusterdf_list_hyb$CC_2$df, .experiment = "CC"),
-          plotClusterPatternByExperiment(clusterdf_list_hyb$LowN_2$df, .experiment = "LowN"),
-          p_blank,
-          plotClusterPatternByExperiment(clusterdf_list_hyb$LowPi_2$df, .experiment = "LowPi"),
-          plotClusterPatternByExperiment(clusterdf_list_hyb$Heat_2$df, .experiment = "Heat"),
-          p_blank,
-          plotClusterPatternByExperiment(clusterdf_list_hyb$Cold_2$df, .experiment = "Cold"),
-          nrow = 3, ncol = 3, common.legend = FALSE, widths = c(2, 0.5, 2))
+# ggarrange(plotClusterPatternByExperiment(clusterdf_list_hyb$HAP4_2$df, .experiment = "HAP4"),
+#           p_blank,
+#           plotClusterPatternByExperiment(clusterdf_list_hyb$CC_2$df, .experiment = "CC"),
+#           plotClusterPatternByExperiment(clusterdf_list_hyb$LowN_2$df, .experiment = "LowN"),
+#           p_blank,
+#           plotClusterPatternByExperiment(clusterdf_list_hyb$LowPi_2$df, .experiment = "LowPi"),
+#           plotClusterPatternByExperiment(clusterdf_list_hyb$Heat_2$df, .experiment = "Heat"),
+#           p_blank,
+#           plotClusterPatternByExperiment(clusterdf_list_hyb$Cold_2$df, .experiment = "Cold"),
+#           nrow = 3, ncol = 3, common.legend = FALSE, widths = c(2, 0.5, 2))
 ```
+
+Cluster "topology" plots to capture expression contours of 10, 25, and 50% of genes in each cluster
+
+```{r plotClusterTopologyByExperiment, message=FALSE}
+plotClusterTopologyByExperiment <- function(.df, .experiment, .title = NULL) {
+  plotdf_lower <- .df |> group_by(gene_name) |> 
+    mutate(scaled_expr = scale(expr)) |>
+    ungroup() |> 
+    group_by(time_point_num, label) |> 
+    summarise(q50 = quantile(scaled_expr, probs = 0.25, na.rm = TRUE),
+              q25 = quantile(scaled_expr, probs = 0.375, na.rm = TRUE),
+              q10 = quantile(scaled_expr, probs = 0.45, na.rm = TRUE)) |> 
+    pivot_longer(cols = c("q10", "q25", "q50"),
+                 names_to = "band", values_to = "lower_bound")
+  plotdf_upper <- .df |> group_by(gene_name) |> 
+    mutate(scaled_expr = scale(expr)) |>
+    ungroup() |> 
+    group_by(time_point_num, label) |> 
+    summarise(q50 = quantile(scaled_expr, probs = 0.75, na.rm = TRUE),
+              q25 = quantile(scaled_expr, probs = 0.625, na.rm = TRUE),
+              q10 = quantile(scaled_expr, probs = 0.55, na.rm = TRUE)) |> 
+    pivot_longer(cols = c("q10", "q25", "q50"),
+                 names_to = "band", values_to = "upper_bound")
+  plotdf <- left_join(plotdf_lower, plotdf_upper,
+                      by = c("time_point_num", "label", "band"))
+  if (is.null(.title)) {
+    .title <- LongExperimentNames[which( ExperimentNames == .experiment)]
+  }
+  p <- ggplot(plotdf, aes(x = time_point_num)) +
+    geom_ribbon(data = filter(plotdf, band == "q50"),
+                aes(ymin = lower_bound,
+                    ymax = upper_bound,
+                    fill = band), alpha = 1) +
+    geom_ribbon(data = filter(plotdf, band == "q25"),
+                aes(ymin = lower_bound,
+                    ymax = upper_bound,
+                    fill = band), alpha = 1) +
+    geom_ribbon(data = filter(plotdf, band == "q10"),
+                aes(ymin = lower_bound,
+                    ymax = upper_bound,
+                    fill = band), alpha = 1) +
+    facet_wrap(~label) +
+    xlab("timepoint (min)") +
+    ylab("expression\n(centered and scaled)") +
+    theme_classic() +
+    theme(legend.position = "right") +
+    ggtitle(.title)
+    return(p)
+}
+p_hap4 <- plotClusterTopologyByExperiment(clusterdf_list$HAP4_2$df, .experiment = "HAP4")
+p_cc <- plotClusterTopologyByExperiment(clusterdf_list$CC_2$df, .experiment = "CC")
+p_lown <- plotClusterTopologyByExperiment(clusterdf_list$LowN_2$df, .experiment = "LowN")
+p_lowpi <- plotClusterTopologyByExperiment(clusterdf_list$LowPi_2$df, .experiment = "LowPi")
+p_heat <- plotClusterTopologyByExperiment(clusterdf_list$Heat_2$df, .experiment = "Heat")
+p_cold <- plotClusterTopologyByExperiment(clusterdf_list$Cold_2$df, .experiment = "Cold")
+ggarrange(p_hap4 + labs(x = ""), 
+          p_cc + labs(y = "", x = ""), 
+          p_lown + labs(x = ""), 
+          p_lowpi + labs(x = "", y = ""),
+          p_heat, p_cold + labs(y = ""),
+          nrow = 3, ncol = 2,
+          common.legend = TRUE)
+```
+saving for supplemental figure
+
+```{r cluster-topology-pdf}
+ggsave("paper_figures/Supplement/topology.pdf",
+       width = 9, height = 8.5)
+```
+
+
 
 ## Similar proportions of genes are diverging in each environment
 
