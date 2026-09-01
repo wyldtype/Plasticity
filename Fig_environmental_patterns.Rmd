@@ -353,11 +353,11 @@ for (e_row in ExperimentNames) {
                                                 level == "diverged" & 
                                                 sign(effect_size_species) == 1) |> 
       dplyr::select(gene_name) |> pull()
-    # same-size set of non-upScer genes in home environment:
+    # not the same-size set of non-upScer genes in home environment:
     e_gene_idxs_conserved <- finaldf |> filter(experiment == e_row &
                                                  (level == "conserved" | 
                                                     sign(effect_size_species) == -1)) |> 
-      dplyr::select(gene_name) |> pull() |> sample(size = length(e_gene_idxs_diverged))
+      dplyr::select(gene_name) |> pull()
     # log2 fold changes of diverged genes in test environment:
     lfcs_diverged <- finaldf |> filter(experiment == e_col & 
                                          gene_name %in% e_gene_idxs_diverged) |> 
@@ -461,11 +461,11 @@ for (e_row in ExperimentNames) {
                                                 level == "diverged" & 
                                                 sign(effect_size_species) == -1) |> 
       dplyr::select(gene_name) |> pull()
-    # same-size set of non-upSpar genes in home environment:
+    # not the same-size set of non-upSpar genes in home environment:
     e_gene_idxs_conserved <- finaldf |> filter(experiment == e_row &
                                                  (level == "conserved" | 
                                                     sign(effect_size_species) == 1)) |> 
-      dplyr::select(gene_name) |> pull() |> sample(size = length(e_gene_idxs_diverged))
+      dplyr::select(gene_name) |> pull() 
     # log2 fold changes of diverged genes in test environment:
     lfcs_diverged <- finaldf |> filter(experiment == e_col & 
                                          gene_name %in% e_gene_idxs_diverged) |> 
