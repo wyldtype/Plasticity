@@ -765,12 +765,44 @@ null_pct_diverged_plast <- purrr::map(c(1:10000), \(i) {
   pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
   return(pct_null)
 }) |> unlist()
-plotPermutationTestOn0to1Scale(.observed_value = observed_pct_div_plast$pct_div_plast, .null_vector = null_pct_diverged_plast, .observed_color = c("red", "green") , .xlab = "percent of genes with diverged plasticity\ntargets: green, regulators: red", .testAboveNull = FALSE, .xlim = NULL)
+plotPermutationTestOn0to1Scale(.observed_value = observed_pct_div_plast$pct_div_plast, .null_vector = null_pct_diverged_plast, .observed_color = c("red", "green") , .xlab = "proportion of genes with diverged plasticity\ntargets: green, regulators: red", .testAboveNull = FALSE, .xlim = NULL)
 ```
 Saving to PDF:
 
 ```{r permutation-pdf}
-ggsave("paper_figures/Yeastract/permutation.pdf", width = 5, height = 3)
+ggsave("paper_figures/Yeastract/permutation.pdf", width = 4, height = 3)
+```
+
+Repeating for non-home (alternative) environments: 
+```{r regulator-target-plasticity-permutation-alternative, cache=TRUE}
+plotdf <- regdf |> dplyr::select(regulator, target, environment) |> 
+  dplyr::filter(environment != "YPD") |> 
+  pivot_longer(cols = c("regulator", "target"),
+               names_to = "type", values_to = "gene_name") |> 
+  dplyr::filter(environment!= "YPD") |> dplyr::rename("home"="environment") |> 
+  group_by(gene_name, type) |>  
+  mutate(alternative = list(setdiff(ExperimentNames, home))) |> unnest_longer(col = alternative)
+# adding plasticity info
+  plotdf <- plotdf |>
+    left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("gene_name", "alternative"="experiment")) |> 
+  drop_na() |> 
+  unique() # regulators have multiple rows, one for each target gene
+observed_pct_div_plast <- plotdf |> group_by(type) |> 
+  summarise(pct_div_plast = sum(plasticity == "diverged")/n())
+null_pct_diverged_plast <- purrr::map(c(1:10000), \(i) {
+  nulldf <- finaldf |> dplyr::filter(!(gene_name %in% plotdf$gene_name)) |>
+    slice_sample(n = length(unique(plotdf$gene_name))) |> 
+    dplyr::select(gene_name, experiment, plasticity)
+  pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
+  return(pct_null)
+}) |> unlist()
+plotPermutationTestOn0to1Scale(.observed_value = observed_pct_div_plast$pct_div_plast, .null_vector = null_pct_diverged_plast, .observed_color = c("red", "green") , .xlab = "proportion of genes with diverged plasticity\ntargets: green, regulators: red", .testAboveNull = FALSE, .xlim = NULL)
+```
+Saving to PDF:
+
+```{r permutation-alternative-pdf}
+ggsave("paper_figures/Yeastract/permutation_alt.pdf", width = 4, height = 3)
 ```
 
 
@@ -1312,22 +1344,22 @@ p <- ggplot(plotdf, aes(x = nTargets, y = pctDivPlast)) +
             check_overlap = FALSE, position = position_jitter(width = 0, height = 0.03,
                                                               seed = 4),
             size = 3) +
-  geom_text(data = filter(plotdf, pctDivPlast <= 0.3),
-            aes(label = regulator_common, color = pctDivPlast > 0.3), 
-            check_overlap = TRUE, nudge_x = 0, nudge_y = 0.02, size = 3.5) +
+  # geom_text(data = filter(plotdf, pctDivPlast <= 0.3),
+  #           aes(label = regulator_common, color = pctDivPlast > 0.3), 
+  #           check_overlap = TRUE, nudge_x = 0, nudge_y = 0.02, size = 3.5) +
   geom_hline(yintercept = 0.3, alpha = 0.5) +
   scale_color_manual(values = c("TRUE"="red", "FALSE"="black")) +
   theme_classic() +
   theme(legend.position = "none") +
-  ylab("percent") +
-  ggtitle("percent of regulatory targets with diverged plasticity")
+  ylab("proportion") +
+  ggtitle("proportion of regulatory targets\nwith diverged plasticity")
 p
 ```
 
 pdf for figure:
 ```{r pct-div-plast-per-TF-pdf}
 pdf("paper_figures/Yeastract/pctDivergedPlasticityPerTF.pdf",
-    width = 12, height = 3)
+    width = 3, height = 3)
 p
 dev.off()
 ```
