@@ -2,6 +2,7 @@
 *.Rhistory
 *.Ruserdata
 *.ai
+*.tiff
 /data_files/*
 !/data_files/yeastract/
 /gene_ontology
