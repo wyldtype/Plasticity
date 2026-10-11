@@ -14,6 +14,7 @@ load("data_files/FinalDataframe3Disp.RData")
 load("data_files/Cleaned_Counts.RData")
 load("data_files/Cleaned_Counts_Allele.RData")
 load("data_files/CorrelationClustering3Disp.RData")
+load("data_files/CorrelationClustering3Disp_Allele.RData")
 load(file = "data_files/GO_Slim.RData")
 ```
 
@@ -85,11 +86,13 @@ palettedf <- tibble(experiment = ExperimentNames,
 Wrapping cluster plots into a function so we don't have to repeatedly make the same plot
 
 ```{r plotClusterPatternByExperiment}
-plotClusterPatternByExperiment <- function(.df, .experiment, .title = NULL) {
+plotClusterPatternByExperiment <- function(.df, 
+                                           .experiment, 
+                                           .title = NULL) {
   plotdf <- summarise(group_by(.df, time_point_num, label),
                       mean_expr = mean(expr, na.rm = TRUE),
                       sd_expr = sd(expr, na.rm = TRUE),
-                      n = n())
+                      n = n()) |> ungroup()
   plotdf$label <- as.factor(plotdf$label)
   color_plt <- palettedf |> filter(experiment == .experiment) |> dplyr::select(palette) |> pull()
   if (is.null(.title)) {
@@ -111,6 +114,16 @@ plotClusterPatternByExperiment <- function(.df, .experiment, .title = NULL) {
 }
 ```
 
+Testing to see if rendering generates plots:
+
+```{r test}
+p <- plotClusterPatternByExperiment(clusterdf_list$HAP4_2$df, .experiment = "HAP4")
+pdf(file = "paper_figures/test.pdf", width = 5, height = 5)
+p
+dev.off()
+```
+
+
 ```{r cluster-lineplots}
 p_blank <- ggplot() + theme_void()
 pdf("paper_figures/ExperimentOverview/cluster_ref.pdf",
@@ -128,18 +141,78 @@ ggarrange(plotClusterPatternByExperiment(clusterdf_list$HAP4_2$df, .experiment =
 dev.off()
 ```
 Repeat for hybrid clusters, just to verify that cluster 1 is still increasing cluster
+```{r plotClusterPatternByExperimentHybrid}
+plotClusterPatternByExperimentHybrid <- function(.parent_df,
+                                           .hybrid_df,
+                                           .experiment, 
+                                           .title = NULL) {
+  plotdf <- bind_rows(mutate(.parent_df,
+                             parent_or_hybrid = "parent"),
+                      mutate(.hybrid_df,
+                             parent_or_hybrid = "hybrid")) |> 
+    group_by(time_point_num, label, parent_or_hybrid) |> 
+    summarise(mean_expr = mean(expr, na.rm = TRUE),
+              sd_expr = sd(expr, na.rm = TRUE),
+              n = n()) |> ungroup()
+  plotdf$label <- as.factor(plotdf$label)
+  color_plt <- palettedf |> filter(experiment == .experiment) |> dplyr::select(palette) |> pull()
+  if (is.null(.title)) {
+    .title <- palettedf |> filter(experiment == .experiment) |> dplyr::select(long_name) |> pull()
+  }
+  ggplot(plotdf, aes(x = time_point_num, y = log2(mean_expr + 1))) +
+    geom_line(aes(group = label, color = label), 
+              linewidth = 4) +
+    geom_point(color = "black", alpha = 0.4) +
+    geom_segment(aes(x = time_point_num, xend = time_point_num,
+                     y = log2(mean_expr - 1.96*(sd_expr/sqrt(n))),
+                     yend = log2(mean_expr + 1.96*(sd_expr/sqrt(n))))) +
+    xlab("timepoint (min)") +
+    ylab("expression (log2)") +
+    scale_color_brewer(palette = color_plt, name = "cluster",
+                       direction = -1) +
+    theme_classic() +
+    facet_wrap(~parent_or_hybrid) +
+    theme(legend.position = "right") +
+    ggtitle(.title)
+}
+# tests for plotClusterPatternByExperimentHybrid
+plotClusterPatternByExperimentHybrid(.parent_df = clusterdf_list$HAP4_2$df,
+                                     .hybrid_df = clusterdf_list_hyb$HAP4_2$df, .experiment = "HAP4")
+```
 
 ```{r cluster-lineplots-hybrid}
-# ggarrange(plotClusterPatternByExperiment(clusterdf_list_hyb$HAP4_2$df, .experiment = "HAP4"),
-#           p_blank,
-#           plotClusterPatternByExperiment(clusterdf_list_hyb$CC_2$df, .experiment = "CC"),
-#           plotClusterPatternByExperiment(clusterdf_list_hyb$LowN_2$df, .experiment = "LowN"),
-#           p_blank,
-#           plotClusterPatternByExperiment(clusterdf_list_hyb$LowPi_2$df, .experiment = "LowPi"),
-#           plotClusterPatternByExperiment(clusterdf_list_hyb$Heat_2$df, .experiment = "Heat"),
-#           p_blank,
-#           plotClusterPatternByExperiment(clusterdf_list_hyb$Cold_2$df, .experiment = "Cold"),
-#           nrow = 3, ncol = 3, common.legend = FALSE, widths = c(2, 0.5, 2))
+ggarrange(
+  plotClusterPatternByExperimentHybrid(
+  .parent_df = clusterdf_list$HAP4_2$df,            
+  .hybrid_df = clusterdf_list_hyb$HAP4_2$df, 
+  .experiment = "HAP4"),
+          plotClusterPatternByExperimentHybrid(
+  .parent_df = clusterdf_list$CC_2$df,            
+  .hybrid_df = clusterdf_list_hyb$CC_2$df, 
+  .experiment = "CC"),
+          plotClusterPatternByExperimentHybrid(
+  .parent_df = clusterdf_list$LowN_2$df,            
+  .hybrid_df = clusterdf_list_hyb$LowN_2$df, 
+  .experiment = "LowN"),
+          plotClusterPatternByExperimentHybrid(
+  .parent_df = clusterdf_list$LowPi_2$df,            
+  .hybrid_df = clusterdf_list_hyb$LowPi_2$df, 
+  .experiment = "LowPi"),
+          plotClusterPatternByExperimentHybrid(
+  .parent_df = clusterdf_list$Heat_2$df,            
+  .hybrid_df = clusterdf_list_hyb$Heat_2$df, 
+  .experiment = "Heat"),
+          plotClusterPatternByExperimentHybrid(
+  .parent_df = clusterdf_list$Cold_2$df,            
+  .hybrid_df = clusterdf_list_hyb$Cold_2$df, 
+  .experiment = "Cold"),
+          nrow = 2, ncol = 3, common.legend = FALSE,
+  legend = "top")
+```
+```{r cluster-lineplots-hybrid-saving}
+# ggsave(filename = "paper_figures/CisTrans/hybrid_cluster_lineplots.pdf",
+#        width = 10, height = 6
+#        )
 ```
 
 Cluster "topology" plots to capture expression contours of 10, 25, and 50% of genes in each cluster
@@ -290,12 +363,12 @@ Heatmap of species-specific and reversals of expression plasticity
 plotdf <- finaldf |> # filter(plasticity == "diverged") |> 
   group_by(experiment, cer, par) |> 
   summarise(n = n())
-plotdf$long_experiment <- map(plotdf$experiment, \(e) {
+plotdf$long_experiment <- purrr::map(plotdf$experiment, \(e) {
   LongExperimentNames[which(ExperimentNames == e)]
 }) |> factor(levels = LongExperimentNames)
 plotdf$cer <- factor(plotdf$cer, levels = c("0", "1", "2"))
 plotdf$par <- factor(plotdf$par, levels = c("2", "1", "0"))
-plotdf$type <- map2(plotdf$cer, plotdf$par, \(x, y) {
+plotdf$type <- purrr::map2(plotdf$cer, plotdf$par, \(x, y) {
   if (x == y) {
     if (x == 0 & y == 0) {
       return("conserved static")
@@ -378,7 +451,7 @@ col_order_vec <- order(factor(plot_mat["HAP4",], levels = colordf[colordf$scheme
 # ordering full plotmat
 ordered_plot_mat <- orderGenesByGroup(.mat = plot_mat[ExperimentNames,])
 rownames(ordered_plot_mat) <- LongExperimentNames
-plotdf <- map(LongExperimentNames, \(e) {
+plotdf <- purrr::map(LongExperimentNames, \(e) {
   idx <- which(LongExperimentNames == e)
   return(tibble(gene_name = colnames(ordered_plot_mat),
                 environment = e,
@@ -404,9 +477,26 @@ dev.off()
 
 ### Level divergence is consistent across environments and mostly between strains
 
+Upset plot to look at how many genes are flagged in each combination of categories
+
+```{r upset-upScer}
+makeUpsetPlot(.df = filter(finaldf, level == "diverged" &
+                             effect_size_species > 0),
+              .group_name = "experiment",
+              .group_members = ExperimentNames,
+              .item_names = "gene_name")
+```
+```{r upset-upSpar}
+makeUpsetPlot(.df = filter(finaldf, level == "diverged" &
+                             effect_size_species < 0),
+              .group_name = "experiment",
+              .group_members = ExperimentNames,
+              .item_names = "gene_name")
+```
+
 Statistical tests for upScer genes. We'd expect genes identified in one environment as upScer to also have higher log2 fold change in other environments, as compared to the genes that were not identified as upScer.
 
-One t-test for each combination of environmental challenges. Easy to replace two-sample t-test with a two-sample Mann-Whitney U test (wilcox.test(x, y)) or K-S test (ks.test(x, y)) if distributions look too assymetrical.
+One test for each combination of environmental challenges. Easy to replace two-sample t-test with a two-sample Mann-Whitney U test (wilcox.test(x, y)) or K-S test (ks.test(x, y)) if distributions look too asymmetrical.
 
 ```{r upscer-distribution-matrix, warning=FALSE}
 plotlist <- purrr::map(ExperimentNames, \(e) {
@@ -438,7 +528,7 @@ for (e_row in ExperimentNames) {
                                           gene_name %in% e_gene_idxs_conserved) |> 
       dplyr::select(effect_size_species) |> pull()
     # test statistic and p-value
-    test_res <- t.test(x = lfcs_diverged, y = lfcs_conserved)
+    test_res <- ks.test(x = lfcs_diverged, y = lfcs_conserved, alternative = "less") # "less" tests the alternative that x > y, unlike for t.test or wilcox.test
     # plot of distributions
     plotdf <- tibble(l2fc = c(lfcs_diverged, lfcs_conserved),
                      type = c(rep("diverged", times = length(lfcs_diverged)),
@@ -450,7 +540,7 @@ for (e_row in ExperimentNames) {
       theme_classic() + 
       theme(legend.position = "none") +
       xlim(c(-5, 5)) +
-      ggtitle(paste0("t-statistic = ", sprintf("%.4g", test_res$statistic),
+      ggtitle(paste0("KS statistic = ", sprintf("%.4g", test_res$statistic),
                      "\np-value = ", sprintf("%.4g", test_res$p.value)))
   }
 }
@@ -546,7 +636,7 @@ for (e_row in ExperimentNames) {
                                           gene_name %in% e_gene_idxs_conserved) |> 
       dplyr::select(effect_size_species) |> pull()
     # test statistic and p-value
-    test_res <- t.test(x = lfcs_diverged, y = lfcs_conserved)
+    test_res <- ks.test(x = lfcs_diverged, y = lfcs_conserved, alternative = "greater") # "greater" tests if y > x unlike t.test or wilcox.test
     # plot of distributions
     plotdf <- tibble(l2fc = c(lfcs_diverged, lfcs_conserved),
                      type = c(rep("diverged", times = length(lfcs_diverged)),
@@ -558,7 +648,7 @@ for (e_row in ExperimentNames) {
       theme_classic() + 
       theme(legend.position = "none") +
       xlim(c(-5, 5)) +
-      ggtitle(paste0("t-statistic = ", sprintf("%.4g", test_res$statistic),
+      ggtitle(paste0("KS statistic = ", sprintf("%.4g", test_res$statistic),
                      "\np-value = ", sprintf("%.4g", test_res$p.value)))
   }
 }
@@ -614,6 +704,18 @@ lgd <- Legend(col_fun = col_fun, title = "avgerage log2 fold change",  direction
 
 ### Plasticity divergence is unique to each environment
 
+```{r upset-1-2}
+makeUpsetPlot(.df = filter(finaldf, cer == 1 & par == 2),
+              .group_name = "experiment",
+              .group_members = ExperimentNames,
+              .item_names = "gene_name")
+```
+```{r upset-2-1}
+makeUpsetPlot(.df = filter(finaldf, cer == 2 & par == 1),
+              .group_name = "experiment",
+              .group_members = ExperimentNames,
+              .item_names = "gene_name")
+```
 Bootstrapped Fisher exact statistical tests for plasticity divergence. One-sided test b/c we only want to test if diverged-plasticity genes are MORE likely than the rest of genes to be diverging in plasticity in other environments.
 
 ```{r calculateFisherPlastictyTest}
@@ -653,7 +755,7 @@ calculateFisherPlastictyTest <- function(.divergent_genes, .home_environment, .t
 }
 # tests for calculateFisherPlastictyTest
 test_div_genes <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> 
-  select(gene_name) |> pull() # our most significant hit
+  dplyr::select(gene_name) |> pull() # our most significant hit
 calculateFisherPlastictyTest(.divergent_genes = test_div_genes,
                              .home_environment = "HAP4",
                              .test_environment = "LowN")
@@ -661,11 +763,12 @@ calculateFisherPlastictyTest(.divergent_genes = test_div_genes,
 
 ```{r bootstrapNullPlasticityDivergenceProportion}
 # Note: .df is finaldf filtered for environment
+# Also note: this function isn't currently implemented anywhere
 calculatePlasticityDivergenceProportion <- function(.divergent_genes, .df, 
                                                     .nIter = 1000) {
   out_vec <- purrr::map(c(1:.nIter), \(i) {
     null_set <- .df |> filter(!(gene_name %in% .divergent_genes)) |> 
-      select(gene_name) |> pull() |> sample(size = length(.divergent_genes))
+      dplyr::select(gene_name) |> pull() |> sample(size = length(.divergent_genes))
     n_diverged_null <- .df |> filter(gene_name %in% null_set & 
                                        plasticity == "diverged") |> 
       nrow()
@@ -676,7 +779,7 @@ calculatePlasticityDivergenceProportion <- function(.divergent_genes, .df,
 }
 # tests for calculatePlasticityDivergenceProportion
 test_div_genes <- finaldf |> filter(experiment == "HAP4" & cer == 2 & par == 1) |> 
-  select(gene_name) |> pull() # our most significant hit
+  dplyr::select(gene_name) |> pull() # our most significant hit
 test_null_props <- calculatePlasticityDivergenceProportion(.divergent_genes = test_div_genes,
                                                            .df = filter(finaldf, experiment == "LowN"))
 observed_n_div_test <- finaldf |> filter(experiment == "LowN" & 
@@ -684,7 +787,8 @@ observed_n_div_test <- finaldf |> filter(experiment == "LowN" &
   filter(plasticity == "diverged") |> nrow()
 observed_prop <- observed_n_div_test/length(test_div_genes)
 plotPermutationTestOn0to1Scale(.observed_value = observed_prop,
-                               .null_vector = test_null_props)
+                               .null_vector = test_null_props,
+                               .xlab = "")
 ```
 
 Bootstrapped proportions of 1-2 diverging genes that are diverging in a second environment versus a random sampling distribution:
@@ -711,7 +815,8 @@ for (e_row in ExperimentNames) {
       filter(plasticity == "diverged") |> nrow()
     observed_prop <- observed_n_div/length(e_gene_idxs_diverged)
     plotlist[[e_row]][[e_col]] <- plotPermutationTestOn0to1Scale(.observed_value = observed_prop,
-                                                                 .null_vector = null_props)
+                                                                 .null_vector = null_props,
+                                                                 .xlab = "")
   }
 }
 ggarrange(plotlist = unlist(plotlist), nrow = length(ExperimentNames), 
@@ -743,7 +848,8 @@ for (e_row in ExperimentNames) {
       filter(plasticity == "diverged") |> nrow()
     observed_prop <- observed_n_div/length(e_gene_idxs_diverged)
     plotlist[[e_row]][[e_col]] <- plotPermutationTestOn0to1Scale(.observed_value = observed_prop,
-                                                                 .null_vector = null_props)
+                                                                 .null_vector = null_props,
+                                                                 .xlab = "")
   }
 }
 ggarrange(plotlist = unlist(plotlist), nrow = length(ExperimentNames), 
@@ -768,7 +874,29 @@ for (e_row in ExperimentNames) {
     e_gene_idxs_diverged <- finaldf |> filter(experiment == e_row &
                                                 cer == 1 & par == 2) |> 
       dplyr::select(gene_name) |> pull()
-    test_res <- calculateFisherPlastictyTest(.divergent_genes = e_gene_idxs_diverged)
+    # set of non-1-2 diverging genes in home environment (not necessarily same size):
+    e_gene_idxs_conserved <- finaldf |> filter(experiment == e_row &
+                                                !(cer == 1 & par == 2)) |> 
+      dplyr::select(gene_name) |> pull() |> sample(size = length(e_gene_idxs_diverged))
+    # number of diverged-plasticity genes that are also diverging in test environment:
+    nDivHomeDivTest <- finaldf |> filter(experiment == e_col & 
+                                         gene_name %in% e_gene_idxs_diverged) |>
+      filter(plasticity == "diverged") |> nrow()
+    # number of diverged-plasticity genes that are not diverging in test environment:
+    nDivHomeConsTest <- finaldf |> filter(experiment == e_col & 
+                                            gene_name %in% e_gene_idxs_diverged) |>
+      filter(plasticity == "conserved") |> nrow()
+    # number of conserved-plasticity genes that are diverging in test environment:
+    nConsHomeDivTest <- finaldf |> filter(experiment == e_col & 
+                                            gene_name %in% e_gene_idxs_conserved) |>
+      filter(plasticity == "diverged") |> nrow()
+    # number of conserved-plasticity genes that are not diverging in test environment:
+    nConsHomeConsTest <- finaldf |> filter(experiment == e_col & 
+                                            gene_name %in% e_gene_idxs_conserved) |>
+      filter(plasticity == "conserved") |> nrow()
+    # test statistic and p-value
+    test_res <- fisher.test(bind_cols(c(nDivHomeDivTest, nDivHomeConsTest),
+                                      c(nConsHomeDivTest, nConsHomeConsTest)), alternative = "greater")
     # plot of distributions
     plotlist[[e_row]][[e_col]] <- plotPropAreaSingle(.counts = c(nDivHomeDivTest,
                                                                  nDivHomeConsTest,
@@ -779,8 +907,8 @@ for (e_row in ExperimentNames) {
                                                      .patterns = c("none", "none",
                                                                    "none", "none"),
                                                      .size_bounds = 0) +
-      ggtitle(paste0("odds ratio = ", sprintf("%.4g", test_res$odds_ratio),
-                     "\np-value = ", sprintf("%.4g", test_res$fisher_pval)))
+      ggtitle(paste0("odds ratio = ", sprintf("%.4g", test_res$estimate),
+                     "\np-value = ", sprintf("%.4g", test_res$p.value)))
   }
 }
 ggarrange(plotlist = unlist(plotlist), nrow = length(ExperimentNames), 
@@ -981,7 +1109,7 @@ getplasticityCorrAllClusters <- function(.gene_idxs, .experiment_name) {
   clust_pairs <- finaldf |> filter(gene_name %in% .gene_idxs &
                                      experiment == .experiment_name) |> 
     group_by(cer, par) |> summarise(n = n()) |> ungroup()
-  cors <- map2(clust_pairs$cer, clust_pairs$par, \(x, y) {
+  cors <- purrr::map2(clust_pairs$cer, clust_pairs$par, \(x, y) {
     clust_idxs <- finaldf |> filter(gene_name %in% .gene_idxs &
                                       experiment == .experiment_name &
                                       cer == x & par == y) |> 
@@ -1518,7 +1646,7 @@ getplasticityCorrPerGene <- function(.gene_idxs, .experiment_name) {
     dplyr::select(condition) |> pull()
   cer_mat <- collapsed$cer[.gene_idxs, condition_vec]
   par_mat <- collapsed$par[.gene_idxs, condition_vec]
-  cor_vec <- map(.gene_idxs, \(g) {
+  cor_vec <- purrr::map(.gene_idxs, \(g) {
     return(cor(cer_mat[g,], par_mat[g,]))
   }) |> unlist()
   return(mean(cor_vec, na.rm = TRUE)) # NAs can arise from one species' counts being all 0s

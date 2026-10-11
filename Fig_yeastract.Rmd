@@ -21,6 +21,7 @@ source("functions_for_figure_scripts.R")
 library(dplyr)
 library(igraph)
 library(lmtest)
+library(waffle)
 ```
 
 ### Before beginning, check that commonly-named functions are associated with the expected package:
@@ -530,8 +531,6 @@ tfdf |> group_by(experiment) |> summarise(nRegulators = n())
 Note: waffle package uses plyr, which superseeds dplyr::summarise, causing errors if we don't unload it once the waffle plots are done
 
 ```{r waffle}
-library(waffle)
-
 plotdf <- tfdf |> 
   dplyr::count(plasticity, experiment, out_degree_e, gene_name) |> 
   arrange(experiment, desc(out_degree_e))
@@ -745,7 +744,7 @@ plotHomeAndAltEnvironments(.tf_common = test_tf, .e = test_home, .e2 = test_alt,
 
 In the three examples above, we see that the regulons appear to have more conserved plasticity than their regulators, especially in the home environment. How common is this?
 
-```{r regulator-target-plasticity-permutation, cache=TRUE}
+```{r regulator-target-plasticity-bootstrap, cache=TRUE}
 plotdf <- regdf |> dplyr::select(regulator, target, environment) |> 
   pivot_longer(cols = c("regulator", "target"),
                names_to = "type", values_to = "gene_name") |> 
@@ -1136,7 +1135,7 @@ griddf <- griddf[target_is_expressed_in_e,]
 griddf <- griddf |> group_by(regulator, regulator_common, environment) |> 
   summarise(size = n()) |> 
   filter(size >= 20) |> 
-  select(regulator, regulator_common, environment)
+  dplyr::select(regulator, regulator_common, environment)
 # filtering out regulators that are not highly expressed in focal environment
 regulator_is_expressed_in_e <- map2(griddf$regulator, griddf$environment, \(tf, e) {
   tf %in% finaldf$gene_name[finaldf$experiment == e]
@@ -1406,7 +1405,7 @@ How overlapping are the regulons of the PDR regulators?
 plotdf <- regdf |> 
   filter((regulator_common %in% c("PDR1", "PDR3", "RPN4", "YAP1") & environment == "CC") | 
            (regulator_common == "YRR1" & environment %in% c("CC", "HAP4"))) |>
-  select(regulator_common, target) |> unique()
+  dplyr::select(regulator_common, target) |> unique()
 makeUpsetPlot(plotdf, 
               .group_name = "regulator_common", 
               .group_members = c("PDR1", "PDR3", "RPN4", "YAP1", "YRR1"),

@@ -13,7 +13,7 @@
 
 <title>Heiarchical Clustering</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.32/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -329,6 +329,21 @@ $(document).ready(function () {
     </li>
   </ul>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Additional QC
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="QC_clustering.html">Clustering with 2, 3, or 4 clusters</a>
+    </li>
+    <li>
+      <a href="QC_signal-to-noise.html">Filtering Lowly varying genes with Dispersion or Signal-to-noise</a>
+    </li>
+  </ul>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -355,6 +370,7 @@ experiment</p>
 <pre class="r"><code>options(stringsAsFactors = FALSE)
 source(&quot;functions_for_figure_scripts.R&quot;)
 load(&quot;data_files/Clustering_Counts.RData&quot;)
+load(&quot;data_files/Clustering_Counts_Allele.RData&quot;)
 set.seed(23)
 
 # Method:
@@ -457,7 +473,7 @@ expression &gt;= .min_expr &amp; var expression &lt; .min_var) 3) 1 -
     topBranchHeight &lt;- sort(tree$height, decreasing = TRUE)[.nClust]
     tree_labels &lt;- cutreeStatic(tree, cutHeight = topBranchHeight,
                                 minSize = 1) # guaranteeing no 0 class
-    cat(&quot;cutting tree at height&quot;, topBranchHeight, &quot;into&quot;, length(unique(tree_labels)), &quot;clusters\n&quot;)
+    cat(&quot;cutting tree at height&quot;, topBranchHeight, &quot;into&quot;, length(base::unique(tree_labels)), &quot;clusters\n&quot;)
     labeldf &lt;- tibble(gene_name = tree$labels,
                       label = tree_labels) |&gt; 
       bind_rows(tibble(gene_name = low_var_genes,
@@ -493,7 +509,7 @@ ggplot(toydf, aes(x = time_point_str, y = log2(expr + 1))) +
   geom_line(aes(group = gene_name,
                 color = gene_name)) +
   facet_wrap(~label)</code></pre>
-<p><img src="clustering_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="clustering_files/figure-html/unnamed-chunk-3-1.png" alt="" width="672" /></p>
 <pre class="r"><code># full dataset
 toy_mat &lt;- counts_list$cer_LowN
 toydf &lt;- makeDf(toy_mat, info, .join_by = &quot;condition&quot;)
@@ -518,13 +534,20 @@ test_labels &lt;- corCluster(toy_mat, .nClust = 4, .min_var = 2,
           .by = &quot;gene_name&quot;) |&gt; 
   mutate(scaled_expr = (expr - mean_expr)/sd_expr) |&gt; 
   left_join(y = test_labels, by = &quot;gene_name&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;gene_name&#39;. You can override using the `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by gene_name and
+##   time_point_str.
+## ℹ Output is grouped by gene_name.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(gene_name, time_point_str))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>ggplot(plotdf, aes(x = time_point_str, y = scaled_expr)) + 
   geom_line(aes(group = gene_name)) +
   facet_wrap(~label)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale range
-## (`geom_line()`).</code></pre>
-<p><img src="clustering_files/figure-html/unnamed-chunk-3-2.png" width="672" /></p>
+<pre><code>## Warning: Removed 3 rows containing missing values or values outside
+## the scale range (`geom_line()`).</code></pre>
+<p><img src="clustering_files/figure-html/unnamed-chunk-3-2.png" alt="" width="672" /></p>
 <p>Wrapper function for corCluster, repeatedly clusters list of
 environmental datasets</p>
 <pre class="r"><code># Wrapper function that converts named list of counts (from 1 experiment) into
@@ -585,8 +608,10 @@ testout &lt;- clusterCountsList(list(&quot;cer_LowN&quot; = counts_list$cer_LowN
 ## 2683 low variance genes, assigned to 0 label
 ## finished iterations, nGenes x nIter: 6531 10</code></pre>
 <pre class="r"><code>testout$gene_name[1:10]</code></pre>
-<pre><code>##  [1] &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot;
-##  [7] &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL060W&quot;</code></pre>
+<pre><code>##  [1] &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot; &quot;cer_YAL067C&quot;
+##  [4] &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot; &quot;cer_YAL062W&quot;
+##  [7] &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot; &quot;cer_YAL061W&quot;
+## [10] &quot;cer_YAL060W&quot;</code></pre>
 <p>Visualize clustering</p>
 <pre class="r"><code># given a dataframe with labels for each gene, returns a facet plot
 # showing expression of each gene in each cluster (usually randomly 
@@ -661,7 +686,7 @@ toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;HAP4&quot;)
 plot(rowMeans(log2(toy_mat_collapsed)), 
      log2(rowMeans(toy_mat_collapsed)))
 abline(a = 0, b = 1, col = &quot;gold&quot;) </code></pre>
-<p><img src="clustering_files/figure-html/var-thresh-exploration-1.png" width="672" /></p>
+<p><img src="clustering_files/figure-html/var-thresh-exploration-1.png" alt="" width="672" /></p>
 <pre class="r"><code># they&#39;re mostly a similar measure, 
 # but for genes with high variance,
 # log2(mean(expr)) tends to be higher 
@@ -679,7 +704,7 @@ abline(a = mod$coefficients[1],
 # to filter out lowly varying genes, we apply disp threshold after the expr threshold
 # the higher you&#39;re expressed, the more you need to vary in order to not be put in low var category
 abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;) </code></pre>
-<p><img src="clustering_files/figure-html/var-thresh-exploration-2.png" width="672" /></p>
+<p><img src="clustering_files/figure-html/var-thresh-exploration-2.png" alt="" width="672" /></p>
 <pre class="r"><code># HU Shock
 toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;CC&quot;)
 plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;HU Shock&quot;)
@@ -687,7 +712,7 @@ mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collap
 abline(a = mod$coefficients[1], 
        b = mod$coefficients[2], col = &quot;gold&quot;) 
 abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
-<p><img src="clustering_files/figure-html/var-thresh-exploration-3.png" width="672" /></p>
+<p><img src="clustering_files/figure-html/var-thresh-exploration-3.png" alt="" width="672" /></p>
 <pre class="r"><code># LowN
 toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;LowN&quot;)
 plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;LowN&quot;)
@@ -695,7 +720,7 @@ mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collap
 abline(a = mod$coefficients[1], 
        b = mod$coefficients[2], col = &quot;gold&quot;) 
 abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
-<p><img src="clustering_files/figure-html/var-thresh-exploration-4.png" width="672" /></p>
+<p><img src="clustering_files/figure-html/var-thresh-exploration-4.png" alt="" width="672" /></p>
 <pre class="r"><code># LowPi
 toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;LowPi&quot;)
 plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;LowPi&quot;)
@@ -703,7 +728,7 @@ mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collap
 abline(a = mod$coefficients[1], 
        b = mod$coefficients[2], col = &quot;gold&quot;) 
 abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
-<p><img src="clustering_files/figure-html/var-thresh-exploration-5.png" width="672" /></p>
+<p><img src="clustering_files/figure-html/var-thresh-exploration-5.png" alt="" width="672" /></p>
 <pre class="r"><code># Heat
 toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;Heat&quot;)
 plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;Heat&quot;)
@@ -711,7 +736,7 @@ mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collap
 abline(a = mod$coefficients[1], 
        b = mod$coefficients[2], col = &quot;gold&quot;) 
 abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
-<p><img src="clustering_files/figure-html/var-thresh-exploration-6.png" width="672" /></p>
+<p><img src="clustering_files/figure-html/var-thresh-exploration-6.png" alt="" width="672" /></p>
 <pre class="r"><code># Cold
 toy_mat_collapsed &lt;- getCollapsedCountsByExperiment(&quot;Cold&quot;)
 plot(log2(rowMeans(toy_mat_collapsed)), log2(rowVars(toy_mat_collapsed)), main = &quot;Cold&quot;)
@@ -719,7 +744,7 @@ mod &lt;- lm(log2(rowVars(toy_mat_collapsed) + 1) ~ log2(rowMeans(toy_mat_collap
 abline(a = mod$coefficients[1], 
        b = mod$coefficients[2], col = &quot;gold&quot;) 
 abline(a = 0, b = log2(var_thresh), col = &quot;blue&quot;)</code></pre>
-<p><img src="clustering_files/figure-html/var-thresh-exploration-7.png" width="672" /></p>
+<p><img src="clustering_files/figure-html/var-thresh-exploration-7.png" alt="" width="672" /></p>
 </div>
 <div id="clustering" class="section level2">
 <h2>Clustering</h2>
@@ -770,8 +795,8 @@ getClusterCombination &lt;- function(.clust_list) {
     e &lt;- gsub(&quot;_.*&quot;, &quot;&quot;, nm)
     nclust &lt;- gsub(&quot;.*_&quot;, &quot;&quot;, nm)
     e_clust &lt;- .clust_list[[paste(e, nclust, sep = &quot;_&quot;)]]$df |&gt; 
-      select(label, gene_name) |&gt; 
-      unique()
+      dplyr::select(label, gene_name) |&gt; 
+      distinct()
     e_clust$gene_ID &lt;- map(e_clust$gene_name, \(.g) {
       return(gsub(&quot;.*_&quot;, &quot;&quot;, .g))
     }) |&gt; unlist()
@@ -779,7 +804,7 @@ getClusterCombination &lt;- function(.clust_list) {
       return(gsub(&quot;_.*&quot;, &quot;&quot;, .g))
     }) |&gt; unlist()
     e_clust &lt;- e_clust |&gt; 
-      select(gene_ID, species, label) |&gt; 
+      dplyr::select(gene_ID, species, label) |&gt; 
       pivot_wider(id_cols = gene_ID, names_from = species, values_from = label) |&gt; 
       mutate(experiment = e)
     cluster_comb &lt;- bind_rows(cluster_comb, e_clust)
@@ -933,13 +958,83 @@ for (e in c(&quot;CC&quot;, &quot;HAP4&quot;, &quot;LowN&quot;, &quot;LowPi&quot
 <div id="saving" class="section level2">
 <h2>Saving</h2>
 <pre class="r"><code># primary clustering set we&#39;ll use:
-save(clusterdf, clusterdf_list, file = &quot;data_files/CorrelationClustering3Disp.RData&quot;)
+# save(clusterdf, clusterdf_list, file = &quot;data_files/CorrelationClustering3Disp.RData&quot;)
 # QC changing nClust or dispersion threshold
-save(clusterdf, clusterdf_list,
-     clusterdf_1disp, clusterdf_list_1disp,
-     clusterdf_5disp, clusterdf_list_5disp,
-     clusterdf3, clusterdf_list3,
-     clusterdf4, clusterdf_list4, file = &quot;data_files/QC_CorrelationClustering.RData&quot;)</code></pre>
+# save(clusterdf, clusterdf_list,
+#      clusterdf_1disp, clusterdf_list_1disp,
+#      clusterdf_5disp, clusterdf_list_5disp,
+#      clusterdf3, clusterdf_list3,
+#      clusterdf4, clusterdf_list4, file = &quot;data_files/QC_CorrelationClustering.RData&quot;)</code></pre>
+</div>
+<div id="clustering-hybrid-for-cistrans-test" class="section level2">
+<h2>Clustering hybrid for cis/trans test</h2>
+<pre class="r"><code>clusterdf_list_hyb &lt;- vector(mode = &quot;list&quot;, length = 0)
+for (e in c(&quot;CC&quot;, &quot;HAP4&quot;, &quot;LowN&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;)) {
+  cat(&quot;*********** working on 2 clusters disp=&quot;, var_thresh, &quot;in&quot;, e, &quot;*********** \n&quot;)
+  output &lt;- clusterCountsList(counts_list_allele[grepl(e, names(counts_list_allele))], 
+                          .nClust = 2, 
+                          .tree_too = TRUE,
+                          .min_var = var_thresh)
+  clusterdf_list_hyb[[paste(e, 2, sep = &quot;_&quot;)]] &lt;- output
+}</code></pre>
+<pre><code>## *********** working on 2 clusters disp= 3 in CC *********** 
+## counts are in same order, joining counts into single matrix
+## 111 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 8369 100 
+## *********** working on 2 clusters disp= 3 in HAP4 *********** 
+## counts are in same order, joining counts into single matrix
+## 1759 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 7267 100 
+## *********** working on 2 clusters disp= 3 in LowN *********** 
+## counts are in same order, joining counts into single matrix
+## 2870 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6344 100 
+## *********** working on 2 clusters disp= 3 in LowPi *********** 
+## counts are in same order, joining counts into single matrix
+## 798 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 8436 100 
+## *********** working on 2 clusters disp= 3 in Heat *********** 
+## counts are in same order, joining counts into single matrix
+## 2061 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 6759 100 
+## *********** working on 2 clusters disp= 3 in Cold *********** 
+## counts are in same order, joining counts into single matrix
+## 3992 low variance genes, assigned to 0 label
+## finished iterations, nGenes x nIter: 4528 100</code></pre>
+<pre class="r"><code># clusterdf_hyb &lt;- getClusterCombination(clusterdf_list_hyb)
+# # only clustering set we&#39;ll use:
+# save(clusterdf_hyb, clusterdf_list_hyb, file = &quot;data_files/CorrelationClustering3Disp_Allele.RData&quot;)</code></pre>
+</div>
+<div id="visualizing-clustering-dendrograms" class="section level2">
+<h2>Visualizing clustering dendrograms</h2>
+<pre class="r"><code>for (e in c(&quot;HAP4_2&quot;, &quot;CC_2&quot;, &quot;LowN_2&quot;, &quot;LowPi_2&quot;, &quot;Heat_2&quot;, &quot;Cold_2&quot;)) {
+  nm &lt;- c(&quot;Diauxic Shift&quot;, &quot;Hydroxyurea Shock&quot;, 
+          &quot;Low Nitrogen&quot;, &quot;Low Phosphate&quot;, 
+          &quot;Heat Stress&quot;, &quot;Cold Stress&quot;)[which(c(&quot;HAP4_2&quot;, &quot;CC_2&quot;, &quot;LowN_2&quot;, &quot;LowPi_2&quot;, &quot;Heat_2&quot;, &quot;Cold_2&quot;) == e)]
+  pdf(file = paste0(&quot;paper_figures/Supplement/dendro_&quot;, e, &quot;.pdf&quot;), height = 4, width = 4)
+  print(plot(clusterdf_list[[e]]$tree, labels = FALSE, main = nm))
+  dev.off() 
+}</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre class="r"><code>for (e in c(&quot;HAP4_2&quot;, &quot;CC_2&quot;, &quot;LowN_2&quot;, &quot;LowPi_2&quot;, &quot;Heat_2&quot;, &quot;Cold_2&quot;)) {
+  nm &lt;- c(&quot;Diauxic Shift&quot;, &quot;Hydroxyurea Shock&quot;, 
+          &quot;Low Nitrogen&quot;, &quot;Low Phosphate&quot;, 
+          &quot;Heat Stress&quot;, &quot;Cold Stress&quot;)[which(c(&quot;HAP4_2&quot;, &quot;CC_2&quot;, &quot;LowN_2&quot;, &quot;LowPi_2&quot;, &quot;Heat_2&quot;, &quot;Cold_2&quot;) == e)]
+  pdf(file = paste0(&quot;paper_figures/Supplement/hyb_dendro_&quot;, e, &quot;.pdf&quot;), height = 4, width = 4)
+  print(plot(clusterdf_list_hyb[[e]]$tree, labels = FALSE, main = nm))
+  dev.off() 
+}</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
+<pre><code>## NULL</code></pre>
 </div>
 
 

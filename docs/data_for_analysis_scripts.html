@@ -13,7 +13,7 @@
 
 <title>Data for analysis scripts</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.32/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -329,6 +329,21 @@ $(document).ready(function () {
     </li>
   </ul>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Additional QC
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="QC_clustering.html">Clustering with 2, 3, or 4 clusters</a>
+    </li>
+    <li>
+      <a href="QC_signal-to-noise.html">Filtering Lowly varying genes with Dispersion or Signal-to-noise</a>
+    </li>
+  </ul>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -352,8 +367,10 @@ linear models</p>
 sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;, 
          &quot;matrixStats&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2  data.table 
-##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
+<pre><code>##       dplyr       purrr       tidyr      ggpubr 
+##        TRUE        TRUE        TRUE        TRUE 
+##       readr  data.table     ggplot2  data.table 
+##        TRUE        TRUE        TRUE        TRUE 
 ## matrixStats 
 ##        TRUE</code></pre>
 <pre class="r"><code>### Reading in Count Data
@@ -376,12 +393,16 @@ MissingHubGenes[!(MissingHubGenes %in% rownames(counts))]</code></pre>
 # changing to non-log2 scale for actual filtering (log2 scale is for visualizing)
 MissingHubGenes &lt;- intersect(rownames(counts), MissingHubGenes)
 rowMeans(counts[MissingHubGenes,]) # remaining 22 are all lowly expressed (but these averages are across all )</code></pre>
-<pre><code>##   YBR240C   YCR106W   YDR123C   YER111C   YER184C   YFL052W   YGL254W   YGR288W   YHR124W 
-##  9.542522  4.302053 22.601173 23.953079  9.134897 24.337243 11.891496 19.392962  8.363636 
-##   YJL127C   YJL056C   YJR094C   YKL222C   YLR013W   YLR176C   YLR266C   YNR063W   YOR113W 
-##  4.363636 16.847507  6.879765 14.604106  1.504399 26.695015 18.501466  7.897361 18.296188 
-##   YOR380W   YPL248C   YPL133C   YPR196W 
-## 21.721408  5.856305 17.073314 16.111437</code></pre>
+<pre><code>##   YBR240C   YCR106W   YDR123C   YER111C   YER184C 
+##  9.542522  4.302053 22.601173 23.953079  9.134897 
+##   YFL052W   YGL254W   YGR288W   YHR124W   YJL127C 
+## 24.337243 11.891496 19.392962  8.363636  4.363636 
+##   YJL056C   YJR094C   YKL222C   YLR013W   YLR176C 
+## 16.847507  6.879765 14.604106  1.504399 26.695015 
+##   YLR266C   YNR063W   YOR113W   YOR380W   YPL248C 
+## 18.501466  7.897361 18.296188 21.721408  5.856305 
+##   YPL133C   YPR196W 
+## 17.073314 16.111437</code></pre>
 <pre class="r"><code>cutoffExpr &lt;- 30
 
 # Criteria: mean expr less than threshold (30 cpm, not log scale) in
@@ -501,10 +522,10 @@ cat(&quot;pre-collapse\n&quot;)</code></pre>
   dplyr::select(time_point_num) |&gt;
   table()</code></pre>
 <pre><code>## time_point_num
-##      0   79.8  124.8  169.8  214.8  259.8  304.8  364.8  424.8  484.8  544.8  604.8  664.8 1390.2 
-##      1      1      1      1      1      1      1      1      1      1      1      1      1      1 
-##   1950 
-##      1</code></pre>
+##      0   79.8  124.8  169.8  214.8  259.8  304.8  364.8 
+##      1      1      1      1      1      1      1      1 
+##  424.8  484.8  544.8  604.8  664.8 1390.2   1950 
+##      1      1      1      1      1      1      1</code></pre>
 <pre class="r"><code>cat(&quot;post-collapse\n&quot;)</code></pre>
 <pre><code>## post-collapse</code></pre>
 <pre class="r"><code>dim(collapsed$cer[,info$experiment == &quot;LowN&quot;]) # LowN has been reduced (~30 replicates)</code></pre>
@@ -517,10 +538,10 @@ cat(&quot;pre-collapse\n&quot;)</code></pre>
 <pre><code>## [1] 5045   15</code></pre>
 <pre class="r"><code>info |&gt; filter(experiment == &quot;HAP4&quot;) |&gt; dplyr::select(time_point_num) |&gt; table()</code></pre>
 <pre><code>## time_point_num
-##      0   79.8  124.8  169.8  214.8  259.8  304.8  364.8  424.8  484.8  544.8  604.8  664.8 1390.2 
-##      1      1      1      1      1      1      1      1      1      1      1      1      1      1 
-##   1950 
-##      1</code></pre>
+##      0   79.8  124.8  169.8  214.8  259.8  304.8  364.8 
+##      1      1      1      1      1      1      1      1 
+##  424.8  484.8  544.8  604.8  664.8 1390.2   1950 
+##      1      1      1      1      1      1      1</code></pre>
 <pre class="r"><code>### Tests for collapsed/movavg counts
 # additional tests for collapsing replicates
 # toy count matrix using random sample of genes (to test ability to separate low var genes out)
@@ -542,15 +563,17 @@ p1 &lt;- ggplot(plotdf1, aes(x = log2(var_expr/mean_expr))) + geom_density() +
   geom_vline(xintercept = 0, color = &quot;red&quot;) +
   ggtitle(&quot;after collapsing replicates&quot;)
 ggarrange(p0, p1, nrow = 1, ncol = 2)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range (`stat_density()`).
-## Removed 3 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 3 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-1.png" alt="" width="672" /></p>
 <pre class="r"><code># mean expression pre and post (shouldn&#39;t have changed)
 plotdf &lt;- left_join(plotdf0, plotdf1, by = &quot;gene_name&quot;, suffix = c(&quot;_pre&quot;, &quot;_post&quot;))
 ggplot(plotdf, aes(x = log2(mean_expr_pre), y = log2(mean_expr_post))) +
   geom_point() +
   geom_abline(slope = 1, intercept = 0, color = &quot;gold&quot;)</code></pre>
-<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-2.png" alt="" width="672" /></p>
 <pre class="r"><code># difference in var/mean pre and post versus mean expr
 plotdf &lt;- dplyr::select(plotdf, var_expr_pre, var_expr_post, mean_expr_pre, gene_name) |&gt;
   dplyr::rename(&quot;mean_expr&quot;=&quot;mean_expr_pre&quot;)
@@ -558,8 +581,9 @@ ggplot(plotdf, aes(x = log2(mean_expr + 1),
                    y = log2(var_expr_pre) - log2(var_expr_post))) +
   geom_hex() +
   geom_hline(yintercept = 0, color = &quot;gold&quot;)</code></pre>
-<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale range (`stat_binhex()`).</code></pre>
-<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-3.png" width="672" /></p>
+<pre><code>## Warning: Removed 3 rows containing non-finite outside the scale
+## range (`stat_binhex()`).</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-3.png" alt="" width="672" /></p>
 <pre class="r"><code># as expected, there is lower variance post collapse (very few genes below y = 0)
 # most genes have fairly little difference in var when collapsing replicates,
 # but the difference can be extreme for a few genes, of middling expression level
@@ -571,9 +595,15 @@ ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(ex
   geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
             aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
             color = &quot;red&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can override using the `.groups`
-## argument.</code></pre>
-<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-4.png" width="672" /></p>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by time_point_str and
+##   gene_name.
+## ℹ Output is grouped by time_point_str.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(time_point_str, gene_name))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-4.png" alt="" width="672" /></p>
 <pre class="r"><code># second a gene with variance substantially reduced in collapsed form
 gene_idx &lt;- plotdf |&gt; filter(log2(var_expr_pre) - log2(var_expr_post) &gt; 7) |&gt; dplyr::select(gene_name) |&gt; pull() |&gt; sample(1)
 ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(expr + 1))) +
@@ -581,9 +611,15 @@ ggplot(filter(toydf, gene_name == gene_idx), aes(x = time_point_str, y = log2(ex
   geom_line(data = summarise(group_by(filter(toydf, gene_name == gene_idx), time_point_str, gene_name), mean_expr = mean(expr)),
             aes(x = time_point_str, y = log2(mean_expr + 1), group = gene_name),
             color = &quot;red&quot;) # these are genes with very little expression change attributable to timepoint,</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_str&#39;. You can override using the `.groups`
-## argument.</code></pre>
-<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-5.png" width="672" /></p>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by time_point_str and
+##   gene_name.
+## ℹ Output is grouped by time_point_str.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(time_point_str, gene_name))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-6-5.png" alt="" width="672" /></p>
 <pre class="r"><code># the exact kind we want to have significantly reduced variance in collapsed counts</code></pre>
 <p>Moving average of environments without replicates (LowPi and Diauxic
 Shift)</p>
@@ -639,7 +675,7 @@ plotdf$status &lt;- &quot;before moving average&quot;
 plotdf &lt;- bind_rows(plotdf, plotdf2)
 ggplot(plotdf, aes(x = time_point_num, y = expr)) +
   geom_line(aes(group = status, color = status))</code></pre>
-<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="data_for_analysis_scripts_files/figure-html/unnamed-chunk-8-1.png" alt="" width="672" /></p>
 <pre class="r"><code># checking conditions order still matches info
 sum(colnames(collapsed$cer) == info$condition)/nrow(info)</code></pre>
 <pre><code>## [1] 1</code></pre>
@@ -761,10 +797,9 @@ save(spcts, spinfo, alcts, alinfo, file = &quot;data_files/GLM_Counts.RData&quot
 <div id="data-for-heiarchical-clustering" class="section level2">
 <h2>Data for Heiarchical Clustering</h2>
 <pre class="r"><code>load(&quot;data_files/Cleaned_Counts.RData&quot;)
-load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
 ExperimentNames &lt;- c(&quot;LowN&quot;, &quot;CC&quot;, &quot;HAP4&quot;, &quot;LowPi&quot;, &quot;Heat&quot;, &quot;Cold&quot;)
 
-# parents only for clustering
+# parental counts for main clustering
 # using info and collapsed counts from parents only, all WT samples, replicates averaged
 dim(info)</code></pre>
 <pre><code>## [1] 62  4</code></pre>
@@ -813,7 +848,70 @@ dim(counts_list$cer_CC)</code></pre>
 <pre class="r"><code>dim(info)</code></pre>
 <pre><code>## [1] 62  4</code></pre>
 <pre class="r"><code># saving
-save(counts_list, info, file = &quot;data_files/Clustering_Counts.RData&quot;)</code></pre>
+save(counts_list, info, file = &quot;data_files/Clustering_Counts.RData&quot;)
+
+# hybrid counts for clustering, for cis/trans test
+# all WT samples, replicates averaged
+load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
+dim(info_allele)</code></pre>
+<pre><code>## [1] 61  4</code></pre>
+<pre class="r"><code>dim(collapsed_allele$cer)</code></pre>
+<pre><code>## [1] 5045   61</code></pre>
+<pre class="r"><code>dim(collapsed_allele$par)</code></pre>
+<pre><code>## [1] 5045   61</code></pre>
+<pre class="r"><code>sum(grepl(&quot;WT&quot;, info_allele$condition))/nrow(info_allele) # should have all WT, ratio is 1</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>sum(grepl(&quot;WT&quot;, colnames(collapsed_allele$cer)))/ncol(collapsed_allele$cer) # should have all WT, ratio is 1</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>table(colnames(collapsed_allele$cer)) |&gt; table() # should all have one entry, 1 for each condition</code></pre>
+<pre><code>## 
+##  1 
+## 61</code></pre>
+<pre class="r"><code>### Splitting counts into species/experiments
+counts_list_allele &lt;- vector(mode = &quot;list&quot;, length = 0)
+for (e in unique(info_allele$experiment)) {
+  for (a in c(&quot;cer&quot;, &quot;par&quot;)) {
+    cts &lt;- collapsed_allele[[a]][, info_allele$experiment == e]
+    cts &lt;- cts[apply(cts, 1, \(x) !all(is.na(x))),] # removing na genes from Heat/Cold
+    counts_list_allele[[paste(a, e, sep = &quot;_&quot;)]] &lt;- cts
+  }
+}
+rm(cts)
+# removing genes that are lowly expressed in BOTH PARENTAL species
+# using pre-low-expression filtered parental counts as reference
+counts_list_parents_preFilter &lt;- vector(mode = &quot;list&quot;, length = 0)
+for (e in unique(info$experiment)) {
+  for (a in c(&quot;cer&quot;, &quot;par&quot;)) {
+    cts &lt;- collapsed[[a]][, info$experiment == e]
+    cts &lt;- cts[apply(cts, 1, \(x) !all(is.na(x))),] 
+    counts_list_parents_preFilter[[paste(a, e, sep = &quot;_&quot;)]] &lt;- cts
+  }
+}
+rm(cts)
+
+expr_thresh &lt;- 30
+for (e in ExperimentNames) {
+  cer_name &lt;- paste(&quot;cer&quot;, e, sep = &quot;_&quot;)
+  par_name &lt;- paste(&quot;par&quot;, e, sep = &quot;_&quot;)
+  low_cer &lt;- rowMeans(counts_list_parents_preFilter[[cer_name]]) &lt;= expr_thresh # intentionally based on parental counts, not hybrid
+  low_par &lt;- rowMeans(counts_list_parents_preFilter[[par_name]]) &lt;= expr_thresh
+  good_idxs &lt;- !(low_cer &amp; low_par)
+  counts_list_allele[[cer_name]] &lt;- counts_list_allele[[cer_name]][good_idxs,]
+  counts_list_allele[[par_name]] &lt;- counts_list_allele[[par_name]][good_idxs,]
+}
+# now experiments have different nGenes (but species from the same experiment will have the same nGenes, and should be the same length as parents above)
+dim(counts_list_allele$cer_CC)</code></pre>
+<pre><code>## [1] 4240    8</code></pre>
+<pre class="r"><code>dim(counts_list_allele$par_CC)</code></pre>
+<pre><code>## [1] 4240    8</code></pre>
+<pre class="r"><code>dim(counts_list_allele$cer_Cold)</code></pre>
+<pre><code>## [1] 4260    4</code></pre>
+<pre class="r"><code>dim(counts_list_allele$par_Cold)</code></pre>
+<pre><code>## [1] 4260    4</code></pre>
+<pre class="r"><code>dim(info_allele)</code></pre>
+<pre><code>## [1] 61  4</code></pre>
+<pre class="r"><code># saving
+save(counts_list_allele, info_allele, file = &quot;data_files/Clustering_Counts_Allele.RData&quot;)</code></pre>
 <p>Done with data cleaning, on to GLMs and Heiarchical Clustering!</p>
 </div>
 

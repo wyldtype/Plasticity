@@ -44,6 +44,13 @@ navbar:
         href: Fig_cis_trans.html
       - text: "11. Fig 9: Example Regulons"
         href: Fig_yeastract.html
+    - text: "Additional QC"
+      menu:
+        - text: "Clustering with 2, 3, or 4 clusters"
+          href: "QC_clustering.html"
+        - text: "Filtering Lowly varying genes with Dispersion or Signal-to-noise"
+          href: "QC_signal-to-noise.html"
+
 output_dir: docs
 output:
   html_document:

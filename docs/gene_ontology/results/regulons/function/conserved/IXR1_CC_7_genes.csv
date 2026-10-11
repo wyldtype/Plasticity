@@ -1,0 +1,11 @@
+term,group_count,overall_count,exact_pval,sig,genes
+oxidoreductase activity,3,270,0.005021606188706868,FALSE,YDR044W YER070W YMR083W
+hydrolase activity, acting on glycosyl bonds,1,39,0.05484949645936432,FALSE,YGR279C
+transferase activity, transferring alkyl or aryl (other than methyl) groups,1,40,0.056221267872340275,FALSE,YKR076W
+glycosyltransferase activity,1,92,0.1252423282181807,FALSE,YFR015C
+mRNA binding,1,189,0.24248742052468208,FALSE,YGR279C
+transferase activity,2,719,0.2775517275854049,FALSE,YFR015C YKR076W
+transmembrane transporter activity,1,278,0.33794553815928385,FALSE,YBR008C
+RNA binding,1,365,0.4211005464584895,FALSE,YGR279C
+hydrolase activity,1,567,0.5804442986713094,FALSE,YGR279C
+ion binding,1,576,0.5865641302128781,FALSE,YMR083W

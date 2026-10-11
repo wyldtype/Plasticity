@@ -57,11 +57,11 @@ plotdf <- finaldf_Disp3 |> dplyr::select(gene_name, experiment, group4, cer, par
   dplyr::rename(c("group4_disp3"="group4",
                   "cer_disp3"="cer",
                   "par_disp3"="par"))
-plotdf <- left_join(plotdf, select(finaldf_SNR30pct, gene_name, experiment, group4, cer, par), by = c("gene_name", "experiment")) |> 
+plotdf <- left_join(plotdf, dplyr::select(finaldf_SNR30pct, gene_name, experiment, group4, cer, par), by = c("gene_name", "experiment")) |> 
   dplyr::rename(c("group4_SNR30pct"="group4",
                   "cer_SNR30pct"="cer",
                   "par_SNR30pct"="par"))
-plot_mat <- select(plotdf, group4_disp3, group4_SNR30pct) |> t() |> as.matrix()
+plot_mat <- dplyr::select(plotdf, group4_disp3, group4_SNR30pct) |> t() |> as.matrix()
 ordered_plot_mat <- orderGenesByGroup(.mat = plot_mat)
 rownames(ordered_plot_mat) <- c("Dispersion 3", "Signal-to-noise 30%")
 plotdf <- map(c("Dispersion 3", "Signal-to-noise 30%"), \(e) {
@@ -90,7 +90,7 @@ plotdf <- finaldf_Disp3 |> dplyr::select(gene_name, experiment, group4, cer, par
   dplyr::rename(c("group4_disp3"="group4",
                   "cer_disp3"="cer",
                   "par_disp3"="par"))
-plotdf <- left_join(plotdf, select(finaldf_SNR30pct, gene_name, experiment, group4, cer, par), by = c("gene_name", "experiment")) |> 
+plotdf <- left_join(plotdf, dplyr::select(finaldf_SNR30pct, gene_name, experiment, group4, cer, par), by = c("gene_name", "experiment")) |> 
   dplyr::rename(c("group4_SNR30pct"="group4",
                   "cer_SNR30pct"="cer",
                   "par_SNR30pct"="par"))

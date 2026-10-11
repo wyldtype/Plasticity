@@ -119,7 +119,7 @@ corCluster <- function(.cts, .nClust, .min_var = var_thresh,
     topBranchHeight <- sort(tree$height, decreasing = TRUE)[.nClust]
     tree_labels <- cutreeStatic(tree, cutHeight = topBranchHeight,
                                 minSize = 1) # guaranteeing no 0 class
-    cat("cutting tree at height", topBranchHeight, "into", length(unique(tree_labels)), "clusters\n")
+    cat("cutting tree at height", topBranchHeight, "into", length(base::unique(tree_labels)), "clusters\n")
     labeldf <- tibble(gene_name = tree$labels,
                       label = tree_labels) |> 
       bind_rows(tibble(gene_name = low_var_genes,
@@ -398,8 +398,8 @@ getClusterCombination <- function(.clust_list) {
     e <- gsub("_.*", "", nm)
     nclust <- gsub(".*_", "", nm)
     e_clust <- .clust_list[[paste(e, nclust, sep = "_")]]$df |> 
-      select(label, gene_name) |> 
-      unique()
+      dplyr::select(label, gene_name) |> 
+      distinct()
     e_clust$gene_ID <- map(e_clust$gene_name, \(.g) {
       return(gsub(".*_", "", .g))
     }) |> unlist()
@@ -407,7 +407,7 @@ getClusterCombination <- function(.clust_list) {
       return(gsub("_.*", "", .g))
     }) |> unlist()
     e_clust <- e_clust |> 
-      select(gene_ID, species, label) |> 
+      dplyr::select(gene_ID, species, label) |> 
       pivot_wider(id_cols = gene_ID, names_from = species, values_from = label) |> 
       mutate(experiment = e)
     cluster_comb <- bind_rows(cluster_comb, e_clust)
@@ -467,17 +467,17 @@ clusterdf4 <- getClusterCombination(clusterdf_list4)
 
 ```{r saving}
 # primary clustering set we'll use:
-save(clusterdf, clusterdf_list, file = "data_files/CorrelationClustering3Disp.RData")
+# save(clusterdf, clusterdf_list, file = "data_files/CorrelationClustering3Disp.RData")
 # QC changing nClust or dispersion threshold
-save(clusterdf, clusterdf_list,
-     clusterdf_1disp, clusterdf_list_1disp,
-     clusterdf_5disp, clusterdf_list_5disp,
-     clusterdf3, clusterdf_list3,
-     clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering.RData")
+# save(clusterdf, clusterdf_list,
+#      clusterdf_1disp, clusterdf_list_1disp,
+#      clusterdf_5disp, clusterdf_list_5disp,
+#      clusterdf3, clusterdf_list3,
+#      clusterdf4, clusterdf_list4, file = "data_files/QC_CorrelationClustering.RData")
 ```
 
 ## Clustering hybrid for cis/trans test
-```{r clustering-hybrid}
+```{r clustering-hybrid, cache=TRUE}
 clusterdf_list_hyb <- vector(mode = "list", length = 0)
 for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
   cat("*********** working on 2 clusters disp=", var_thresh, "in", e, "*********** \n")
@@ -489,9 +489,9 @@ for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
 }
 ```
 ```{r saving-hybrid}
-clusterdf_hyb <- getClusterCombination(clusterdf_list_hyb)
-# only clustering set we'll use:
-save(clusterdf_hyb, clusterdf_list_hyb, file = "data_files/CorrelationClustering3Disp_Allele.RData")
+# clusterdf_hyb <- getClusterCombination(clusterdf_list_hyb)
+# # only clustering set we'll use:
+# save(clusterdf_hyb, clusterdf_list_hyb, file = "data_files/CorrelationClustering3Disp_Allele.RData")
 ```
 
 ## Visualizing clustering dendrograms

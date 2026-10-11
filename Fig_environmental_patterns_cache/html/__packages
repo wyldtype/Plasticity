@@ -28,3 +28,12 @@ RColorBrewer
 circlize
 ggridges
 ComplexHeatmap
+ggVennDiagram
+ggalluvial
+pheatmap
+Seqinfo
+Matrix
+igraph
+zoo
+lmtest
+waffle

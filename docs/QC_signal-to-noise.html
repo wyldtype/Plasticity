@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>QC: Signal to Noise vs Dispersion</title>
+
+<script src="site_libs/header-attrs-2.32/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Plasticity</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    1-3: Data Cleaning
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clean_data.html">1. Import data and QC</a>
+    </li>
+    <li>
+      <a href="data_for_analysis_scripts.html">2. Data cleaning</a>
+    </li>
+    <li>
+      <a href="functions_for_figure_scripts.html">3. Functions</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    4-6: Data Analysis
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="clustering.html">4. Clustering</a>
+    </li>
+    <li>
+      <a href="single_gene_models.html">5. Generalized linear models</a>
+    </li>
+    <li>
+      <a href="data_for_figure_scripts.html">6. Final dataframe</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    7: Single-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_DiauxicShift.html">Fig 5: Diauxic Shift</a>
+    </li>
+    <li>
+      <a href="Fig_HUShock.html">Fig S3: HU Shock</a>
+    </li>
+    <li>
+      <a href="Fig_LowNitrogen.html">Fig S3: Low Nitrogen</a>
+    </li>
+    <li>
+      <a href="Fig_LowPhosphate.html">Fig S3: Low Phosphate</a>
+    </li>
+    <li>
+      <a href="Fig_HeatStress.html">Fig S3: Heat Stress</a>
+    </li>
+    <li>
+      <a href="Fig_ColdStress.html">Fig S3: Cold Stress</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    8-11: Multi-environment figures
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="Fig_gene_ontology.html">8. Table 1: Gene Ontology</a>
+    </li>
+    <li>
+      <a href="Fig_environmental_patterns.html">9. Figs 4, 6, 7: Environmental Patterns</a>
+    </li>
+    <li>
+      <a href="Fig_cis_trans.html">10. Fig 8: F1 Hybrid</a>
+    </li>
+    <li>
+      <a href="Fig_yeastract.html">11. Fig 9: Example Regulons</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Additional QC
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="QC_clustering.html">Clustering with 2, 3, or 4 clusters</a>
+    </li>
+    <li>
+      <a href="QC_signal-to-noise.html">Filtering Lowly varying genes with Dispersion or Signal-to-noise</a>
+    </li>
+  </ul>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">QC: Signal to Noise vs Dispersion</h1>
+
+</div>
+
+
+<pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
+library(&quot;pheatmap&quot;)
+library(&quot;ggalluvial&quot;)
+load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
+finaldf_Disp3 &lt;- finaldf
+rm(finaldf)
+load(&quot;data_files/FinalDataframe_SNR30pct.RData&quot;)
+finaldf_SNR30pct &lt;- finaldf
+rm(finaldf)
+snrdf &lt;- read_csv(&quot;data_files/QC_signal-to-noise.csv&quot;)</code></pre>
+<pre><code>## Rows: 53294 Columns: 9
+## ── Column specification ───────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (3): gene_ID, experiment, species
+## dbl (6): SNR_1, SNR_0.1, SNR_0.5, SNR_30pct, SNR_5pct, ...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<p>Discrete heatmaps of genes assigned to 0 cluster using different
+thresholds/criteria.</p>
+<p>Comparing the main paper’s cluster criterion of Disp = 3 versus each
+version of signal to noise to find the one that is most similar to Disp
+= 3 assignments</p>
+<pre class="r"><code>plot_mat &lt;- finaldf_Disp3 |&gt; dplyr::select(gene_name, experiment, cer, par) |&gt; 
+  pivot_longer(cols = c(&quot;cer&quot;, &quot;par&quot;),
+               names_to = &quot;species&quot;,
+               values_to = &quot;Disp3&quot;) |&gt; 
+  left_join(snrdf, by = c(&quot;gene_name&quot;=&quot;gene_ID&quot;, &quot;experiment&quot;, &quot;species&quot;))
+colnames_plotmat &lt;- paste(plot_mat$gene_name, plot_mat$species, 
+                          plot_mat$experiment, sep = &quot;_&quot;)
+rownames_plotmat &lt;- colnames(plot_mat)
+plot_mat &lt;- data.frame(plot_mat) |&gt; t()
+colnames(plot_mat) &lt;- colnames_plotmat
+rownames(plot_mat) &lt;- rownames_plotmat
+plot_mat &lt;- plot_mat[!(rownames(plot_mat) %in% c(&quot;gene_name&quot;, &quot;experiment&quot;, &quot;species&quot;)),]
+plot_mat &lt;- plot_mat |&gt; as.matrix()
+mode(plot_mat) &lt;- &quot;numeric&quot;
+plot_mat[is.na(plot_mat)] &lt;- 1 # currently only 1 NA value: YPR148C, Heat, cer, SNR 1pct
+plot_mat[plot_mat != 0] &lt;- 1
+clrs &lt;- structure(c(&quot;grey&quot;, &quot;red&quot;), 
+                  names = c(1, 0))
+# sorting cols by Disp3&#39;s order
+col_order_vec &lt;- order(factor(plot_mat[&quot;Disp3&quot;,], levels = c(1, 0)))
+
+# ordering full plotmat
+ordered_plot_mat &lt;- orderGenesByGroup(.mat = plot_mat[c(&quot;Disp3&quot;, &quot;SNR_30pct&quot;),], .labels = c(1, 0))
+rownames(ordered_plot_mat) &lt;- c(&quot;Disp3&quot;, &quot;SNR_30pct&quot;)
+pheatmap(ordered_plot_mat, cluster_rows = FALSE, cluster_cols = FALSE, show_colnames = FALSE)</code></pre>
+<p><img src="QC_signal-to-noise_files/figure-html/discrete-heatmap-lowly-varying-1.png" alt="" width="672" /></p>
+<p>4-group comparison between Disp3 and signal-to-noise 30%:</p>
+<pre class="r"><code>plotdf &lt;- finaldf_Disp3 |&gt; dplyr::select(gene_name, experiment, group4, cer, par) |&gt; 
+  dplyr::rename(c(&quot;group4_disp3&quot;=&quot;group4&quot;,
+                  &quot;cer_disp3&quot;=&quot;cer&quot;,
+                  &quot;par_disp3&quot;=&quot;par&quot;))
+plotdf &lt;- left_join(plotdf, dplyr::select(finaldf_SNR30pct, gene_name, experiment, group4, cer, par), by = c(&quot;gene_name&quot;, &quot;experiment&quot;)) |&gt; 
+  dplyr::rename(c(&quot;group4_SNR30pct&quot;=&quot;group4&quot;,
+                  &quot;cer_SNR30pct&quot;=&quot;cer&quot;,
+                  &quot;par_SNR30pct&quot;=&quot;par&quot;))
+plot_mat &lt;- dplyr::select(plotdf, group4_disp3, group4_SNR30pct) |&gt; t() |&gt; as.matrix()
+ordered_plot_mat &lt;- orderGenesByGroup(.mat = plot_mat)
+rownames(ordered_plot_mat) &lt;- c(&quot;Dispersion 3&quot;, &quot;Signal-to-noise 30%&quot;)
+plotdf &lt;- map(c(&quot;Dispersion 3&quot;, &quot;Signal-to-noise 30%&quot;), \(e) {
+  idx &lt;- which(c(&quot;Dispersion 3&quot;, &quot;Signal-to-noise 30%&quot;) == e)
+  return(tibble(gene_name = colnames(ordered_plot_mat),
+                environment = e,
+                group4 = ordered_plot_mat[idx,],
+                x = c(1:ncol(ordered_plot_mat)),
+                y = c(length(LongExperimentNames):1)[idx])) # descending from top
+}) |&gt; purrr::reduce(.f = bind_rows)
+p &lt;- ggplot(plotdf, aes(x = x, y = y, fill = group4)) +
+  geom_tile_pattern(aes(fill = group4, pattern = group4), pattern_fill = &quot;black&quot;,
+                    pattern_density = 0.05, pattern_size = 0.05) +
+  scale_fill_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                      type = colordf[colordf$scheme == &quot;group4&quot;,]$type) +
+  scale_pattern_discrete(limits = colordf[colordf$scheme == &quot;group4&quot;,]$limits,
+                         choices = colordf[colordf$scheme == &quot;group4&quot;,]$pattern) +
+  theme_void()
+p</code></pre>
+<p><img src="QC_signal-to-noise_files/figure-html/discrete-heatmap-group4-1.png" alt="" width="672" /></p>
+<p>What types of plasticity divergence are the most different between
+dispersion and SNR?</p>
+<pre class="r"><code>plotdf &lt;- finaldf_Disp3 |&gt; dplyr::select(gene_name, experiment, group4, cer, par) |&gt; 
+  dplyr::rename(c(&quot;group4_disp3&quot;=&quot;group4&quot;,
+                  &quot;cer_disp3&quot;=&quot;cer&quot;,
+                  &quot;par_disp3&quot;=&quot;par&quot;))
+plotdf &lt;- left_join(plotdf, dplyr::select(finaldf_SNR30pct, gene_name, experiment, group4, cer, par), by = c(&quot;gene_name&quot;, &quot;experiment&quot;)) |&gt; 
+  dplyr::rename(c(&quot;group4_SNR30pct&quot;=&quot;group4&quot;,
+                  &quot;cer_SNR30pct&quot;=&quot;cer&quot;,
+                  &quot;par_SNR30pct&quot;=&quot;par&quot;))
+plotlist &lt;- vector(mode = &quot;list&quot;, length = length(ExperimentNames))
+names(plotlist) &lt;- ExperimentNames
+for (e in ExperimentNames) {
+  plot_mat_e &lt;- plotdf |&gt; filter(experiment == e) |&gt; 
+    mutate(disp3 = paste(cer_disp3, par_disp3, sep = &quot;_&quot;),
+           SNR30pct = paste(cer_SNR30pct, par_SNR30pct, sep = &quot;_&quot;)) |&gt; 
+    dplyr::select(disp3, SNR30pct) |&gt; t() |&gt; as.matrix()
+  ordered_plot_mat_e &lt;- orderGenesByGroup(.mat = plot_mat_e,
+                                          .labels = unique(c(plot_mat_e[1,], plot_mat_e[2,])))
+  rownames(ordered_plot_mat_e) &lt;- c(&quot;Dispersion 3&quot;, &quot;Signal-to-noise 30%&quot;)
+  plotdf_e &lt;- map(c(&quot;Dispersion 3&quot;, &quot;Signal-to-noise 30%&quot;), \(nm) {
+    idx &lt;- which(c(&quot;Dispersion 3&quot;, &quot;Signal-to-noise 30%&quot;) == nm)
+    return(tibble(gene_name = colnames(ordered_plot_mat_e),
+                  method = nm,
+                  clusters = ordered_plot_mat_e[idx,],
+                  x = c(1:ncol(ordered_plot_mat_e)),
+                  y = c(length(LongExperimentNames):1)[idx])) # descending from top
+  }) |&gt; purrr::reduce(.f = bind_rows)
+  plotlist[[e]] &lt;- ggplot(plotdf_e, aes(x = x, y = y, fill = clusters)) +
+    geom_tile(aes(fill = clusters)) +
+    theme_void()
+}
+ggarrange(plotlist = plotlist, nrow = 3, ncol = 2, common.legend = TRUE)</code></pre>
+<p><img src="QC_signal-to-noise_files/figure-html/plasticity-groups-1.png" alt="" width="672" /></p>
+<p>Alluvial plots of which of 4 plasticity categories are different
+between dispersion and signal to noise: 1) single 0s: 10, 01, 20, 02 2)
+conserved 0s: 00 3) reversals: 12, 21 4) conserved varying: 11, 22</p>
+<pre class="r"><code># helper function to collapse 9 plasticity combinations into 4 categories we are interested in here
+getPlasticityCategory &lt;- function(.cer, .par) {
+  if (.cer == 0 &amp; .par == 0) {
+    return(&quot;ConsZero&quot;)
+  }
+  if (.cer == 0 | .par == 0) {
+    return(&quot;SingleZero&quot;)
+  }
+  if (.cer  != .par) {
+    return(&quot;Reversal&quot;)
+  }
+  if (.cer == .par) {
+    return(&quot;ConsVar&quot;)
+  }
+}
+# tests for getPlasticityCategory
+getPlasticityCategory(0, 1)</code></pre>
+<pre><code>## [1] &quot;SingleZero&quot;</code></pre>
+<pre class="r"><code>getPlasticityCategory(0, 0)</code></pre>
+<pre><code>## [1] &quot;ConsZero&quot;</code></pre>
+<pre class="r"><code>getPlasticityCategory(0, 56)</code></pre>
+<pre><code>## [1] &quot;SingleZero&quot;</code></pre>
+<pre class="r"><code>getPlasticityCategory(&quot;bugs&quot;, 1)</code></pre>
+<pre><code>## [1] &quot;Reversal&quot;</code></pre>
+<pre class="r"><code>getPlasticityCategory(1, 1)</code></pre>
+<pre><code>## [1] &quot;ConsVar&quot;</code></pre>
+<pre class="r"><code>plotdf$plasticity_category_disp3 &lt;- purrr::map2(plotdf$cer_disp3, 
+                                                plotdf$par_disp3, .f = getPlasticityCategory) |&gt; unlist()
+plotdf$plasticity_category_SNR30pct &lt;- purrr::map2(plotdf$cer_SNR30pct, 
+                                                   plotdf$par_SNR30pct, .f = getPlasticityCategory) |&gt; unlist()
+plotdf_counts &lt;- plotdf |&gt; 
+  group_by(experiment, plasticity_category_disp3, plasticity_category_SNR30pct) |&gt; 
+  summarise(ngenes = n()) |&gt; 
+  ungroup()</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by experiment,
+##   plasticity_category_disp3, and
+##   plasticity_category_SNR30pct.
+## ℹ Output is grouped by experiment and
+##   plasticity_category_disp3.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(experiment,
+##   plasticity_category_disp3,
+##   plasticity_category_SNR30pct))` for per-operation
+##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code>category_counts &lt;- plotdf |&gt; 
+  group_by(experiment, plasticity_category_disp3) |&gt; 
+  summarise(ncategory = n()) |&gt; 
+  ungroup()</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by experiment and
+##   plasticity_category_disp3.
+## ℹ Output is grouped by experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(experiment,
+##   plasticity_category_disp3))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code>plotdf_counts &lt;- left_join(plotdf_counts, category_counts,
+                           by = c(&quot;plasticity_category_disp3&quot;, &quot;experiment&quot;),
+                           relationship = &quot;many-to-one&quot;)
+plotdf_counts$pctcategory &lt;- plotdf_counts$ngenes/plotdf_counts$ncategory
+is_alluvia_form(plotdf_counts, silent = TRUE)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<pre class="r"><code>p &lt;- ggplot(filter(plotdf_counts, plasticity_category_disp3 != plasticity_category_SNR30pct),
+       aes(y = ngenes, axis1 = plasticity_category_disp3, axis2 = plasticity_category_SNR30pct)) +
+  geom_alluvium(aes(fill = plasticity_category_disp3), width = 1/12) +
+  geom_stratum(width = 1/12, fill = &quot;black&quot;, color = &quot;grey&quot;) +
+  geom_label(stat = &quot;stratum&quot;, aes(label = after_stat(stratum))) +
+  scale_x_discrete(limits = c(&quot;Disp 3&quot;, &quot;SNR 30%&quot;), expand = c(.05, .05)) +
+  scale_fill_brewer(type = &quot;qual&quot;, palette = &quot;Set1&quot;) +
+  facet_wrap(~experiment) +
+  theme_classic() +
+  ylab(&quot;number of genes&quot;)
+p</code></pre>
+<pre><code>## Warning in to_lodes_form(data = data, axes = axis_ind,
+## discern = params$discern): Some strata appear at multiple
+## axes.
+## Warning in to_lodes_form(data = data, axes = axis_ind,
+## discern = params$discern): Some strata appear at multiple
+## axes.
+## Warning in to_lodes_form(data = data, axes = axis_ind,
+## discern = params$discern): Some strata appear at multiple
+## axes.</code></pre>
+<p><img src="QC_signal-to-noise_files/figure-html/alluvial-1.png" alt="" width="672" /></p>
+
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

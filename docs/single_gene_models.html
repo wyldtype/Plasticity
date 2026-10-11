@@ -13,7 +13,7 @@
 
 <title>Differential expression analysis with DESeq2 to determine divergence in expression level</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.32/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -32,6 +32,7 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/huxtable-6.0.2/huxtable.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -329,6 +330,21 @@ $(document).ready(function () {
     </li>
   </ul>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Additional QC
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="QC_clustering.html">Clustering with 2, 3, or 4 clusters</a>
+    </li>
+    <li>
+      <a href="QC_signal-to-noise.html">Filtering Lowly varying genes with Dispersion or Signal-to-noise</a>
+    </li>
+  </ul>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -347,117 +363,8 @@ DESeq2 to determine divergence in expression level</h1>
 </div>
 
 
-<pre class="r"><code>library(DESeq2) # DESeq2 depends on IRanges, GenomicRanges,</code></pre>
-<pre><code>## Loading required package: S4Vectors</code></pre>
-<pre><code>## Loading required package: stats4</code></pre>
-<pre><code>## Loading required package: BiocGenerics</code></pre>
-<pre><code>## Loading required package: generics</code></pre>
-<pre><code>## 
-## Attaching package: &#39;generics&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:igraph&#39;:
-## 
-##     components, union</code></pre>
-<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     explain</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     as.difftime, as.factor, as.ordered, intersect, is.element, setdiff, setequal, union</code></pre>
-<pre><code>## 
-## Attaching package: &#39;BiocGenerics&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:huxtable&#39;:
-## 
-##     width, width&lt;-</code></pre>
-<pre><code>## The following objects are masked from &#39;package:igraph&#39;:
-## 
-##     normalize, path</code></pre>
-<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     combine</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     IQR, mad, sd, var, xtabs</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     anyDuplicated, aperm, append, as.data.frame, basename, cbind, colnames, dirname,
-##     do.call, duplicated, eval, evalq, Filter, Find, get, grep, grepl, is.unsorted,
-##     lapply, Map, mapply, match, mget, order, paste, pmax, pmax.int, pmin, pmin.int,
-##     Position, rank, rbind, Reduce, rownames, sapply, saveRDS, table, tapply, unique,
-##     unsplit, which.max, which.min</code></pre>
-<pre><code>## 
-## Attaching package: &#39;S4Vectors&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:Matrix&#39;:
-## 
-##     expand, unname</code></pre>
-<pre><code>## The following objects are masked from &#39;package:data.table&#39;:
-## 
-##     first, second</code></pre>
-<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
-## 
-##     first, rename</code></pre>
-<pre><code>## The following object is masked from &#39;package:tidyr&#39;:
-## 
-##     expand</code></pre>
-<pre><code>## The following object is masked from &#39;package:utils&#39;:
-## 
-##     findMatches</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     expand.grid, I, unname</code></pre>
-<pre><code>## Loading required package: IRanges</code></pre>
-<pre><code>## 
-## Attaching package: &#39;IRanges&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:data.table&#39;:
-## 
-##     shift</code></pre>
-<pre><code>## The following objects are masked from &#39;package:dplyr&#39;:
-## 
-##     collapse, desc, slice</code></pre>
-<pre><code>## The following object is masked from &#39;package:purrr&#39;:
-## 
-##     reduce</code></pre>
-<pre><code>## Loading required package: GenomicRanges</code></pre>
-<pre><code>## Loading required package: GenomeInfoDb</code></pre>
-<pre><code>## Loading required package: SummarizedExperiment</code></pre>
-<pre><code>## Loading required package: MatrixGenerics</code></pre>
-<pre><code>## 
-## Attaching package: &#39;MatrixGenerics&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
-## 
-##     colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse, colCounts, colCummaxs,
-##     colCummins, colCumprods, colCumsums, colDiffs, colIQRDiffs, colIQRs, colLogSumExps,
-##     colMadDiffs, colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
-##     colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds, colSums2,
-##     colTabulates, colVarDiffs, colVars, colWeightedMads, colWeightedMeans,
-##     colWeightedMedians, colWeightedSds, colWeightedVars, rowAlls, rowAnyNAs, rowAnys,
-##     rowAvgsPerColSet, rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
-##     rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps, rowMadDiffs, rowMads,
-##     rowMaxs, rowMeans2, rowMedians, rowMins, rowOrderStats, rowProds, rowQuantiles,
-##     rowRanges, rowRanks, rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs,
-##     rowVars, rowWeightedMads, rowWeightedMeans, rowWeightedMedians, rowWeightedSds,
-##     rowWeightedVars</code></pre>
-<pre><code>## Loading required package: Biobase</code></pre>
-<pre><code>## Welcome to Bioconductor
-## 
-##     Vignettes contain introductory material; view with &#39;browseVignettes()&#39;. To cite
-##     Bioconductor, see &#39;citation(&quot;Biobase&quot;)&#39;, and for packages &#39;citation(&quot;pkgname&quot;)&#39;.</code></pre>
-<pre><code>## 
-## Attaching package: &#39;Biobase&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:MatrixGenerics&#39;:
-## 
-##     rowMedians</code></pre>
-<pre><code>## The following object is masked from &#39;package:huxtable&#39;:
-## 
-##     contents</code></pre>
-<pre><code>## The following objects are masked from &#39;package:matrixStats&#39;:
-## 
-##     anyMissing, rowMedians</code></pre>
-<pre><code>## 
-## Attaching package: &#39;DESeq2&#39;</code></pre>
-<pre><code>## The following object is masked _by_ &#39;.GlobalEnv&#39;:
-## 
-##     collapseReplicates</code></pre>
-<pre class="r"><code># and S4Vectors, which include their own functions
+<pre class="r"><code>library(DESeq2) # DESeq2 depends on IRanges, GenomicRanges,
+# and S4Vectors, which include their own functions
 # that share names with common tidyverse functions
 # such as reduce and rename (which causes me problems)
 # So loading it before tidyverse packages so that
@@ -465,8 +372,10 @@ DESeq2 to determine divergence in expression level</h1>
 sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;,
          &quot;matrixStats&quot;, &quot;ggpubr&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table     ggplot2  data.table 
-##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
+<pre><code>##       dplyr       purrr       tidyr      ggpubr 
+##        TRUE        TRUE        TRUE        TRUE 
+##       readr  data.table     ggplot2  data.table 
+##        TRUE        TRUE        TRUE        TRUE 
 ## matrixStats      ggpubr 
 ##        TRUE        TRUE</code></pre>
 <pre class="r"><code>library(MASS, include.only = &quot;glm.nb&quot;)
@@ -501,42 +410,44 @@ spmod &lt;- fitSingleGeneModel(test_genedf, random_gene)
 summary(spmod)</code></pre>
 <pre><code>## 
 ## Call:
-## glm.nb(formula = form, data = .df, init.theta = 9.78619102, link = log)
+## glm.nb(formula = form, data = .df, init.theta = 5.420462981, 
+##     link = log)
 ## 
 ## Coefficients:
-##                  Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept)     8.922e+00  3.635e-02 245.450  &lt; 2e-16 ***
-## time_point_num -4.014e-04  5.281e-05  -7.601 2.93e-14 ***
-## allelecer       4.300e-03  4.635e-02   0.093    0.926    
+##                 Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)     3.566450   0.139737  25.523   &lt;2e-16 ***
+## time_point_num  0.002131   0.001707   1.248    0.212    
+## allelecer      -0.068663   0.162442  -0.423    0.673    
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## (Dispersion parameter for Negative Binomial(9.7862) family taken to be 1)
+## (Dispersion parameter for Negative Binomial(5.4205) family taken to be 1)
 ## 
-##     Null deviance: 249.25  on 190  degrees of freedom
-## Residual deviance: 194.26  on 188  degrees of freedom
-## AIC: 3458.8
+##     Null deviance: 34.650  on 31  degrees of freedom
+## Residual deviance: 32.799  on 29  degrees of freedom
+## AIC: 277.09
 ## 
 ## Number of Fisher Scoring iterations: 1
 ## 
 ## 
-##               Theta:  9.786 
-##           Std. Err.:  0.986 
+##               Theta:  5.42 
+##           Std. Err.:  1.52 
 ## 
-##  2 x log-likelihood:  -3450.837</code></pre>
+##  2 x log-likelihood:  -269.092</code></pre>
 <pre class="r"><code># note that the default residuals from glm.nb are working residuals, less intuitive than response residuals (actual - fitted value)
 spmod$residuals[1]</code></pre>
-<pre><code>##          1 
-## -0.2229863</code></pre>
-<pre class="r"><code>resid(spmod, type = &quot;working&quot;)[1]</code></pre>
-<pre><code>##          1 
-## -0.2229863</code></pre>
-<pre class="r"><code>resid(spmod, type = &quot;response&quot;)[1]</code></pre>
 <pre><code>##         1 
-## -1638.648</code></pre>
+## 0.6948007</code></pre>
+<pre class="r"><code>resid(spmod, type = &quot;working&quot;)[1]</code></pre>
+<pre><code>##         1 
+## 0.6948007</code></pre>
+<pre class="r"><code>resid(spmod, type = &quot;response&quot;)[1]</code></pre>
+<pre><code>##        1 
+## 22.95777</code></pre>
 <pre class="r"><code>test_genedf$expr[1] - spmod$fitted.values[1]</code></pre>
-<pre><code>## WT_TP2_cer_C1_G6_G12_GS1 
-##                -1638.648</code></pre>
+<pre><code>## WT_01_cer_CellCycle_rep1 
+##                 22.95777</code></pre>
 <pre class="r"><code># given dataframe of all gene&#39;s counts, plots Scer expression vs Spar expression 
 # for average of replicates at each timepoint (or moving average for LowPi and HAP4)
 plotSingleGeneModelExample &lt;- function(.genedf, .gene_name, .fitted_vals = FALSE, .log2 = TRUE,
@@ -640,16 +551,28 @@ plotSingleGeneModelExample &lt;- function(.genedf, .gene_name, .fitted_vals = FA
 }
 plotSingleGeneModelExample(test_genedf, random_gene, 
                            .log2 = TRUE, .fitted_vals = TRUE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
-## argument.</code></pre>
-<pre><code>## min and max expression: 13.1152 11.88595</code></pre>
-<p><img src="single_gene_models_files/figure-html/plotSingleGeneModelExample-1.png" width="672" /></p>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by time_point_num and
+##   allele.
+## ℹ Output is grouped by time_point_num.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(time_point_num, allele))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## min and max expression: 5.882643 4.321928</code></pre>
+<p><img src="single_gene_models_files/figure-html/plotSingleGeneModelExample-1.png" alt="" width="672" /></p>
 <pre class="r"><code>plotSingleGeneModelExample(test_genedf, random_gene, 
                            .log2 = FALSE, .fitted_vals = FALSE)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
-## argument.</code></pre>
-<pre><code>## min and max expression: 8872.971 3784.677</code></pre>
-<p><img src="single_gene_models_files/figure-html/plotSingleGeneModelExample-2.png" width="672" /></p>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by time_point_num and
+##   allele.
+## ℹ Output is grouped by time_point_num.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(time_point_num, allele))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## min and max expression: 59 20</code></pre>
+<p><img src="single_gene_models_files/figure-html/plotSingleGeneModelExample-2.png" alt="" width="672" /></p>
 </div>
 <div id="plotting-example-genes-for-figure-panel"
 class="section level2">
@@ -662,19 +585,25 @@ test_genedf &lt;- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
                          spinfo$HAP4)
 p &lt;- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
   theme(legend.position = &quot;none&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by time_point_num and
+##   allele.
+## ℹ Output is grouped by time_point_num.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(time_point_num, allele))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## no replicates for this experiment, getting moving average
 ## min and max expression: 2213 38.6</code></pre>
 <pre class="r"><code>p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
-<p><img src="single_gene_models_files/figure-html/unnamed-chunk-1-1.png" width="672" /></p>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
+<p><img src="single_gene_models_files/figure-html/unnamed-chunk-1-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/ExperimentOverview/level_lfc.pdf&quot;,
     width = 2.1, height = 2.5)
 p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -686,19 +615,25 @@ test_genedf &lt;- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
                          spinfo$HAP4)
 p &lt;- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
   theme(legend.position = &quot;none&quot;)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;time_point_num&#39;. You can override using the `.groups`
-## argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by time_point_num and
+##   allele.
+## ℹ Output is grouped by time_point_num.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(time_point_num, allele))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## no replicates for this experiment, getting moving average
 ## min and max expression: 163.6 45.33333</code></pre>
 <pre class="r"><code>p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
-<p><img src="single_gene_models_files/figure-html/unnamed-chunk-1-2.png" width="672" /></p>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
+<p><img src="single_gene_models_files/figure-html/unnamed-chunk-1-2.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/ExperimentOverview/dynamics_lfc.pdf&quot;,
     width = 2.1, height = 2.5)
 p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -716,6 +651,86 @@ p</code></pre>
 # test for fitDatasetModels (just taking the first 10 genes from a random dataset)
 random_dataset_idx &lt;- sample(c(1:length(ExperimentNames)), 1)
 test &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # if it runs, it passes this test</code></pre>
+<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached</code></pre>
+<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7):
+## alternation limit reached</code></pre>
 <pre class="r"><code># convert one model into one row of a dataframe summarizing that model&#39;s output (gene name, name of coefficient, effect size of coefficient, pvalue for wald test of that coefficient)
 # also changes lfc to l2fc using change of base: log2(fc) = log(fc)/log(2)
 parseDfRowFromModel &lt;- function(.mod, .gene_name) {
@@ -729,14 +744,98 @@ parseDfRowFromModel &lt;- function(.mod, .gene_name) {
 }
 # test for parseDfRowFromModel
 random_dataset_idx &lt;- sample(c(1:length(ExperimentNames)), 1)
-random_modslist &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # same test from fitDatasetModels, we need the output for this test
-gene_idx &lt;- sample(c(1:10), 1)
+random_modslist &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # same test from fitDatasetModels, we need the output for this test</code></pre>
+<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached</code></pre>
+<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7):
+## alternation limit reached</code></pre>
+<pre class="r"><code>gene_idx &lt;- sample(c(1:10), 1)
 parseDfRowFromModel(random_modslist[[gene_idx]], gene_idx)</code></pre>
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:parseDfRowFromModel">
-<col><col><col><col><tr>
-<th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">coefficient</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">effect_size</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">pvalue</th></tr>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:parseDfRowFromModel">
+<col><col><col><col><thead>
 <tr>
-<td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">9</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.37</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.179</td></tr>
+<th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">gene_name</th><th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">coefficient</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">effect_size</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">pvalue</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;     background-color: rgb(242, 242, 242);">7</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;     background-color: rgb(242, 242, 242);">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;     background-color: rgb(242, 242, 242);">0.0195</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;     background-color: rgb(242, 242, 242);">0.896</td></tr>
+</tbody>
 </table>
 
 <pre class="r"><code>parseDfFromModslist &lt;- function(.modslist) {
@@ -748,33 +847,117 @@ parseDfRowFromModel(random_modslist[[gene_idx]], gene_idx)</code></pre>
 }
 # test for parseDfFromModslist
 random_dataset_idx &lt;- sample(c(1:length(ExperimentNames)), 1)
-random_modslist &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # same test from fitDatasetModels, we need the output for this test
-names(random_modslist) &lt;- c(1:10)
+random_modslist &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # same test from fitDatasetModels, we need the output for this test</code></pre>
+<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit =
+## control$maxit, trace = control$trace &gt; : iteration limit
+## reached</code></pre>
+<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7):
+## alternation limit reached</code></pre>
+<pre class="r"><code>names(random_modslist) &lt;- c(1:10)
 test &lt;- parseDfFromModslist(random_modslist)
 test</code></pre>
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:parseDfFromModslist">
-<col><col><col><col><tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">coefficient</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">effect_size</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">pvalue</th></tr>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:parseDfFromModslist">
+<col><col><col><col><thead>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.13&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.409&nbsp;&nbsp;&nbsp;</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">gene_name</th><th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">coefficient</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">effect_size</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">pvalue</th></tr>
+</thead>
+<tbody>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.394&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.0516&nbsp;&nbsp;</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">1</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">1.04&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.0383&nbsp;&nbsp;</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">3</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.0573</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.777&nbsp;&nbsp;&nbsp;</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">2</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.168&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.618&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.324&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.0722&nbsp;&nbsp;</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">3</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">-0.022&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.939&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">5</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.975&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.000115</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">4</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">-0.256&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.13&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">6</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.401&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.00904&nbsp;</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">5</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.525&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">6.77e-05</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">7</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.543&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.47e-07</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">6</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.848&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.0268&nbsp;&nbsp;</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">8</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.123&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.65&nbsp;&nbsp;&nbsp;&nbsp;</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">7</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.0195</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.896&nbsp;&nbsp;&nbsp;</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">9</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.22&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">3.13e-11</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">8</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.877&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">6.99e-08</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">10</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.796&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.58e-15</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">9</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">-0.26&nbsp;&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.325&nbsp;&nbsp;&nbsp;</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">10</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">0.327&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">0.273&nbsp;&nbsp;&nbsp;</td></tr>
+</tbody>
 </table>
 
 </div>
@@ -902,17 +1085,21 @@ tibble(organism = c(&quot;cer&quot;, &quot;par&quot;, &quot;hyc&quot;, &quot;hyp
        variance = map_dbl(list(cer_expr, par_expr, hyc_expr, hyp_expr), var, na.rm = TRUE),
        mean = map_dbl(list(cer_expr, par_expr, hyc_expr, hyp_expr), mean, na.rm = TRUE),
        median = map_dbl(list(cer_expr, par_expr, hyc_expr, hyp_expr), median, na.rm = TRUE))</code></pre>
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:QC">
-<col><col><col><col><tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">organism</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">variance</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">mean</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">median</th></tr>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:QC">
+<col><col><col><col><thead>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">cer</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">5.94e+07</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2.13e+04</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">2.03e+04</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">organism</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">variance</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">mean</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">median</th></tr>
+</thead>
+<tbody>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">par</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.03e+06</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.12e+03</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.01e+03</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">cer</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">5.94e+07</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">2.13e+04</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">2.03e+04</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">hyc</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">5.77e+07</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.86e+04</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.78e+04</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">par</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">4.03e+06</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">4.12e+03</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">4.01e+03</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">hyp</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">2.65e+06</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.71e+03</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">4.66e+03</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">hyc</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">5.77e+07</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">1.86e+04</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">1.78e+04</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">hyp</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">2.65e+06</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">4.71e+03</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">4.66e+03</td></tr>
+</tbody>
 </table>
 
 <pre class="r"><code>getGeneDf &lt;- function(.gene_name, .mode = c(&quot;parents&quot;, &quot;hybrid&quot;), 
@@ -948,38 +1135,42 @@ while (is.null(test)) {
   test &lt;- getGeneDf(gene_idx, .mode = &quot;parents&quot;, .experiment = c(&quot;CC&quot;, &quot;HAP4&quot;, &quot;LowN&quot;, &quot;LowPi&quot;))
 }
 ggplot(test, aes(x = cer, y = par)) + geom_point(aes(color = experiment)) + ggtitle(gene_idx) + geom_abline(color = &quot;gold&quot;)</code></pre>
-<p><img src="single_gene_models_files/figure-html/QC-1.png" width="672" /></p>
+<p><img src="single_gene_models_files/figure-html/QC-1.png" alt="" width="672" /></p>
 <pre class="r"><code>test &lt;- getGeneDf(gene_idx, .mode = &quot;hybrid&quot;, .experiment = c(&quot;CC&quot;, &quot;HAP4&quot;, &quot;LowN&quot;, &quot;LowPi&quot;)) # hybrid should be less variable because cer and par measurements were collected in the same cell
 ggplot(test, aes(x = cer, y = par)) + geom_point(aes(color = experiment)) + ggtitle(gene_idx) + geom_abline(color = &quot;gold&quot;)</code></pre>
-<p><img src="single_gene_models_files/figure-html/QC-2.png" width="672" /></p>
+<p><img src="single_gene_models_files/figure-html/QC-2.png" alt="" width="672" /></p>
 <pre class="r"><code>spaldf %&gt;% filter(gene_name == gene_idx)</code></pre>
-<table class="huxtable" data-quarto-disable-processing="true" style="border-collapse: collapse; border: 0px; margin-bottom: 2em; margin-top: 2em; ; margin-left: auto; margin-right: auto;  " id="tab:QC">
-<col><col><col><col><col><tr>
-<th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">gene_name</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">coefficient</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">effect_size</th><th style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">pvalue</th><th style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: bold;">experiment</th></tr>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:QC-2">
+<col><col><col><col><col><thead>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">-0.104&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.163&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">LowN</td></tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">gene_name</th><th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">coefficient</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">effect_size</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">pvalue</th><th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">experiment</th></tr>
+</thead>
+<tbody>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.222&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.353&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">CC</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">allele</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">-0.806</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">7.65e-11</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">LowN</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.00498</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.981&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">HAP4</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">allele</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">-0.619</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.206&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">CC</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">-0.155&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.446&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">LowPi</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">allele</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">-1.22&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.000288</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">HAP4</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.158&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.602&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Heat</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">allele</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">-0.727</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.0187&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">LowPi</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">allele</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.283&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.104&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">allele</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">-0.656</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.0187&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">Heat</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.737&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">4.54e-43</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">LowN</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">allele</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">-0.906</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">2.93e-05</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">Cold</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.896&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">1.35e-06</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">CC</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">species</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">-0.547</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">1.59e-09</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">LowN</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.444&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.00917&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">HAP4</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">species</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">-0.602</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.00408&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">CC</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.451&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.0537&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">LowPi</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">species</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">-0.361</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.191&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">HAP4</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">0.581&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">1.81e-05</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;    padding: 6pt 6pt 6pt 6pt; background-color: rgb(242, 242, 242); font-weight: normal;">Heat</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">species</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">-1.19&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.000495</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">LowPi</td></tr>
 <tr>
-<td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">YNL271C</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">species</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.175&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: right; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">0.166&nbsp;&nbsp;&nbsp;</td><td style="vertical-align: top; text-align: left; white-space: normal; border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;    padding: 6pt 6pt 6pt 6pt; font-weight: normal;">Cold</td></tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">species</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">-0.781</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.00465&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">Heat</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">YPL161C</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">species</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">-0.218</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">0.105&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">Cold</td></tr>
+</tbody>
 </table>
 
 <pre class="r"><code># Visualizing expression variability and divergence in...
@@ -1001,8 +1192,9 @@ visualizeGeneExpressionBoxplot &lt;- function(.name, .experiment = c(&quot;CC&qu
   return(output)
 }
 visualizeGeneExpressionBoxplot(&quot;YGR192C&quot;)</code></pre>
-<pre><code>## Warning: `label` cannot be a &lt;ggplot2::element_blank&gt; object.</code></pre>
-<p><img src="single_gene_models_files/figure-html/QC-3.png" width="672" /></p>
+<pre><code>## Warning: `label` cannot be a &lt;ggplot2::element_blank&gt;
+## object.</code></pre>
+<p><img src="single_gene_models_files/figure-html/QC-3.png" alt="" width="672" /></p>
 <pre class="r"><code>visualizeGeneExpressionScatterplot &lt;- function(.gdf, .plotname = &quot;individual gene counts&quot;, .color_from = &quot;experiment&quot;, .log = FALSE) {
   if (!.log) {
     max_expr &lt;- max(c(.gdf$cer, .gdf$par), na.rm = TRUE)
@@ -1023,11 +1215,11 @@ visualizeGeneExpressionBoxplot(&quot;YGR192C&quot;)</code></pre>
 }
 # TDH3
 getGeneDf(&quot;YGR192C&quot;, .mode = &quot;parents&quot;) %&gt;% visualizeGeneExpressionScatterplot(.plotname = &quot;YGR192C - parents&quot;)</code></pre>
-<p><img src="single_gene_models_files/figure-html/QC-4.png" width="672" /></p>
+<p><img src="single_gene_models_files/figure-html/QC-4.png" alt="" width="672" /></p>
 <pre class="r"><code>getGeneDf(&quot;YGR192C&quot;, .mode = &quot;hybrid&quot;) %&gt;% visualizeGeneExpressionScatterplot(.plotname = &quot;YGR192C - hybrid&quot;)</code></pre>
-<p><img src="single_gene_models_files/figure-html/QC-5.png" width="672" /></p>
+<p><img src="single_gene_models_files/figure-html/QC-5.png" alt="" width="672" /></p>
 <pre class="r"><code>getGeneDf(&quot;YGR192C&quot;, .mode = &quot;parents&quot;) %&gt;% visualizeGeneExpressionScatterplot(.plotname = &quot;YGR192C - parents - log scale&quot;, .log = TRUE)</code></pre>
-<p><img src="single_gene_models_files/figure-html/QC-6.png" width="672" /></p>
+<p><img src="single_gene_models_files/figure-html/QC-6.png" alt="" width="672" /></p>
 <pre class="r"><code># random gene
 test &lt;- NULL
 test_hyb &lt;- NULL
@@ -1037,7 +1229,7 @@ while (is.null(test) | is.null(test_hyb)) {
   test_hyb &lt;- getGeneDf(gene_idx, .mode = &quot;hybrid&quot;, .experiment = c(&quot;CC&quot;, &quot;HAP4&quot;, &quot;LowN&quot;, &quot;LowPi&quot;))
 }
 getGeneDf(gene_idx, .mode = &quot;parents&quot;) %&gt;% visualizeGeneExpressionScatterplot(.plotname = paste(gene_idx, &quot;parents&quot;, sep = &quot; - &quot;))</code></pre>
-<p><img src="single_gene_models_files/figure-html/QC-7.png" width="672" /></p>
+<p><img src="single_gene_models_files/figure-html/QC-7.png" alt="" width="672" /></p>
 <pre class="r"><code>getGeneDf(gene_idx, .mode = &quot;hybrid&quot;) %&gt;% visualizeGeneExpressionScatterplot(.plotname = paste(gene_idx, &quot;hybrid&quot;, sep = &quot; - &quot;))
 
 # QC: picking threshold for calling sig diverged between cer and par
@@ -1053,9 +1245,11 @@ ggMarginal(ggplot(spaldf, aes(x = effect_size, y = -log(pvalue))) +
   geom_point(aes(color = pvalue &lt; p_thresh)) +
   theme(legend.position = &quot;none&quot;) + geom_vline(xintercept = c(-1, 1), color = &quot;gold&quot;),
   margins = &quot;both&quot;, groupColour = TRUE, groupFill = TRUE)</code></pre>
-<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<p><img src="single_gene_models_files/figure-html/QC-8.png" width="672" /></p>
+<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<p><img src="single_gene_models_files/figure-html/QC-8.png" alt="" width="672" /></p>
 </div>
 
 

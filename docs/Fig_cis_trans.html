@@ -13,7 +13,7 @@
 
 <title>Level and plasticity divergence in a common trans-regulatory environment</title>
 
-<script src="site_libs/header-attrs-2.29/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.32/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
@@ -32,6 +32,7 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/huxtable-6.0.2/huxtable.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -329,6 +330,21 @@ $(document).ready(function () {
     </li>
   </ul>
 </li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Additional QC
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="QC_clustering.html">Clustering with 2, 3, or 4 clusters</a>
+    </li>
+    <li>
+      <a href="QC_signal-to-noise.html">Filtering Lowly varying genes with Dispersion or Signal-to-noise</a>
+    </li>
+  </ul>
+</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         
@@ -349,6 +365,8 @@ trans-regulatory environment</h1>
 
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
 library(ggExtra)
+library(ggVennDiagram)
+library(ggalluvial)
 load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
 load(&quot;data_files/Cleaned_Counts.RData&quot;)
 load(&quot;data_files/Cleaned_Counts_Allele.RData&quot;)
@@ -360,6 +378,574 @@ eff_thresh &lt;- log2(1.5)
 # avg expression figures
 cis_plast_thresh &lt;- -0.25 
 trans_lev_thresh &lt;- log2(2)</code></pre>
+<div id="discrete-heatmap-of-hybrid-vs-parent-plasticity"
+class="section level2">
+<h2>Discrete heatmap of hybrid vs parent plasticity</h2>
+<pre class="r"><code># HAP4
+plot_mat &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot;) |&gt; 
+  dplyr::select(cer, par, hyc, hyp) |&gt; 
+  drop_na() |&gt; 
+  mutate(parent_code = paste0(cer, par),
+         hybrid_code = paste0(hyc, hyp)) |&gt; 
+  dplyr::select(parent_code, hybrid_code) |&gt; 
+    as.matrix() |&gt; t()
+ordered_plot_mat &lt;- orderGenesByGroup(plot_mat, .labels = c(&quot;00&quot;, &quot;11&quot;, &quot;22&quot;, &quot;01&quot;, &quot;02&quot;, &quot;10&quot;, &quot;12&quot;, &quot;20&quot;, &quot;21&quot;))
+plotDiscreteHeatmap(ordered_plot_mat, .row_names = c(&quot;parents&quot;, &quot;hybrid&quot;))</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/discrete-heatmap-1.png" alt="" width="672" /></p>
+<div id="alluvial" class="section level3">
+<h3>Alluvial</h3>
+<pre class="r"><code>plotdf_counts &lt;- finaldf |&gt; 
+  #filter(cer != 0 &amp; par != 0 &amp; hyc != 0 &amp; hyp != 0) |&gt; 
+  dplyr::select(experiment, 
+                cer, par, hyc, hyp) |&gt; 
+  drop_na() |&gt; 
+  mutate(parents = if_else(cer == par,
+                           true = &quot;parents_same&quot;,
+                           false = &quot;parents_different&quot;),
+         hybrids = if_else(hyc == hyp,
+                           true = &quot;hybrids_same&quot;,
+                           false = &quot;hybrids_different&quot;),
+         `hybrid allele matches parental` = cer == hyc &amp; par == hyp) |&gt;
+  group_by(experiment, parents, hybrids, `hybrid allele matches parental`) |&gt; 
+  summarise(ngenes = n()) |&gt; 
+  ungroup()</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by experiment, parents,
+##   hybrids, and hybrid allele matches parental.
+## ℹ Output is grouped by experiment, parents, and hybrids.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(experiment, parents, hybrids,
+##   hybrid allele matches parental))` for per-operation
+##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code># frequency of matching among genes with plasticity 
+# divergence in parents and hybrid (20% would be random chance)
+plotdf_counts |&gt; filter(parents == &quot;parents_different&quot; &amp;
+                            hybrids == &quot;hybrids_different&quot;) |&gt; dplyr::select(experiment, `hybrid allele matches parental`, ngenes) |&gt; pivot_wider(id_cols = &quot;experiment&quot;, names_from = &quot;hybrid allele matches parental&quot;, values_from = &quot;ngenes&quot;) |&gt; mutate(prop_match = `TRUE`/(`TRUE`+`FALSE`))</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:alluvial">
+<col><col><col><col><thead>
+<tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">FALSE</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">TRUE</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">prop_match</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">CC</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">357</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">146</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.29&nbsp;</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Cold</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">400</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">150</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.273</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">HAP4</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">398</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">283</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.416</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Heat</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">348</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">202</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.367</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">LowN</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">164</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">311</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.655</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">LowPi</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">498</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">243</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">0.328</td></tr>
+</tbody>
+</table>
+
+<pre class="r"><code># plotting alluvial
+p &lt;- ggplot(plotdf_counts, aes(y = ngenes, axis1 = parents, axis2 = hybrids)) +
+  geom_alluvium(aes(fill = `hybrid allele matches parental`), color = &quot;black&quot;, width = 1/12) +
+  #scale_fill_discrete(type = c(TRUE = &quot;red&quot;, FALSE = &quot;black&quot;)) +
+  geom_stratum(width = 1/12, fill = &quot;white&quot;, color = &quot;black&quot;) +
+  geom_label(stat = &quot;stratum&quot;, aes(label = after_stat(stratum)),
+             angle = 90, size = 1) +
+  theme_classic() +
+  facet_wrap(~factor(experiment, levels = ExperimentNames, 
+                     labels = LongExperimentNames),
+             nrow = 1, ncol = 6) +
+  xlab(&quot;&quot;) +
+  ylab(&quot;number of genes&quot;) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = &quot;top&quot;)
+p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/alluvial-1.png" alt="" width="672" /></p>
+<p>Saving for figure:</p>
+<pre class="r"><code># ggsave(&quot;paper_figures/CisTrans/alluvial.pdf&quot;, width = 8, height = 2.5)</code></pre>
+<p>Creating a hybrid clustering table for supplemental and calculating
+some percentages from it for the main paper:</p>
+<pre class="r"><code>getDivergenceMode &lt;- function(.cer, .par, .hyc, .hyp) {
+  if (.cer == .par) {
+    if (.hyc == .hyp) {
+      if (.hyc == .cer &amp; .hyp == .par) {
+        return(&quot;conserved&quot;)
+      } else {return(&quot;compensatory&quot;)}
+    }
+    if (.hyc != .hyp) {
+      return(&quot;compensatory&quot;)
+    }
+  }
+  if (.cer != .par) {
+    if (.hyc != .hyp) {
+      if (.hyc == .cer &amp; .hyp == .par) {
+        return(&quot;cis&quot;)
+      } else {return(&quot;cis and trans&quot;)}
+    }
+    if (.hyc == .hyp) {
+      return(&quot;trans&quot;)
+    }
+  }
+  return(&quot;missing&quot;)
+}
+# tests for getDivergenceMode
+getDivergenceMode(.cer = 1, .par = 1, 
+                  .hyc = 1, .hyp = 1) # conserved</code></pre>
+<pre><code>## [1] &quot;conserved&quot;</code></pre>
+<pre class="r"><code>getDivergenceMode(.cer = 1, .par = 1, 
+                  .hyc = 1, .hyp = 2) # compensatory</code></pre>
+<pre><code>## [1] &quot;compensatory&quot;</code></pre>
+<pre class="r"><code>getDivergenceMode(.cer = 1, .par = 2, 
+                  .hyc = 2, .hyp = 1) # cis and trans</code></pre>
+<pre><code>## [1] &quot;cis and trans&quot;</code></pre>
+<pre class="r"><code>getDivergenceMode(.cer = 1, .par = 2, 
+                  .hyc = 0, .hyp = 0) # trans (no cis diff)</code></pre>
+<pre><code>## [1] &quot;trans&quot;</code></pre>
+<pre class="r"><code>getDivergenceMode(.cer = 2, .par = 1, 
+                  .hyc = 1, .hyp = 1) # trans (par dominant)</code></pre>
+<pre><code>## [1] &quot;trans&quot;</code></pre>
+<pre class="r"><code>getDivergenceMode(.cer = 1, .par = 2, 
+                  .hyc = 1, .hyp = 2) # cis</code></pre>
+<pre><code>## [1] &quot;cis&quot;</code></pre>
+<pre class="r"><code>getDominance &lt;- function(.cer, .par, .hyc, .hyp) {
+   if(.hyc == .cer &amp; .hyp == .cer) {
+     return(&quot;Scer&quot;)
+   }
+  if(.hyc == .par &amp; .hyp == .par) {
+     return(&quot;Spar&quot;)
+  }
+  return(&quot;neither&quot;)
+}
+# tests for getDominance
+getDominance(.cer = 1, .par = 2, 
+             .hyc = 2, .hyp = 2) # Spar</code></pre>
+<pre><code>## [1] &quot;Spar&quot;</code></pre>
+<pre class="r"><code>getDominance(.cer = 1, .par = 2, 
+             .hyc = 1, .hyp = 1) # Scer</code></pre>
+<pre><code>## [1] &quot;Scer&quot;</code></pre>
+<pre class="r"><code>getDominance(.cer = 1, .par = 2, 
+             .hyc = 0, .hyp = 0) # neither</code></pre>
+<pre><code>## [1] &quot;neither&quot;</code></pre>
+<pre class="r"><code>Experimentdf &lt;- tibble(experiment = ExperimentNames,
+                       environment = LongExperimentNames)
+hybclustdf &lt;- finaldf |&gt; 
+  left_join(Experimentdf, by = &quot;experiment&quot;) |&gt; 
+  dplyr::select(gene_name, environment,
+                cer, par, hyc, hyp) |&gt; 
+  dplyr::rename(c(&quot;Scer_cluster&quot;=&quot;cer&quot;,
+                  &quot;Spar_cluster&quot;=&quot;par&quot;,
+                  &quot;Hyb_Scer_cluster&quot;=&quot;hyc&quot;,
+                  &quot;Hyb_Spar_cluster&quot;=&quot;hyp&quot;))
+hybclustdf$mode &lt;- purrr::map(
+  c(1:nrow(hybclustdf)), 
+  .f = \(i) { 
+    getDivergenceMode(
+      .cer = hybclustdf$Scer_cluster[i], 
+      .par = hybclustdf$Spar_cluster[i],
+      .hyc = hybclustdf$Hyb_Scer_cluster[i],
+      .hyp = hybclustdf$Hyb_Spar_cluster[i]
+    )
+  }
+) |&gt; unlist()
+
+hybclustdf$dominance &lt;- purrr::map(
+  c(1:nrow(hybclustdf)), 
+  .f = \(i) { 
+    if (hybclustdf$mode[i] == &quot;trans&quot;) {
+      dom_parent &lt;- getDominance(
+        .cer = hybclustdf$Scer_cluster[i], 
+        .par = hybclustdf$Spar_cluster[i],
+        .hyc = hybclustdf$Hyb_Scer_cluster[i],
+        .hyp = hybclustdf$Hyb_Spar_cluster[i])
+      return(dom_parent)
+    } else {return(NA)}
+  }
+) |&gt; unlist()
+
+#write_csv(hybclustdf, file = &quot;data_files/Supplementary_Table_HybClusters.csv&quot;)</code></pre>
+<p>Of the genes with plasticity divergence in parents, this fraction no
+longer has plasticity divergence in the hybrid (diverging in trans):</p>
+<pre class="r"><code>hybclustdf |&gt; filter(Scer_cluster != Spar_cluster) |&gt; 
+  group_by(environment, mode) |&gt; 
+  summarise(n = n()) |&gt; 
+  pivot_wider(id_cols = environment, 
+              names_from = &quot;mode&quot;,
+              values_from = &quot;n&quot;) |&gt; 
+  mutate(pct_trans = trans/(trans + cis + `cis and trans`))</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by environment and mode.
+## ℹ Output is grouped by environment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(environment, mode))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## # A tibble: 6 × 5
+## # Groups:   environment [6]
+##   environment         cis `cis and trans` trans pct_trans
+##   &lt;chr&gt;             &lt;int&gt;           &lt;int&gt; &lt;int&gt;     &lt;dbl&gt;
+## 1 Cold Stress         150             400  1236     0.692
+## 2 Diauxic Shift       283             398   774     0.532
+## 3 Heat Stress         202             348  1193     0.684
+## 4 Hydroxyurea Shock   146             357  1263     0.715
+## 5 Low Nitrogen        311             164   830     0.636
+## 6 Low Phosphate       243             498  1004     0.575</code></pre>
+<p>And of those trans-divergers, these many match the Scer parental
+cluster vs these many match the Spar parental cluster:</p>
+<pre class="r"><code>hybclustdf |&gt; filter(mode == &quot;trans&quot;) |&gt; group_by(environment, dominance) |&gt; 
+  summarise(n = n()) |&gt; 
+  pivot_wider(id_cols = &quot;environment&quot;,
+              names_from = &quot;dominance&quot;,
+              values_from = &quot;n&quot;) |&gt; 
+  mutate(pct_cer = Scer/(Scer + Spar + neither),
+         pct_par = Spar/(Scer + Spar + neither),
+         pct_neither = neither/(Scer + Spar + neither))</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by environment and
+##   dominance.
+## ℹ Output is grouped by environment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(environment, dominance))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## # A tibble: 6 × 7
+## # Groups:   environment [6]
+##   environment        Scer  Spar neither pct_cer pct_par
+##   &lt;chr&gt;             &lt;int&gt; &lt;int&gt;   &lt;int&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+## 1 Cold Stress         463   511     262   0.375   0.413
+## 2 Diauxic Shift       343   374      57   0.443   0.483
+## 3 Heat Stress         275   762     156   0.231   0.639
+## 4 Hydroxyurea Shock   645   467     151   0.511   0.370
+## 5 Low Nitrogen        430   365      35   0.518   0.440
+## 6 Low Phosphate       511   413      80   0.509   0.411
+## # ℹ 1 more variable: pct_neither &lt;dbl&gt;</code></pre>
+<p>Repeating without static cluster genes just for curiosity. A gene
+must be variable in both parents and both hybrid alleles to be included
+in this plot:</p>
+<pre class="r"><code>plotdf_counts &lt;- finaldf |&gt; 
+  filter(cer != 0 &amp; par != 0 &amp; hyc != 0 &amp; hyp != 0) |&gt; 
+  dplyr::select(experiment, 
+                cer, par, hyc, hyp) |&gt; 
+  drop_na() |&gt; 
+  mutate(parents = if_else(cer == par,
+                           true = &quot;parents_same&quot;,
+                           false = &quot;parents_different&quot;),
+         hybrids = if_else(hyc == hyp,
+                           true = &quot;hybrids_same&quot;,
+                           false = &quot;hybrids_different&quot;),
+         `hybrid allele matches parental` = cer == hyc &amp; par == hyp) |&gt;
+  group_by(experiment, parents, hybrids, `hybrid allele matches parental`) |&gt; 
+  summarise(ngenes = n()) |&gt; 
+  ungroup()</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by experiment, parents,
+##   hybrids, and hybrid allele matches parental.
+## ℹ Output is grouped by experiment, parents, and hybrids.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(experiment, parents, hybrids,
+##   hybrid allele matches parental))` for per-operation
+##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code># frequency of matching among genes with plasticity 
+# divergence in parents and hybrid (20% would be random chance)
+plotdf_counts |&gt; filter(parents == &quot;parents_different&quot; &amp;
+                            hybrids == &quot;hybrids_different&quot;) |&gt; dplyr::select(experiment, `hybrid allele matches parental`, ngenes) |&gt; pivot_wider(id_cols = &quot;experiment&quot;, names_from = &quot;hybrid allele matches parental&quot;, values_from = &quot;ngenes&quot;) |&gt; mutate(prop_match = `TRUE`/(`TRUE`+`FALSE`))</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:alluvial-no0">
+<col><col><col><col><thead>
+<tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">FALSE</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">TRUE</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">prop_match</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">CC</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">123</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">135</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.523</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Cold</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">7</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">5</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.417</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">HAP4</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">14</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">46</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.767</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Heat</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">17</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">40</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.702</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">LowN</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">2</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">9</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.818</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">LowPi</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">103</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">189</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">0.647</td></tr>
+</tbody>
+</table>
+
+<pre class="r"><code># plotting alluvial
+p &lt;- ggplot(plotdf_counts, aes(y = ngenes, axis1 = parents, axis2 = hybrids)) +
+  geom_alluvium(aes(fill = `hybrid allele matches parental`), color = &quot;black&quot;, width = 1/12) +
+  #scale_fill_discrete(type = c(TRUE = &quot;red&quot;, FALSE = &quot;black&quot;)) +
+  geom_stratum(width = 1/12, fill = &quot;white&quot;, color = &quot;black&quot;) +
+  geom_label(stat = &quot;stratum&quot;, aes(label = after_stat(stratum)),
+             angle = 90, size = 1) +
+  theme_classic() +
+  facet_wrap(~factor(experiment, levels = ExperimentNames, 
+                     labels = LongExperimentNames)) +
+  xlab(&quot;&quot;) +
+  ylab(&quot;number of genes&quot;) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        legend.position = &quot;top&quot;)
+p</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/alluvial-no0-1.png" alt="" width="672" /></p>
+<p>Plotting average expression for random cis group and random trans
+group in each environment, provided parents are 1 or 2</p>
+<pre class="r"><code>plotlist_cis &lt;- purrr::map(ExperimentNames, \(e) {
+  scer_clust &lt;- sample(c(1, 2), size = 1)
+  spar_clust &lt;- setdiff(c(1, 2), scer_clust)
+  gene_idxs &lt;- finaldf |&gt; 
+    dplyr::filter(cer == scer_clust &amp; 
+                    par == spar_clust &amp;
+                    hyc == scer_clust &amp;
+                    hyp == spar_clust &amp;
+                    experiment == e) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+  p &lt;- plotGenes(gene_idxs, .normalization = &quot;scale&quot;, .quartet = TRUE, .experiment_name = e, .plot_titles = paste0(e, &quot; &quot;, length(gene_idxs), &quot; genes&quot;))
+  return(p)
+})</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code>ggarrange(plotlist = plotlist_cis,
+          nrow = 1, ncol = 6)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/cis-trans-avg-expr-1.png" alt="" width="672" /></p>
+<pre class="r"><code>#ggsave(&quot;paper_figures/CisTrans/examples_cis.pdf&quot;,
+       #width = 12, height = 2)
+plotlist_trans &lt;- purrr::map(ExperimentNames, \(e) {
+  scer_clust &lt;- sample(c(1, 2), size = 1)
+  spar_clust &lt;- setdiff(c(1, 2), scer_clust)
+  gene_idxs &lt;- finaldf |&gt; 
+    dplyr::filter(cer == scer_clust &amp; 
+                    par == spar_clust &amp;
+                    hyc == hyp &amp;
+                    experiment == e) |&gt; 
+    dplyr::select(gene_name) |&gt; pull()
+  p &lt;- plotGenes(gene_idxs, .normalization = &quot;scale&quot;, .quartet = TRUE, .experiment_name = e, .plot_titles = paste0(e, &quot; &quot;, length(gene_idxs), &quot; genes&quot;))
+  return(p)
+})</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code>ggarrange(plotlist = plotlist_trans,
+          nrow = 1, ncol = 6)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/cis-trans-avg-expr-2.png" alt="" width="672" /></p>
+<pre class="r"><code>#ggsave(&quot;paper_figures/CisTrans/examples_trans.pdf&quot;,
+       #width = 12, height = 2)</code></pre>
+<p>Do those genes with</p>
+</div>
+</div>
+<div
+id="cross-parent-tests-to-compare-the-cis-basis-of-level-divergence-vs-plasticity-divergence"
+class="section level2">
+<h2>Cross-parent tests to compare the cis basis of level divergence vs
+plasticity divergence</h2>
+<p>Is having the “correct” parental allele more informative than having
+the “incorrect” parental allele? It should be, at least if there is
+cis-regulatory divergence</p>
+<p>Here we compare the frequency with which a hybrid allele has the same
+direction of level difference (+ or - log2 fold change) or plasticity
+(same cluster 0, 1, or 2) as a parental allele (either the “correct”
+parent of the “cross” parent) versus randomly assigned hybrid-parent
+pairs of different genes.</p>
+<p>8 permutation distributions total: correct vs incorrect parent x
+level vs plasticity x diverged vs conserved = 2^3 = 8</p>
+<pre class="r"><code>getPlasticityCrossSpeciesDataset &lt;- function(.df, .separate_species = FALSE, .nIter = 10000) {
+  nGenes &lt;- nrow(.df)
+  cer_clusters &lt;- .df$cer
+  par_clusters &lt;- .df$par
+  hyc_clusters &lt;- .df$hyc
+  hyp_clusters &lt;- .df$hyp
+  if (!.separate_species) {
+    observed_same &lt;- sum(c(cer_clusters, par_clusters) == c(hyc_clusters, hyp_clusters))/(nGenes*2)
+    observed_cross &lt;- sum(c(cer_clusters, par_clusters) == c(hyp_clusters, hyc_clusters))/(nGenes*2)
+    null_same &lt;- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hybrid_clusters &lt;- sample(c(hyc_clusters, hyp_clusters), size = nGenes*2, replace = FALSE)
+      return(sum(c(cer_clusters, par_clusters) == scrambled_hybrid_clusters)/(nGenes*2))
+    }) |&gt; unlist()
+    null_cross &lt;- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hybrid_clusters &lt;- sample(c(hyp_clusters, hyc_clusters), size = nGenes*2, replace = FALSE)
+      return(sum(c(cer_clusters, par_clusters) == scrambled_hybrid_clusters)/(nGenes*2))
+    }) |&gt; unlist()
+    return(list(observed_samespecies = observed_same,
+                observed_crossspecies = observed_cross,
+                null_samespecies = null_same,
+                null_crossspecies = null_cross))
+  }
+  if (.separate_species) {
+    observed_cerhyc &lt;- sum(cer_clusters == hyc_clusters)/nGenes
+    observed_cerhyp &lt;- sum(cer_clusters == hyp_clusters)/nGenes
+    observed_parhyc &lt;- sum(par_clusters == hyc_clusters)/nGenes
+    observed_parhyp &lt;- sum(par_clusters == hyp_clusters)/nGenes
+    null_cerhyc &lt;- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hyc_clusters &lt;- sample(hyc_clusters, size = nGenes, replace = FALSE)
+      return(sum(cer_clusters == scrambled_hyc_clusters)/nGenes)
+    }) |&gt; unlist()
+    null_cerhyp &lt;- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hyp_clusters &lt;- sample(hyp_clusters, size = nGenes, replace = FALSE)
+      return(sum(cer_clusters == scrambled_hyp_clusters)/nGenes)
+    }) |&gt; unlist()
+    null_parhyc &lt;- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hyc_clusters &lt;- sample(hyc_clusters, size = nGenes, replace = FALSE)
+      return(sum(par_clusters == scrambled_hyc_clusters)/nGenes)
+    }) |&gt; unlist()
+    null_parhyp &lt;- purrr::map(c(1:.nIter), \(i) {
+      scrambled_hyp_clusters &lt;- sample(hyp_clusters, size = nGenes, replace = FALSE)
+      return(sum(par_clusters == scrambled_hyp_clusters)/nGenes)
+    }) |&gt; unlist()
+    return(list(observed_samespecies_Scer = observed_cerhyc,
+                observed_samespecies_Spar = observed_parhyp,
+                observed_crossspecies_Scer = observed_cerhyp,
+                observed_crossspecies_Spar = observed_parhyc,
+                null_samespecies_Scer = null_cerhyc,
+                null_samespecies_Spar = null_parhyp,
+                null_crossspecies_Scer = null_cerhyp,
+                null_crossspecies_Spar = null_parhyc))
+  }
+}
+# tests for getPlasticityCrossSpeciesDataset
+# hard to test this one, so we&#39;ll just use the separate species option to verify that results are not different for Scer versus Spar
+test &lt;- getPlasticityCrossSpeciesDataset(.df = filter(finaldf, plasticity == &quot;diverged&quot;), # change btween conserved/diverged plasticity or filter for different environments
+                                         .nIter = 100, .separate_species = TRUE)
+# Scer, same species
+p_scer_same &lt;- plotPermutationTestOn0to1Scale(.observed_value = test$observed_samespecies_Scer,
+                                   .null_vector = test$null_samespecies_Scer,
+                                   .xlab = &quot;fraction of Hyc genes in same cluster as Scer&quot;)
+# Scer, cross species
+p_scer_cross &lt;- plotPermutationTestOn0to1Scale(.observed_value = test$observed_crossspecies_Scer,
+                                    .null_vector = test$null_crossspecies_Scer,
+                                    .xlab = &quot;fraction of Hyp genes in same cluster as Scer&quot;)
+# Spar, same species
+p_spar_same &lt;- plotPermutationTestOn0to1Scale(.observed_value = test$observed_samespecies_Spar,
+                                   .null_vector = test$null_samespecies_Spar,
+                                   .xlab = &quot;fraction of Hyp genes in same cluster as Spar&quot;)
+# Spar, cross species
+p_spar_cross &lt;- plotPermutationTestOn0to1Scale(.observed_value = test$observed_crossspecies_Spar,
+                                    .null_vector = test$null_crossspecies_Spar,
+                                    .xlab = &quot;fraction of Hyc genes in same cluster as Spar&quot;)
+ggarrange(p_scer_same, p_scer_cross, p_spar_same, p_spar_cross, nrow = 2, ncol = 2)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/getPlasticityCrossSpeciesDataset-1.png" alt="" width="672" /></p>
+<p>Repeat for checking the direction of level differences</p>
+<pre class="r"><code>getLevelCrossSpeciesDataset &lt;- function(.df, .nIter = 10000) {
+  nGenes &lt;- nrow(.df)
+  parental_signs &lt;- .df$effect_size_species |&gt; sign()
+  hybrid_signs &lt;- .df$effect_size_allele |&gt; sign()
+  observed_same &lt;- sum(parental_signs == hybrid_signs)/nGenes
+  observed_cross &lt;- sum(parental_signs == -hybrid_signs)/nGenes
+  null_same &lt;- purrr::map(c(1:.nIter), \(i) {
+    scrambled_hybrid_signs &lt;- sample(hybrid_signs, size = nGenes, replace = FALSE)
+    return(sum(parental_signs == scrambled_hybrid_signs)/nGenes)
+  }) |&gt; unlist()
+  null_cross &lt;- purrr::map(c(1:.nIter), \(i) {
+    scrambled_hybrid_signs &lt;- sample(-hybrid_signs, size = nGenes, replace = FALSE)
+    return(sum(parental_signs == scrambled_hybrid_signs)/nGenes)
+  }) |&gt; unlist()
+  return(list(observed_samespecies = observed_same,
+              observed_crossspecies = observed_cross,
+              null_samespecies = null_same,
+              null_crossspecies = null_cross))
+}
+# tests for getLevelCrossSpeciesDataset
+test &lt;- getLevelCrossSpeciesDataset(.df = filter(finaldf, level == &quot;diverged&quot;), # change btween conserved/diverged plasticity or filter for different environments
+                                         .nIter = 100)
+# Same species
+p_same &lt;- plotPermutationTestOn0to1Scale(.observed_value = test$observed_samespecies,
+                              .null_vector = test$null_samespecies,
+                              .xlab = &quot;fraction of hybrid alleles with same l2fc direction as same parent&quot;)
+# Cross species
+p_cross &lt;- plotPermutationTestOn0to1Scale(.observed_value = test$observed_crossspecies,
+                                    .null_vector = test$null_crossspecies,
+                                    .xlab = &quot;fraction of hybrid alleles with same l2fc direction as cross parent&quot;)
+ggarrange(p_same, p_cross, nrow = 1, ncol = 2)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/getLevelCrossSpeciesDataset-1.png" alt="" width="672" /></p>
+<div id="permutation-plots-for-supplemental-figure"
+class="section level4">
+<h4>Permutation plots for supplemental figure</h4>
+<p>Collecting permutation datasets</p>
+<pre class="r"><code># level, conserved
+lev_cons_df &lt;- getLevelCrossSpeciesDataset(.df = filter(finaldf, level == &quot;conserved&quot;))
+# level, diverged
+lev_div_df &lt;- getLevelCrossSpeciesDataset(.df = filter(finaldf, level == &quot;diverged&quot;))
+# plasticity, conserved
+plast_cons_df &lt;- getPlasticityCrossSpeciesDataset(.df = filter(finaldf, plasticity == &quot;conserved&quot;))
+# plasticity, diverged
+plast_div_df &lt;- getPlasticityCrossSpeciesDataset(.df = filter(finaldf, plasticity == &quot;diverged&quot;))</code></pre>
+<p>Plots for pdf:</p>
+<pre class="r"><code># Conserved level
+# Same species
+p_lev_cons_same &lt;- plotPermutationTestOn0to1Scale(.observed_value = lev_cons_df$observed_samespecies,
+                                                  .null_vector = lev_cons_df$null_samespecies,
+                                                  .xlab = &quot;same parent, conserved level&quot;)
+# Cross species
+p_lev_cons_cross &lt;- plotPermutationTestOn0to1Scale(.observed_value = lev_cons_df$observed_crossspecies,
+                                                  .null_vector = lev_cons_df$null_crossspecies,
+                                                  .xlab = &quot;cross parent, conserved level&quot;)
+# Diverged level
+# Same species
+p_lev_div_same &lt;- plotPermutationTestOn0to1Scale(.observed_value = lev_div_df$observed_samespecies,
+                                                  .null_vector = lev_div_df$null_samespecies,
+                                                  .xlab = &quot;same parent, diverged level&quot;)
+# Cross species
+p_lev_div_cross &lt;- plotPermutationTestOn0to1Scale(.observed_value = lev_div_df$observed_crossspecies,
+                                                  .null_vector = lev_div_df$null_crossspecies,
+                                                  .xlab = &quot;cross parent, diverged level&quot;)
+# Conserved plasticity
+# Same species
+p_plast_cons_same &lt;- plotPermutationTestOn0to1Scale(.observed_value = plast_cons_df$observed_samespecies,
+                                                  .null_vector = plast_cons_df$null_samespecies,
+                                                  .xlab = &quot;same parent, conserved plasticity&quot;)
+# Cross species
+p_plast_cons_cross &lt;- plotPermutationTestOn0to1Scale(.observed_value = plast_cons_df$observed_crossspecies,
+                                                     .null_vector = plast_cons_df$null_crossspecies,
+                                                     .xlab = &quot;cross parent, conserved plasticity&quot;)
+# Diverged plasticity
+# Same species
+p_plast_div_same &lt;- plotPermutationTestOn0to1Scale(.observed_value = plast_div_df$observed_samespecies,
+                                                   .null_vector = plast_div_df$null_samespecies,
+                                                   .xlab = &quot;same parent, diverged plasticity&quot;)
+# Cross species
+p_plast_div_cross &lt;- plotPermutationTestOn0to1Scale(.observed_value = plast_div_df$observed_crossspecies,
+                                                    .null_vector = plast_div_df$null_crossspecies,
+                                                    .xlab = &quot;cross parent, diverged plasticity&quot;)
+ggarrange(p_lev_cons_same, p_lev_cons_cross, 
+          p_lev_div_same, p_lev_div_cross,
+          p_plast_cons_same, p_plast_cons_cross, 
+          p_plast_div_same, p_plast_div_cross, nrow = 4, ncol = 2)</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/pdf-cross-species-permutation-1.png" alt="" width="672" /></p>
+<pre class="r"><code>ggsave(filename = &quot;paper_figures/CisTrans/cross_species_tests.pdf&quot;, width = 10, height = 7)</code></pre>
+</div>
+</div>
+<div
+id="maybe-direction-tests-to-compare-cis-basis-of-level-divergence-vs-plasticity-divergence"
+class="section level2">
+<h2>Maybe: Direction Tests to compare cis basis of level divergence vs
+plasticity divergence</h2>
+<p>Level direction test: fraction of Scer and Spar hybrid genes that
+have the same direction of expression between parents and hybrid
+alleles</p>
+<p>Plasticity direction test: fraction of Scer and Spar hybrid genes
+that are in the same cluster between parents and hybrid alleles</p>
+</div>
 <div id="log2-fold-changes-between-parents-and-hybrid-are-correlated"
 class="section level2">
 <h2>Log2 fold changes between parents and hybrid are correlated</h2>
@@ -375,11 +961,15 @@ summary(mod_full)</code></pre>
 ## -18.053  -0.288   0.002   0.289  36.082 
 ## 
 ## Coefficients:
-##                      Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)         -0.085010   0.005148  -16.51   &lt;2e-16 ***
-## effect_size_species  0.618360   0.004284  144.33   &lt;2e-16 ***
+##                      Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)         -0.085010   0.005148  -16.51   &lt;2e-16
+## effect_size_species  0.618360   0.004284  144.33   &lt;2e-16
+##                        
+## (Intercept)         ***
+## effect_size_species ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 0.816 on 25254 degrees of freedom
 ## Multiple R-squared:  0.452,  Adjusted R-squared:  0.452 
@@ -402,11 +992,15 @@ summary(mod) # more correlated for genes with the most consistent level divergen
 ## -21.432  -0.281   0.010   0.297  36.186 
 ## 
 ## Coefficients:
-##                      Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)         -0.083796   0.004474  -18.73   &lt;2e-16 ***
-## effect_size_species  0.524439   0.004735  110.75   &lt;2e-16 ***
+##                      Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)         -0.083796   0.004474  -18.73   &lt;2e-16
+## effect_size_species  0.524439   0.004735  110.75   &lt;2e-16
+##                        
+## (Intercept)         ***
+## effect_size_species ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 0.6143 on 19086 degrees of freedom
 ## Multiple R-squared:  0.3912, Adjusted R-squared:  0.3912 
@@ -449,7 +1043,7 @@ dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code>ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/level-explained-pdf-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/level-explained-pdf-1.png" alt="" width="672" /></p>
 <p>Lumping all environments into one figure for main paper:</p>
 <pre class="r"><code>  plotdf &lt;- finaldf |&gt; slice_sample(n = 10000)
   mod &lt;- lm(effect_size_allele ~ effect_size_species, data = finaldf)
@@ -475,7 +1069,7 @@ dev.off()</code></pre>
                     theme(legend.position = &quot;none&quot;),
              groupColour = TRUE, groupFill = TRUE)
   p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/level-explained-all-environments-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/level-explained-all-environments-1.png" alt="" width="672" /></p>
 <p>outputting to PDF</p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/l2fc_allEnvironments.pdf&quot;,
     width = 4, height = 4)
@@ -485,10 +1079,10 @@ dev.off()</code></pre>
 ##                 2</code></pre>
 </div>
 <div
-id="less-of-the-plasticity-divergence-observed-between-parents-is-explained-by-the-hybrid"
+id="less-of-the-plasticity-divergence-observed-between-parents-is-explained-by-the-hybrid-using-r-squared"
 class="section level2">
 <h2>Less of the plasticity divergence observed between parents is
-explained by the hybrid</h2>
+explained by the hybrid, using R-squared</h2>
 <pre class="r"><code># R squared for effect sizes between parents and hybrid for all genes
 mod_full &lt;- lm(cor_hybrid ~ cor_parents, data = finaldf)
 summary(mod_full)</code></pre>
@@ -505,7 +1099,8 @@ summary(mod_full)</code></pre>
 ## (Intercept) 0.464172   0.003483   133.3   &lt;2e-16 ***
 ## cor_parents 0.313090   0.005245    59.7   &lt;2e-16 ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 0.4369 on 25243 degrees of freedom
 ##   (11 observations deleted due to missingness)
@@ -550,7 +1145,7 @@ dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code>ggarrange(plotlist = plotlist, nrow = 3, ncol = 2)</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/plasticity-unexplained-pdf-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/plasticity-unexplained-pdf-1.png" alt="" width="672" /></p>
 <p>Lumping all environments into one figure for main paper:</p>
 <pre class="r"><code>  plotdf &lt;- finaldf |&gt; slice_sample(n = 10000)
   mod &lt;- lm(cor_hybrid ~ cor_parents, data = finaldf)
@@ -576,7 +1171,7 @@ dev.off()</code></pre>
                     theme(legend.position = &quot;none&quot;),
              groupColour = TRUE, groupFill = TRUE)
   p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/plasticity-unexplained-all-environments-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/plasticity-unexplained-all-environments-1.png" alt="" width="672" /></p>
 <p>outputting to PDF</p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/cor_allEnvironments.pdf&quot;,
     width = 4, height = 4)
@@ -609,7 +1204,8 @@ summary(mod_full)</code></pre>
 ## (Intercept) 0.236323   0.004692   50.37   &lt;2e-16 ***
 ## ABC_parents 0.451688   0.005557   81.28   &lt;2e-16 ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  
+## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Residual standard error: 0.3633 on 25243 degrees of freedom
 ##   (11 observations deleted due to missingness)
@@ -647,20 +1243,32 @@ for (e in ExperimentNames) {
                theme(legend.position = &quot;none&quot;),
              groupColour = TRUE, groupFill = TRUE)
 }</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).
-## Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 3 rows containing missing values or values outside the scale range (`geom_point()`).
-## Removed 3 rows containing missing values or values outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range (`geom_point()`).
-## Removed 1 row containing missing values or values outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).
-## Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).
-## Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).
-## Removed 2 rows containing missing values or values outside the scale range (`geom_point()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range (`geom_point()`).
-## Removed 1 row containing missing values or values outside the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values or values outside
+## the scale range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 3 rows containing missing values or values outside
+## the scale range (`geom_point()`).
+## Removed 3 rows containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside
+## the scale range (`geom_point()`).
+## Removed 1 row containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values or values outside
+## the scale range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside
+## the scale range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside
+## the scale range (`geom_point()`).
+## Removed 2 rows containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside
+## the scale range (`geom_point()`).
+## Removed 1 row containing missing values or values outside
+## the scale range (`geom_point()`).</code></pre>
 <pre class="r"><code>ggarrange(plotlist = plotlist, nrow = 2, ncol = 3)</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/area-between-curves-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/area-between-curves-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/abc_eachEnvironment.pdf&quot;,
     width = 16, height = 3)
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
@@ -695,25 +1303,44 @@ plotdf |&gt; mutate(is_trans = is_trans_upcer | is_trans_uppar) |&gt;
   group_by(experiment) |&gt; 
   summarise(pct_trans = sum(is_trans)/n(),
             pct_rest = sum(!is_trans)/n())</code></pre>
-<pre><code>## # A tibble: 6 × 3
-##   experiment pct_trans pct_rest
-##   &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;
-## 1 CC             0.174    0.826
-## 2 Cold           0.222    0.778
-## 3 HAP4           0.148    0.852
-## 4 Heat           0.237    0.763
-## 5 LowN           0.135    0.865
-## 6 LowPi          0.242    0.758</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:diauxic-level-avg-expr">
+<col><col><col><thead>
+<tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">pct_trans</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">pct_rest</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">CC</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.174</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.826</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Cold</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.222</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.778</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">HAP4</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.148</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.852</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Heat</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.237</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.763</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">LowN</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.135</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.865</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">LowPi</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">0.242</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">0.758</td></tr>
+</tbody>
+</table>
+
 <pre class="r"><code># upcer, both cis and trans
 gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &amp; par == 1 &amp; effect_size_species &gt; 0) |&gt; 
   dplyr::select(gene_name) |&gt; pull()
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = &quot;HAP4&quot;), 
                      top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_all_HAP411_upcer.pdf&quot;, width = 2.5, height = 3)
 p
 dev.off()</code></pre>
@@ -726,10 +1353,17 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = &quot;HAP4&quot;), 
                      top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-2.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-2.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_trans_HAP411_upcer.pdf&quot;, width = 3, height = 3)
 p
 dev.off()</code></pre>
@@ -743,10 +1377,17 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 1 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                .experiment_name = &quot;HAP4&quot;), 
                      top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-3.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-level-avg-expr-3.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/level_cis_HAP411_upcer.pdf&quot;, width = 3, height = 3)
 p
 dev.off()</code></pre>
@@ -758,15 +1399,27 @@ dev.off()</code></pre>
 plotdf |&gt; group_by(experiment) |&gt; 
   summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
             trans = sum(!is_cis, na.rm = TRUE)/n())</code></pre>
-<pre><code>## # A tibble: 6 × 3
-##   experiment    cis trans
-##   &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
-## 1 CC         0.161  0.838
-## 2 Cold       0.103  0.896
-## 3 HAP4       0.148  0.852
-## 4 Heat       0.0321 0.967
-## 5 LowN       0.0858 0.913
-## 6 LowPi      0.105  0.893</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:diauxic-plasticity-avg-expr">
+<col><col><col><thead>
+<tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">cis</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">trans</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">CC</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.161&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.838</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Cold</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.103&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.896</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">HAP4</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.148&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.852</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Heat</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.0321</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.967</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">LowN</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.0858</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.913</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">LowPi</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">0.105&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">0.893</td></tr>
+</tbody>
+</table>
+
 <pre class="r"><code># both cis and trans
 gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; 
                         par == 1) |&gt; 
@@ -774,10 +1427,17 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_all_HAP421.pdf&quot;,
         width = 2.5, height = 3)
 p
@@ -791,10 +1451,17 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-2.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-2.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_cis_HAP421.pdf&quot;,
         width = 3, height = 3)
 p
@@ -808,10 +1475,17 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-3.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/diauxic-plasticity-avg-expr-3.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_trans_HAP421.pdf&quot;,
         width = 3, height = 3)
 p
@@ -832,7 +1506,7 @@ for (e in ExperimentNames) {
                                    top = paste(length(gene_idxs), &quot;genes&quot;))
 }
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-level-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-level-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/avg_expr_all_environments_upScer.pdf&quot;,
     width = 16, height = 3)
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
@@ -852,7 +1526,7 @@ for (e in ExperimentNames) {
                                    top = paste(length(gene_idxs), &quot;genes&quot;))
 }
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-level-2.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-level-2.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/avg_expr_all_environments_upSpar.pdf&quot;,
     width = 16, height = 3)
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
@@ -873,7 +1547,7 @@ for (e in ExperimentNames) {
                                    top = paste(length(gene_idxs), &quot;genes&quot;))
 }
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-plasticity-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-plasticity-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/avg_expr_all_environments_12.pdf&quot;,
     width = 16, height = 3)
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
@@ -894,7 +1568,7 @@ for (e in ExperimentNames) {
                                    top = paste(length(gene_idxs), &quot;genes&quot;))
 }
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-plasticity-2.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/avg-expression-all-environments-plasticity-2.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/avg_expr_all_environments_21.pdf&quot;,
     width = 16, height = 3)
 ggarrange(plotlist = plotlist, nrow = 1, ncol = 6)
@@ -916,8 +1590,17 @@ plotdf &lt;- finaldf |&gt; filter(level == &quot;conserved&quot;) |&gt;
 # establishing parental range (2-tailed)
 #low_bounds &lt;- mean(plotdf$effect_size_species) - 2*sd(plotdf$effect_size_species)
 #high_bounds &lt;- mean(plotdf$effect_size_species) + 2*sd(plotdf$effect_size_species)
-low_bounds &lt;- -eff_thresh*2
-high_bounds &lt;- eff_thresh*2
+low_bounds1 &lt;- -eff_thresh
+high_bounds1 &lt;- eff_thresh
+low_bounds2 &lt;- -eff_thresh*1.5
+high_bounds2 &lt;- eff_thresh*1.5
+low_bounds3 &lt;- -eff_thresh*2
+high_bounds3 &lt;- eff_thresh*2
+# choosing low and high bounds
+low_bounds &lt;- low_bounds3
+high_bounds &lt;- high_bounds3
+plot_filename &lt;- &quot;paper_figures/CisTrans/compensatory_level3.pdf&quot;
+
 plotdf$level_compensatory &lt;- plotdf$effect_size_allele &lt; low_bounds |
   plotdf$effect_size_allele &gt; high_bounds
 plot_counts &lt;- plotdf |&gt; 
@@ -925,8 +1608,15 @@ plot_counts &lt;- plotdf |&gt;
   summarise(nComp_Scer = sum(effect_size_allele &gt; 0),
             nComp_Spar = sum(effect_size_allele &lt; 0),
             n = n())</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override using the `.groups` argument.</code></pre>
-<pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by experiment and
+##   level_compensatory.
+## ℹ Output is grouped by experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(experiment, level_compensatory))`
+##   for per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code>LongExperimentNamesMod &lt;- purrr::map(ExperimentNames, \(e) {
   nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
 <pre><code>## Adding missing grouping variables: `experiment`
@@ -958,15 +1648,18 @@ plot_counts &lt;- plotdf |&gt;
         strip.text = element_text(size = 14)) +
   xlim(c(-5, 5))
 p</code></pre>
-<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 7 rows containing missing values or values outside the scale range
-## (`geom_vline()`).</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/compensatory-level-1.png" width="672" /></p>
-<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/compensatory_level.pdf&quot;,
+<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 7 rows containing missing values or values outside
+## the scale range (`geom_vline()`).</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/compensatory-level-1.png" alt="" width="672" /></p>
+<pre class="r"><code>pdf(plot_filename,
     width = 7, height = 4)
 p</code></pre>
-<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale range (`stat_density()`).
-## Removed 7 rows containing missing values or values outside the scale range (`geom_vline()`).</code></pre>
+<pre><code>## Warning: Removed 5 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 7 rows containing missing values or values outside
+## the scale range (`geom_vline()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -981,13 +1674,27 @@ plotdf &lt;- finaldf |&gt; filter(!is.na(cor_hybrid) &amp; !is.na(cor_parents)) 
   dplyr::select(gene_name, experiment, cor_parents, cor_hybrid)
 # establishing parental range (1-tailed)
 #low_bounds &lt;- mean(plotdf$cor_parents) - 2*sd(plotdf$cor_parents)
-low_bounds &lt;- 0.5
+low_bounds1 &lt;- 0.75
+low_bounds2 &lt;- 0.625
+low_bounds3 &lt;- 0.5
+# choosing bounds
+low_bounds &lt;- low_bounds3
+plot_filename &lt;- &quot;paper_figures/CisTrans/compensatory_plasticity3.pdf&quot;
+
 plotdf$plasticity_compensatory &lt;- plotdf$cor_hybrid &lt; low_bounds
 plot_counts &lt;- plotdf |&gt; 
   group_by(experiment, plasticity_compensatory) |&gt; 
   summarise(n = n())</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override using the `.groups` argument.</code></pre>
-<pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by experiment and
+##   plasticity_compensatory.
+## ℹ Output is grouped by experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(experiment,
+##   plasticity_compensatory))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code>LongExperimentNamesMod &lt;- purrr::map(ExperimentNames, \(e) {
   nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
 <pre><code>## Adding missing grouping variables: `experiment`
@@ -1015,8 +1722,8 @@ plot_counts &lt;- plotdf |&gt;
         strip.text = element_text(size = 14)) +
   xlim(c(-1.25, 1.25))
 p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/compensatory-plasticity-1.png" width="672" /></p>
-<pre class="r"><code>pdf(&quot;paper_figures/CisTrans/compensatory_plasticity.pdf&quot;,
+<p><img src="Fig_cis_trans_files/figure-html/compensatory-plasticity-1.png" alt="" width="672" /></p>
+<pre class="r"><code>pdf(plot_filename,
     width = 7, height = 4)
 p
 dev.off()</code></pre>
@@ -1039,8 +1746,16 @@ plotdf$plasticity_compensatory &lt;- plotdf$ABC_hybrid &gt; high_bounds
 plot_counts &lt;- plotdf |&gt; 
   group_by(experiment, plasticity_compensatory) |&gt; 
   summarise(n = n())</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;experiment&#39;. You can override using the `.groups` argument.</code></pre>
-<pre class="r"><code>LongExperimentNamesMod &lt;- map(ExperimentNames, \(e) {
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by experiment and
+##   plasticity_compensatory.
+## ℹ Output is grouped by experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(experiment,
+##   plasticity_compensatory))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre class="r"><code>LongExperimentNamesMod &lt;- purrr::map(ExperimentNames, \(e) {
   nGenes &lt;- plot_counts |&gt; filter(experiment == e) |&gt; dplyr::select(n) |&gt; pull() |&gt; sum()
   return(paste0(LongExperimentNames[which(ExperimentNames == e)], &quot;\nn = &quot;, nGenes))})</code></pre>
 <pre><code>## Adding missing grouping variables: `experiment`
@@ -1067,7 +1782,7 @@ plot_counts &lt;- plotdf |&gt;
   theme(legend.position = &quot;none&quot;,
         strip.text = element_text(size = 14))
 p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/compensatory-plasticity-area-between-curves-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/compensatory-plasticity-area-between-curves-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/compensatory_plasticityABC.pdf&quot;,
     width = 7, height = 4)
 p
@@ -1083,9 +1798,9 @@ plotdf$min_cor &lt;- pmin(plotdf$cor_scer, plotdf$cor_spar)
 plotdf$var_in_cis &lt;- plotdf$cor_hybrid &lt; plotdf$min_cor
 ggplot(plotdf, aes(x = min_cor, y = cor_hybrid)) +
   geom_point(aes(color = experiment)) + facet_wrap(~experiment)</code></pre>
-<pre><code>## Warning: Removed 11 rows containing missing values or values outside the scale range
-## (`geom_point()`).</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/cor-hyb-vs-scer-spar-1.png" width="672" /></p>
+<pre><code>## Warning: Removed 11 rows containing missing values or values
+## outside the scale range (`geom_point()`).</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/cor-hyb-vs-scer-spar-1.png" alt="" width="672" /></p>
 </div>
 <div id="probably-archive-from-here-down" class="section level1">
 <h1>%%%%%%%%%%%%%%%%% probably archive from here down
@@ -1127,35 +1842,57 @@ ggarrange(plotlist[[1]], plotlist[[2]],
           plotlist[[3]], plotlist[[4]],
           p_null, p_null, 
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code>ggarrange(plotlist[[1]], plotlist[[2]],
           p_null, p_null, plotlist[[3]], plotlist[[4]],
           plotlist[[5]], plotlist[[6]], nrow = 2, ncol = 4)</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale range (`stat_density()`).
-## Removed 2 rows containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).
-## Removed 1 row containing non-finite outside the scale range (`stat_density()`).</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/plasticity-cor-1.png" width="672" /></p>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 2 rows containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).
+## Removed 1 row containing non-finite outside the scale
+## range (`stat_density()`).</code></pre>
+<p><img src="Fig_cis_trans_files/figure-html/plasticity-cor-1.png" alt="" width="672" /></p>
 </div>
 <div id="level-divergence-tends-to-be-in-cis" class="section level2">
 <h2>Level divergence tends to be in cis</h2>
@@ -1174,15 +1911,27 @@ plotdf |&gt; mutate(is_trans = is_trans_upcer | is_trans_uppar) |&gt;
   group_by(experiment) |&gt; 
   summarise(pct_trans = sum(is_trans)/n(),
             pct_rest = sum(!is_trans)/n())</code></pre>
-<pre><code>## # A tibble: 6 × 3
-##   experiment pct_trans pct_rest
-##   &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;
-## 1 CC             0.174    0.826
-## 2 Cold           0.222    0.778
-## 3 HAP4           0.148    0.852
-## 4 Heat           0.237    0.763
-## 5 LowN           0.135    0.865
-## 6 LowPi          0.242    0.758</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:level-pie-chart">
+<col><col><col><thead>
+<tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">pct_trans</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">pct_rest</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">CC</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.174</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.826</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Cold</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.222</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.778</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">HAP4</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.148</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.852</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Heat</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.237</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.763</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">LowN</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.135</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.865</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">LowPi</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">0.242</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">0.758</td></tr>
+</tbody>
+</table>
+
 <pre class="r"><code>pctdf &lt;- plotdf |&gt; mutate(is_trans = is_trans_upcer | is_trans_uppar) |&gt; 
   group_by(experiment) |&gt; 
   summarise(trans = sum(is_trans)/n(),
@@ -1209,7 +1958,7 @@ dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/level-pie-chart-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/level-pie-chart-1.png" alt="" width="672" /></p>
 </div>
 <div id="plasticity-divergence-tends-to-be-in-trans"
 class="section level2">
@@ -1220,15 +1969,27 @@ class="section level2">
 plotdf |&gt; group_by(experiment) |&gt; 
   summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
             trans = sum(!is_cis, na.rm = TRUE)/n())</code></pre>
-<pre><code>## # A tibble: 6 × 3
-##   experiment    cis trans
-##   &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
-## 1 CC         0.161  0.838
-## 2 Cold       0.103  0.896
-## 3 HAP4       0.148  0.852
-## 4 Heat       0.0321 0.967
-## 5 LowN       0.0858 0.913
-## 6 LowPi      0.105  0.893</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:plasticity-pie-chart">
+<col><col><col><thead>
+<tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">cis</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">trans</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">CC</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.161&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.838</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Cold</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.103&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.896</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">HAP4</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.148&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.852</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Heat</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.0321</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.967</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">LowN</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.0858</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.913</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">LowPi</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">0.105&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">0.893</td></tr>
+</tbody>
+</table>
+
 <pre class="r"><code>pctdf &lt;- plotdf |&gt; group_by(experiment) |&gt; 
   summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
             trans = sum(!is_cis, na.rm = TRUE)/n()) |&gt; 
@@ -1248,7 +2009,7 @@ p &lt;- ggplot(pctdf, aes(x=&quot;&quot;, y=percent, fill=mode)) +
   facet_wrap(~factor(experiment, levels = ExperimentNames,
                      labels = LongExperimentNames), nrow = 2, ncol = 3)
 p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/plasticity-pie-chart-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/plasticity-pie-chart-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_pcts.pdf&quot;,
     width = 8, height = 4)
 p
@@ -1262,15 +2023,27 @@ dev.off()</code></pre>
 plotdf |&gt; group_by(experiment) |&gt; 
   summarise(cis = sum(is_cis, na.rm = TRUE)/n(),
             trans = sum(!is_cis, na.rm = TRUE)/n())</code></pre>
-<pre><code>## # A tibble: 6 × 3
-##   experiment    cis trans
-##   &lt;chr&gt;       &lt;dbl&gt; &lt;dbl&gt;
-## 1 CC         0.161  0.838
-## 2 Cold       0.103  0.896
-## 3 HAP4       0.148  0.852
-## 4 Heat       0.0321 0.967
-## 5 LowN       0.0858 0.913
-## 6 LowPi      0.105  0.893</code></pre>
+<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:plasticity-avg-expr">
+<col><col><col><thead>
+<tr>
+<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">cis</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">trans</th></tr>
+</thead>
+<tbody>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">CC</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.161&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.838</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Cold</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.103&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.896</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">HAP4</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.148&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.852</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Heat</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">0.0321</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">0.967</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">LowN</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.0858</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.913</td></tr>
+<tr>
+<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">LowPi</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">0.105&nbsp;</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">0.893</td></tr>
+</tbody>
+</table>
+
 <pre class="r"><code># cis
 gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &amp; 
                         par == 1 &amp; is_cis) |&gt; 
@@ -1278,10 +2051,17 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-1.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_cis_HAP421.pdf&quot;,
         width = 3, height = 3)
 p
@@ -1295,10 +2075,17 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;HAP4&quot; &amp; cer == 2 &am
 p &lt;- annotate_figure(plotGenes(gene_idxs, .quartet = TRUE,
                                     .experiment_name = &quot;HAP4&quot;), 
                           top = paste(length(gene_idxs), &quot;genes&quot;))</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;group_id&#39;, &#39;experiment&#39;. You can override using the
-## `.groups` argument.</code></pre>
+<pre><code>## `summarise()` has regrouped the output.
+## ℹ Summaries were computed grouped by group_id, experiment,
+##   and time_point_num.
+## ℹ Output is grouped by group_id and experiment.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
+##   message.
+## ℹ Use `summarise(.by = c(group_id, experiment,
+##   time_point_num))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
-<p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-2.png" width="672" /></p>
+<p><img src="Fig_cis_trans_files/figure-html/plasticity-avg-expr-2.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/CisTrans/plasticity_trans_HAP421.pdf&quot;,
         width = 3, height = 3)
 p
