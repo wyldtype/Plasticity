@@ -32,7 +32,6 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/huxtable-6.0.2/huxtable.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -365,10 +364,8 @@ across all 6 environments</h1>
 
 <pre class="r"><code>sapply(c(&quot;stringr&quot;, &quot;RColorBrewer&quot;, &quot;circlize&quot;, &quot;ggridges&quot;,
          &quot;pheatmap&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##      stringr RColorBrewer     circlize     ggridges 
-##         TRUE         TRUE         TRUE         TRUE 
-##     pheatmap 
-##         TRUE</code></pre>
+<pre><code>##      stringr RColorBrewer     circlize     ggridges     pheatmap 
+##         TRUE         TRUE         TRUE         TRUE         TRUE</code></pre>
 <pre class="r"><code>source(&quot;functions_for_figure_scripts.R&quot;)
 load(&quot;data_files/FinalDataframe3Disp.RData&quot;)
 load(&quot;data_files/Cleaned_Counts.RData&quot;)
@@ -468,13 +465,11 @@ make the same plot</p>
 <p>Testing to see if rendering generates plots:</p>
 <pre class="r"><code>p &lt;- plotClusterPatternByExperiment(clusterdf_list$HAP4_2$df, .experiment = &quot;HAP4&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by time_point_num and
-##   label.
+## ℹ Summaries were computed grouped by time_point_num and label.
 ## ℹ Output is grouped by time_point_num.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(time_point_num, label))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(time_point_num, label))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>pdf(file = &quot;paper_figures/test.pdf&quot;, width = 5, height = 5)
 p
 dev.off()</code></pre>
@@ -499,13 +494,11 @@ ggarrange(plotClusterPatternByExperiment(clusterdf_list$HAP4_2$df, .experiment =
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by time_point_num and
-##   label.
+## ℹ Summaries were computed grouped by time_point_num and label.
 ## ℹ Output is grouped by time_point_num.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(time_point_num, label))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(time_point_num, label))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -548,14 +541,12 @@ increasing cluster</p>
 plotClusterPatternByExperimentHybrid(.parent_df = clusterdf_list$HAP4_2$df,
                                      .hybrid_df = clusterdf_list_hyb$HAP4_2$df, .experiment = &quot;HAP4&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by time_point_num,
-##   label, and parent_or_hybrid.
+## ℹ Summaries were computed grouped by time_point_num, label, and
+##   parent_or_hybrid.
 ## ℹ Output is grouped by time_point_num and label.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(time_point_num, label,
-##   parent_or_hybrid))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(time_point_num, label, parent_or_hybrid))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/plotClusterPatternByExperimentHybrid-1.png" alt="" width="672" /></p>
 <pre class="r"><code>ggarrange(
   plotClusterPatternByExperimentHybrid(
@@ -590,14 +581,12 @@ plotClusterPatternByExperimentHybrid(.parent_df = clusterdf_list$HAP4_2$df,
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by time_point_num,
-##   label, and parent_or_hybrid.
+## ℹ Summaries were computed grouped by time_point_num, label, and
+##   parent_or_hybrid.
 ## ℹ Output is grouped by time_point_num and label.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(time_point_num, label,
-##   parent_or_hybrid))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(time_point_num, label, parent_or_hybrid))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/cluster-lineplots-hybrid-1.png" alt="" width="672" /></p>
 <pre class="r"><code># ggsave(filename = &quot;paper_figures/CisTrans/hybrid_cluster_lineplots.pdf&quot;,
 #        width = 10, height = 6
@@ -707,27 +696,15 @@ dev.off()</code></pre>
 <pre class="r"><code>plotdf &lt;- filter(finaldf, level == &quot;diverged&quot;)
 filter(finaldf, plasticity == &quot;conserved&quot; &amp; level == &quot;conserved&quot;) |&gt; group_by(experiment) |&gt; 
   summarise(n = n())</code></pre>
-<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:proportions-ridgeline">
-<col><col><thead>
-<tr>
-<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">n</th></tr>
-</thead>
-<tbody>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">CC</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">1329</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Cold</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">1414</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">HAP4</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">2017</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Heat</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">1585</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">LowN</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">1919</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">LowPi</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">1655</td></tr>
-</tbody>
-</table>
-
+<pre><code>## # A tibble: 6 × 2
+##   experiment     n
+##   &lt;chr&gt;      &lt;int&gt;
+## 1 CC          1329
+## 2 Cold        1414
+## 3 HAP4        2017
+## 4 Heat        1585
+## 5 LowN        1919
+## 6 LowPi       1655</code></pre>
 <pre class="r"><code># accompanying percentages of upScer and upSpar genes
 pctdf &lt;- plotdf |&gt; group_by(experiment) |&gt; 
   summarise(pct_upcer = round(sum(effect_size_species &gt; 0)/length(effect_size_species), digits = 2)*100,
@@ -764,13 +741,11 @@ plasticity</p>
   group_by(experiment, cer, par) |&gt; 
   summarise(n = n())</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by experiment, cer, and
-##   par.
+## ℹ Summaries were computed grouped by experiment, cer, and par.
 ## ℹ Output is grouped by experiment and cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(experiment, cer, par))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(experiment, cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>plotdf$long_experiment &lt;- purrr::map(plotdf$experiment, \(e) {
   LongExperimentNames[which(ExperimentNames == e)]
 }) |&gt; factor(levels = LongExperimentNames)
@@ -821,27 +796,15 @@ dev.off()</code></pre>
 ##                 2</code></pre>
 <p>nGenes per experiment for paper figure:</p>
 <pre class="r"><code>plotdf_sums</code></pre>
-<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:plasticity-group-heatmap-ngenes">
-<col><col><thead>
-<tr>
-<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">long_experiment</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">n_Exp</th></tr>
-</thead>
-<tbody>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">Diauxic Shift</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">4286</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Hydroxyurea Shock</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">3952</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">Low Nitrogen</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">4412</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">Low Phosphate</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">4383</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">Heat Stress</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">4172</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">Cold Stress</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">4051</td></tr>
-</tbody>
-</table>
-
+<pre><code>## # A tibble: 6 × 2
+##   long_experiment   n_Exp
+##   &lt;fct&gt;             &lt;int&gt;
+## 1 Diauxic Shift      4286
+## 2 Hydroxyurea Shock  3952
+## 3 Low Nitrogen       4412
+## 4 Low Phosphate      4383
+## 5 Heat Stress        4172
+## 6 Cold Stress        4051</code></pre>
 </div>
 <div
 id="divergence-category-in-one-environment-is-a-poor-predictor-of-other-environments"
@@ -1746,10 +1709,9 @@ testcor12 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>testcor12</code></pre>
 <pre><code>## [1] -0.9021212</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
@@ -1763,10 +1725,9 @@ testcor21 &lt;- getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>testcor21</code></pre>
 <pre><code>## [1] -0.9543984</code></pre>
 <pre class="r"><code>getplasticityCorr(gene_idxs, .experiment_name = &quot;LowPi&quot;) # should be same number</code></pre>
@@ -1794,10 +1755,9 @@ getplasticityCorrAllClusters(gene_idxs, .experiment_name = &quot;LowPi&quot;) # 
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## [1] -0.9377567</code></pre>
 <pre class="r"><code># test2: HAP4/CC failed until we added drop = FALSE
 gene_idxs &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
@@ -1815,10 +1775,9 @@ finaldf |&gt; filter(experiment == &quot;CC&quot; &amp; gene_name %in% gene_idxs
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## [1] 0.5749308</code></pre>
 <pre class="r"><code># plotting
 plot_mat &lt;- matrix(nrow = length(ExperimentNames),
@@ -1840,290 +1799,254 @@ for (e_row in ExperimentNames) {
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## HAP4 CC</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## HAP4 LowN</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## HAP4 LowPi</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## HAP4 Heat</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## HAP4 Cold</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## CC HAP4</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## CC CC</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## CC LowN</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## CC LowPi</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## CC Heat</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## CC Cold</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowN HAP4</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowN CC</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowN LowN</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowN LowPi</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowN Heat</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowN Cold</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowPi HAP4</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowPi CC</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowPi LowN</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowPi LowPi</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowPi Heat</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## LowPi Cold</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Heat HAP4</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Heat CC</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Heat LowN</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Heat LowPi</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Heat Heat</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Heat Cold</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Cold HAP4</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Cold CC</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Cold LowN</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Cold LowPi</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Cold Heat</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## Cold Cold</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>colnames(plot_mat) &lt;- LongExperimentNames
 rownames(plot_mat) &lt;- LongExperimentNames
 
@@ -2191,14 +2114,11 @@ p &lt;- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .show_confidence_intervals = TRUE,
                           .normalization = &quot;log2&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/LowPi-1-2-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/LowPi12.pdf&quot;,
@@ -2221,14 +2141,11 @@ p &lt;- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs,],
                           .show_confidence_intervals = TRUE,
                           .normalization = &quot;log2&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>pdf(&quot;paper_figures/EnvironmentalPatterns/LowN_upcer.pdf&quot;,
     width = 12, height = 2)
 p
@@ -2249,14 +2166,11 @@ p &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                           .info2 = info,
                           .normalization = &quot;log2&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>length(gene_idxs)</code></pre>
 <pre><code>## [1] 55</code></pre>
 <pre class="r"><code>p</code></pre>
@@ -2278,20 +2192,17 @@ p &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                           .info2 = info,
                           .normalization = &quot;log2&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
-<pre><code>## Warning in plotExpressionProfilePairBasic(.cts1 =
-## collapsed$cer[gene_idxs, : NaNs produced</code></pre>
-<pre><code>## Warning: Removed 7 rows containing missing values or values outside
-## the scale range (`geom_ribbon()`).
-## Removed 7 rows containing missing values or values outside
-## the scale range (`geom_ribbon()`).</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## Warning in plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, :
+## NaNs produced</code></pre>
+<pre><code>## Warning: Removed 7 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).
+## Removed 7 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
 <pre class="r"><code>length(gene_idxs)</code></pre>
 <pre><code>## [1] 52</code></pre>
 <pre class="r"><code>p</code></pre>
@@ -2379,16 +2290,13 @@ ggarrange(p_scale, p_log, nrow = 1, ncol = 2)</code></pre>
                           .info2 = filter(info, experiment == &quot;LowPi&quot;),,
                           .normalization = &quot;log2&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
-<pre><code>## Warning in plotExpressionProfilePairBasic(.cts1 =
-## collapsed$cer[gene_idxs, : NaNs produced</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## Warning in plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, :
+## NaNs produced</code></pre>
 <pre class="r"><code>length(gene_idxs)</code></pre>
 <pre><code>## [1] 52</code></pre>
 <pre class="r"><code>p_scalebasic &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs, info$experiment == &quot;LowPi&quot;],
@@ -2397,28 +2305,22 @@ ggarrange(p_scale, p_log, nrow = 1, ncol = 2)</code></pre>
                           .info2 = filter(info, experiment == &quot;LowPi&quot;),,
                           .normalization = &quot;scale&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>p_scale &lt;- plotExpressionProfilePair(.cts1 = collapsed$cer[gene_idxs, info$experiment == &quot;LowPi&quot;],
                           .cts2 = collapsed$par[gene_idxs, info$experiment == &quot;LowPi&quot;],
                           .info1 = filter(info, experiment == &quot;LowPi&quot;),
                           .info2 = filter(info, experiment == &quot;LowPi&quot;),,
                           .normalization = &quot;scale&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>ggarrange(p_scale, p_scalebasic, nrow = 1, ncol = 2, common.legend = TRUE)</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/low-Pi95-2.png" alt="" width="672" /></p>
 <pre class="r"><code># following up on additional examples from heatmap
@@ -2431,14 +2333,11 @@ p &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                                     .info2 = info,
                                     .normalization = &quot;log2&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>length(gene_idxs)</code></pre>
 <pre><code>## [1] 289</code></pre>
 <pre class="r"><code>p</code></pre>
@@ -2459,14 +2358,11 @@ p &lt;- plotExpressionProfilePairBasic(.cts1 = collapsed$cer[gene_idxs,],
                           .info2 = info,
                           .normalization = &quot;log2&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>length(gene_idxs)</code></pre>
 <pre><code>## [1] 567</code></pre>
 <pre class="r"><code>p</code></pre>
@@ -2650,101 +2546,80 @@ for (g in gene_idxs) {
   print(plotEnvironments(.gene_idxs = g, .quartet = TRUE))
 }</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/multienv-plasticity-avg-expr-1.png" alt="" width="672" /></p>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/multienv-plasticity-avg-expr-2.png" alt="" width="672" /></p>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/multienv-plasticity-avg-expr-3.png" alt="" width="672" /></p>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/multienv-plasticity-avg-expr-4.png" alt="" width="672" /></p>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/multienv-plasticity-avg-expr-5.png" alt="" width="672" /></p>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/multienv-plasticity-avg-expr-6.png" alt="" width="672" /></p>
 <p>YKL127W (PGM1) is the only one that looks to have cis-diverging
 plasticity in multiple environments:</p>
 <pre class="r"><code>plotEnvironments(.gene_idxs = &quot;YKL127W&quot;, .quartet = TRUE)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
-<pre><code>## Warning: Removed 60 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 32 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 12 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 110 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 16 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).
-## Removed 16 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 60 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 32 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 12 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 110 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
-<pre><code>## Warning: Removed 16 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).
-## Removed 16 rows containing missing values or values
-## outside the scale range (`geom_ribbon()`).</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## Warning: Removed 60 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 32 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 12 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 110 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 16 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).
+## Removed 16 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 60 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 32 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 12 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 110 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
+<pre><code>## Warning: Removed 16 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).
+## Removed 16 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/PGM1-YKL127W-1.png" alt="" width="672" /></p>
 <div
 id="exploration-diagonal-is-still-the-most-uncorrelated-when-taking-average-cor-of-each-ortholog-pair"
@@ -2827,14 +2702,11 @@ gene_idx &lt;- finaldf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
 # plotEnvironments(.gene_idxs = &quot;YMR221C&quot;) # first example we found, strong CC level divergence
 plotEnvironments(.gene_idxs = gene_idx)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/example-criss-cross-1.png" alt="" width="672" /></p>
 <pre class="r"><code>getTPAvgExpr &lt;- function(.gene_name, .experiment, .organism,
                           .first_or_last = &quot;first&quot;) {
@@ -2952,14 +2824,11 @@ gene_idx &lt;- tpdiffdf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
 # plotEnvironments(.gene_idxs = &quot;YMR221C&quot;) # first example we found, strong CC level divergence
 plotGenes(.gene_idxs = gene_idx, .experiment_name = &quot;HAP4&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/example-diff-lessening-1.png" alt="" width="672" /></p>
 <p>Example plasticity-diverging gene where the difference between
 species strengthens over time</p>
@@ -2970,14 +2839,11 @@ gene_idx &lt;- tpdiffdf |&gt; filter(experiment == &quot;HAP4&quot; &amp;
 # plotEnvironments(.gene_idxs = &quot;YMR221C&quot;) # first example we found, strong CC level divergence
 plotGenes(.gene_idxs = gene_idx, .experiment_name = &quot;HAP4&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_environmental_patterns_files/figure-html/example-diff-strengthening-1.png" alt="" width="672" /></p>
 </div>
 </div>

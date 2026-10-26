@@ -376,20 +376,18 @@ folder_name &lt;- &quot;HeatStress&quot;</code></pre>
 <pre class="r"><code># summary of groups in this experiment
 table(expdf$group) |&gt; sort(decreasing = TRUE)</code></pre>
 <pre><code>## 
-##         cons1         cons2     levupcer1         cons0 
-##           737           572           386           316 
-##         dyn21         dyn20         dyn01         dyn10 
-##           313           272           233           225 
-## levdynupcer10     levuppar2     levuppar1     levupcer0 
-##           178           128           106            77 
-##     levupcer2 levdynuppar21         dyn12         dyn02 
-##            77            74            63            60 
-## levdynuppar01 levdynupcer20 levdynupcer21 levdynupcer12 
-##            53            52            44            40 
-## levdynupcer01 levdynuppar20     levuppar0 levdynuppar10 
-##            37            34            30            23 
-## levdynuppar02 levdynuppar12 levdynupcer02 
-##            15            15            12</code></pre>
+##         cons1         cons2     levupcer1         cons0         dyn21 
+##           737           572           386           316           313 
+##         dyn20         dyn01         dyn10 levdynupcer10     levuppar2 
+##           272           233           225           178           128 
+##     levuppar1     levupcer0     levupcer2 levdynuppar21         dyn12 
+##           106            77            77            74            63 
+##         dyn02 levdynuppar01 levdynupcer20 levdynupcer21 levdynupcer12 
+##            60            53            52            44            40 
+## levdynupcer01 levdynuppar20     levuppar0 levdynuppar10 levdynuppar02 
+##            37            34            30            23            15 
+## levdynuppar12 levdynupcer02 
+##            15            12</code></pre>
 <pre class="r"><code>sum(table(expdf$group))</code></pre>
 <pre><code>## [1] 4172</code></pre>
 <pre class="r"><code>length(unique(expdf$group))</code></pre>
@@ -564,14 +562,11 @@ for (clust in cluster_names) {
 <pre><code>## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
                   folder_name, &quot;/conserved.pdf&quot;), width = 2, height = 2)
@@ -593,14 +588,11 @@ print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                         theme(plot.margin = unit(c(0,0.25,0,0), &quot;cm&quot;)),
                       top = paste0(length(gene_idxs), &quot; genes&quot;)))</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -625,13 +617,11 @@ griddf &lt;- expdf |&gt; filter(plasticity != &quot;diverged&quot; &amp;
   group_by(cer, par, lfc_sign) |&gt; summarise(n = n()) |&gt; 
   arrange(desc(n))</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by cer, par, and
-##   lfc_sign.
+## ℹ Summaries were computed grouped by cer, par, and lfc_sign.
 ## ℹ Output is grouped by cer and par.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par, lfc_sign))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par, lfc_sign))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>plotlist &lt;- vector(mode = &quot;list&quot;, length = 0)
 for (i in c(1:nrow(griddf))) {
   clust &lt;- griddf$cer[i]
@@ -650,30 +640,24 @@ for (i in c(1:nrow(griddf))) {
 }</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside
-## the scale range (`geom_line()`).</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside
-## the scale range (`geom_ribbon()`).</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_line()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
                   folder_name, &quot;/level.pdf&quot;), width = 2, height = 2)
@@ -703,10 +687,9 @@ class="section level3">
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by cer and par.
 ## ℹ Output is grouped by cer.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>plotlist &lt;- vector(mode = &quot;list&quot;, length = 0)
 for (i in c(1:nrow(griddf))) {
   clust_cer &lt;- griddf$cer[i]
@@ -728,14 +711,11 @@ for (i in c(1:nrow(griddf))) {
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
                   folder_name, &quot;/plasticity.pdf&quot;), width = 2, height = 2)
@@ -757,14 +737,11 @@ print(annotate_figure(plotGenes(.gene_idxs = gene_idxs, .quartet = FALSE,
                         theme(plot.margin = unit(c(0,0.25,0,0), &quot;cm&quot;)),
                       top = paste0(length(gene_idxs), &quot; genes&quot;)))</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -790,13 +767,11 @@ griddf &lt;- expdf |&gt; filter(plasticity == &quot;diverged&quot; &amp;
   summarise(n = n()) |&gt; 
   arrange(desc(n))</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by cer, par, and
-##   lfc_sign.
+## ℹ Summaries were computed grouped by cer, par, and lfc_sign.
 ## ℹ Output is grouped by cer and par.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(cer, par, lfc_sign))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(cer, par, lfc_sign))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>plotlist &lt;- vector(mode = &quot;list&quot;, length = 0)
 for (i in c(1:nrow(griddf))) {
   clust_cer &lt;- griddf$cer[i]
@@ -823,39 +798,30 @@ for (i in c(1:nrow(griddf))) {
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside
-## the scale range (`geom_ribbon()`).</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
-<pre><code>## Warning in plotExpressionProfilePairBasic(.cts1 = .cts1,
-## .cts2 = .cts2, : NaNs produced</code></pre>
-<pre><code>## Warning: Removed 5 rows containing missing values or values outside
-## the scale range (`geom_ribbon()`).</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+<pre><code>## Warning in plotExpressionProfilePairBasic(.cts1 = .cts1, .cts2 = .cts2, : NaNs
+## produced</code></pre>
+<pre><code>## Warning: Removed 5 rows containing missing values or values outside the scale range
+## (`geom_ribbon()`).</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
 ## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>### Main figure: example gene group
 pdf(file = paste0(&quot;paper_figures/&quot;, 
                   folder_name, &quot;/level_and_plasticity.pdf&quot;), width = 2, height = 2)

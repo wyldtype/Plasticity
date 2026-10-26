@@ -1078,41 +1078,62 @@ getJaccardIndex <- function(.set1, .set2) {
   return(nCommon/nTotal)
 }
 
-plotPermutationTestOn0to1Scale <- function(.observed_value, .null_vector,
+plotResamplingTestOn0to1Scale <- function(.observed_value, .null_vector,
                                            .testAboveNull = TRUE,
                                            .xlab = "Null distribution",
                                            .xlim = c(0, 1), 
+                                           .histogram_or_density = "density",
                                            .observed_color = rep("red", times = length(.observed_value))) {
-  fraction_of_null_higher_than_observed <- sum(.null_vector > max(.observed_value))/length(.null_vector)
+  fraction_of_null_higher_than_observed <- sapply(
+    .observed_value, \(obs) {
+      sum(.null_vector > max(obs))/length(.null_vector)
+    })
   if (.testAboveNull) {
     pval <- fraction_of_null_higher_than_observed
   }
   if (!.testAboveNull) {
     pval <- (1 - fraction_of_null_higher_than_observed)
   }
-  if (fraction_of_null_higher_than_observed >= 0.5) {
+  if (any(fraction_of_null_higher_than_observed >= 0.5)) {
     label_text <- paste0("        ", round(.observed_value, digits = 2))
   }
-  if (fraction_of_null_higher_than_observed < 0.5) {
+  if (any(fraction_of_null_higher_than_observed < 0.5)) {
     label_text <- paste0(round(.observed_value, digits = 2), "        ")
   }
   observeddf <- tibble(value = .observed_value,
                        label = label_text,
-                       y_pos = 0.5,
+                       y_pos_density = 0.5,
+                       y_pos_histogram = 1000,
                        color = .observed_color)
   pval_text <- if_else(pval == 0, 
-                       true = "p-value < 1e-6", 
-                       false = paste0("p-value = ", pval))
-  p <- ggplot(tibble(null = .null_vector), aes(x = null, y = after_stat(scaled))) +
-    geom_density(fill = "grey80", color = "black", alpha = 1) +
-    geom_vline(xintercept = .observed_value, color = .observed_color) +
-    geom_text(data = observeddf, aes(x = value, y = y_pos, 
-              label = label), color = .observed_color) +
-    ggtitle(pval_text) +
-    theme_classic() +
-    theme(legend.position = "none") +
-    xlab(.xlab) +
-    ylab("density")
+                       true = "< 1e-6", 
+                       false = as.character(pval))
+  pval_text <- paste("prop of null more extreme than obs:", 
+                     purrr::reduce(pval_text, .f = paste))
+  if (.histogram_or_density == "density") {
+    p <- ggplot(tibble(null = .null_vector), aes(x = null, y = after_stat(scaled))) +
+      geom_density(fill = "grey80", color = "black", alpha = 1) +
+      geom_vline(xintercept = .observed_value, color = .observed_color) +
+      geom_text(data = observeddf, aes(x = value, y = y_pos_density, 
+                                       label = label), color = .observed_color) +
+      ggtitle(pval_text) +
+      theme_classic() +
+      theme(legend.position = "none") +
+      xlab(.xlab) +
+      ylab("density")
+  }
+  if (.histogram_or_density == "histogram") {
+    p <- ggplot(tibble(null = .null_vector), aes(x = null)) +
+      geom_histogram(fill = "grey80", color = "black", alpha = 1) +
+      geom_vline(xintercept = .observed_value, color = .observed_color) +
+      geom_text(data = observeddf, aes(x = value, y = y_pos_histogram, 
+                                       label = label), color = .observed_color) +
+      ggtitle(pval_text) +
+      theme_classic() +
+      theme(legend.position = "none") +
+      xlab(.xlab) +
+      ylab("count")
+  }
   if (!is.null(.xlim)) {
     p <- p + xlim(.xlim)
   }

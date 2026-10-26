@@ -32,7 +32,6 @@
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
-<link href="site_libs/huxtable-6.0.2/huxtable.css" rel="stylesheet" />
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -394,10 +393,9 @@ transporters?</h2>
 <pre><code>## `summarise()` has regrouped the output.
 ## ℹ Summaries were computed grouped by ORF and gene.
 ## ℹ Output is grouped by ORF.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(ORF, gene))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(ORF, gene))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code># plotdf$membrane_transporter &lt;- purrr::map2(plotdf$C, plotdf$P, \(comp, proc) {
 #   &quot;membrane&quot; %in% unlist(comp) &amp; &quot;transport&quot; %in% unlist(proc)
 # }) |&gt; unlist()
@@ -408,14 +406,11 @@ gene_idxs &lt;- filter(plotdf, experiment == &quot;CC&quot; &amp; membrane_trans
   dplyr::select(ORF) |&gt; pull()
 plotGenes(gene_idxs, .experiment_name = &quot;CC&quot;) # 1-2 divergers</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by group_id, experiment,
-##   and time_point_num.
+## ℹ Summaries were computed grouped by group_id, experiment, and time_point_num.
 ## ℹ Output is grouped by group_id and experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(group_id, experiment,
-##   time_point_num))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(group_id, experiment, time_point_num))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <p><img src="Fig_gene_ontology_files/figure-html/membrane-transporters-1.png" alt="" width="672" /></p>
 <pre class="r"><code>plotdf$div12 &lt;- plotdf$cer == 1 &amp; plotdf$par == 2
 plotdf |&gt; filter(experiment == &quot;CC&quot;) |&gt; 
@@ -501,39 +496,21 @@ class="section level2">
 test &lt;- getGOSlimDf(.idxs = c(&quot;YGR192C&quot;, &quot;YJR009C&quot;, &quot;YJL052W&quot;),
                     .group_name = &quot;tdhs&quot;, .min_hits = 1)
 test</code></pre>
-<table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:getGOSlimDf">
-<col><col><col><col><col><col><thead>
-<tr>
-<th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0.4pt;">term</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">group_count</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">overall_count</th><th class="huxtable-cell huxtable-header" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">exact_pval</th><th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0.4pt 0pt;">sig</th><th class="huxtable-cell huxtable-header" style="border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0.4pt 0pt;">genes</th></tr>
-</thead>
-<tbody>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">biosynthetic process</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">973</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.008&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">FALSE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0.4pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">carbohydrate metabolic process</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">106</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">1.01e-05</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">TRUE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">catabolic process</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">615</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.00202&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">FALSE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">cell death</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">2</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">23</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">6.41e-05</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">TRUE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">YGR192C YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">cellular nitrogen compound metabolic process</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">1386</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.0232&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">FALSE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">generation of precursor metabolites and energy</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">115</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">1.29e-05</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">TRUE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">monoatomic ion transport</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">1</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">71</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.0432&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">FALSE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">YGR192C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">monocarboxylic acid metabolic process</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">105</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">9.8e-06&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">TRUE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">nucleobase-containing compound catabolic process</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">165</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">3.84e-05</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">TRUE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;">nucleobase-containing small molecule metabolic process</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">172</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">4.36e-05</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;">TRUE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0.4pt;     background-color: rgb(242, 242, 242);">small molecule metabolic process</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">3</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">556</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">0.00149&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0pt 0pt;     background-color: rgb(242, 242, 242);">FALSE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0pt 0pt;     background-color: rgb(242, 242, 242);">YGR192C YJL052W YJR009C</td></tr>
-<tr>
-<td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0.4pt;">transport</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">1</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">874</td><td class="huxtable-cell" style="text-align: right;  border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">0.448&nbsp;&nbsp;&nbsp;</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt;">FALSE</td><td class="huxtable-cell" style="border-style: solid solid solid solid; border-width: 0pt 0.4pt 0.4pt 0pt;">YGR192C</td></tr>
-</tbody>
-</table>
-
+<pre><code>## # A tibble: 12 × 6
+##    term                          group_count overall_count exact_pval sig   genes
+##    &lt;chr&gt;                               &lt;dbl&gt;         &lt;int&gt;      &lt;dbl&gt; &lt;lgl&gt; &lt;chr&gt;
+##  1 biosynthetic process                    3           973 0.00800    FALSE YGR1…
+##  2 carbohydrate metabolic proce…           3           106 0.0000101  TRUE  YGR1…
+##  3 catabolic process                       3           615 0.00202    FALSE YGR1…
+##  4 cell death                              2            23 0.0000641  TRUE  YGR1…
+##  5 cellular nitrogen compound m…           3          1386 0.0232     FALSE YGR1…
+##  6 generation of precursor meta…           3           115 0.0000129  TRUE  YGR1…
+##  7 monoatomic ion transport                1            71 0.0432     FALSE YGR1…
+##  8 monocarboxylic acid metaboli…           3           105 0.00000980 TRUE  YGR1…
+##  9 nucleobase-containing compou…           3           165 0.0000384  TRUE  YGR1…
+## 10 nucleobase-containing small …           3           172 0.0000436  TRUE  YGR1…
+## 11 small molecule metabolic pro…           3           556 0.00149    FALSE YGR1…
+## 12 transport                               1           874 0.448      FALSE YGR1…</code></pre>
 <p>Manually selecting groups of terms related to broader but meaningful
 biological processes.</p>
 <pre class="r"><code># @input: GOslim enrichment results df for one ccm, character vector of GOslim terms to combine
@@ -750,14 +727,12 @@ GOgriddf &lt;- group_by(GOdf, regulator, regulator_common, environment) |&gt;
   summarise(nTargets = n()) |&gt; 
   ungroup()</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by regulator,
-##   regulator_common, and environment.
+## ℹ Summaries were computed grouped by regulator, regulator_common, and
+##   environment.
 ## ℹ Output is grouped by regulator and regulator_common.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(regulator, regulator_common,
-##   environment))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(regulator, regulator_common, environment))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>GOlist &lt;- purrr::map2(GOgriddf$regulator, GOgriddf$environment, \(tf, e) {
   tf_common &lt;- GOdf |&gt; filter(regulator == tf) |&gt; dplyr::select(regulator_common) |&gt; 
     pull() |&gt; unique()
@@ -787,14 +762,12 @@ GOgriddf &lt;- group_by(GOdf_conserved, regulator, regulator_common, environment
   summarise(nTargets = n()) |&gt; 
   ungroup()</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by regulator,
-##   regulator_common, and environment.
+## ℹ Summaries were computed grouped by regulator, regulator_common, and
+##   environment.
 ## ℹ Output is grouped by regulator and regulator_common.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(regulator, regulator_common,
-##   environment))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(regulator, regulator_common, environment))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>GOlist &lt;- purrr::map2(GOgriddf$regulator, GOgriddf$environment, \(tf, e) {
   tf_common &lt;- GOdf_conserved |&gt; filter(regulator == tf) |&gt; dplyr::select(regulator_common) |&gt; 
     pull() |&gt; unique()

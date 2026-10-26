@@ -372,12 +372,10 @@ DESeq2 to determine divergence in expression level</h1>
 sapply(c(&quot;dplyr&quot;, &quot;purrr&quot;, &quot;tidyr&quot;, &quot;ggpubr&quot;, &quot;readr&quot;,
          &quot;data.table&quot;, &quot;ggplot2&quot;, &quot;data.table&quot;,
          &quot;matrixStats&quot;, &quot;ggpubr&quot;), require, character.only=TRUE)</code></pre>
-<pre><code>##       dplyr       purrr       tidyr      ggpubr 
-##        TRUE        TRUE        TRUE        TRUE 
-##       readr  data.table     ggplot2  data.table 
-##        TRUE        TRUE        TRUE        TRUE 
-## matrixStats      ggpubr 
-##        TRUE        TRUE</code></pre>
+<pre><code>##       dplyr       purrr       tidyr      ggpubr       readr  data.table 
+##        TRUE        TRUE        TRUE        TRUE        TRUE        TRUE 
+##     ggplot2  data.table matrixStats      ggpubr 
+##        TRUE        TRUE        TRUE        TRUE</code></pre>
 <pre class="r"><code>library(MASS, include.only = &quot;glm.nb&quot;)
 source(&quot;functions_for_figure_scripts.R&quot;)
 load(&quot;data_files/GLM_Counts.RData&quot;)
@@ -419,8 +417,7 @@ summary(spmod)</code></pre>
 ## time_point_num  0.002131   0.001707   1.248    0.212    
 ## allelecer      -0.068663   0.162442  -0.423    0.673    
 ## ---
-## Signif. codes:  
-## 0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## (Dispersion parameter for Negative Binomial(5.4205) family taken to be 1)
 ## 
@@ -552,25 +549,21 @@ plotSingleGeneModelExample &lt;- function(.genedf, .gene_name, .fitted_vals = FA
 plotSingleGeneModelExample(test_genedf, random_gene, 
                            .log2 = TRUE, .fitted_vals = TRUE)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by time_point_num and
-##   allele.
+## ℹ Summaries were computed grouped by time_point_num and allele.
 ## ℹ Output is grouped by time_point_num.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(time_point_num, allele))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(time_point_num, allele))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## min and max expression: 5.882643 4.321928</code></pre>
 <p><img src="single_gene_models_files/figure-html/plotSingleGeneModelExample-1.png" alt="" width="672" /></p>
 <pre class="r"><code>plotSingleGeneModelExample(test_genedf, random_gene, 
                            .log2 = FALSE, .fitted_vals = FALSE)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by time_point_num and
-##   allele.
+## ℹ Summaries were computed grouped by time_point_num and allele.
 ## ℹ Output is grouped by time_point_num.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(time_point_num, allele))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(time_point_num, allele))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## min and max expression: 59 20</code></pre>
 <p><img src="single_gene_models_files/figure-html/plotSingleGeneModelExample-2.png" alt="" width="672" /></p>
 </div>
@@ -586,24 +579,22 @@ test_genedf &lt;- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
 p &lt;- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
   theme(legend.position = &quot;none&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by time_point_num and
-##   allele.
+## ℹ Summaries were computed grouped by time_point_num and allele.
 ## ℹ Output is grouped by time_point_num.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(time_point_num, allele))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(time_point_num, allele))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## no replicates for this experiment, getting moving average
 ## min and max expression: 2213 38.6</code></pre>
 <pre class="r"><code>p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside
-## the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
 <p><img src="single_gene_models_files/figure-html/unnamed-chunk-1-1.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/ExperimentOverview/level_lfc.pdf&quot;,
     width = 2.1, height = 2.5)
 p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside
-## the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -616,24 +607,22 @@ test_genedf &lt;- bind_cols(tibble(expr = spcts$HAP4[gene_idx,],
 p &lt;- plotSingleGeneModelExample(test_genedf, gene_idx, .log2 = FALSE) +
   theme(legend.position = &quot;none&quot;)</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by time_point_num and
-##   allele.
+## ℹ Summaries were computed grouped by time_point_num and allele.
 ## ℹ Output is grouped by time_point_num.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(time_point_num, allele))` for
-##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(time_point_num, allele))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre><code>## no replicates for this experiment, getting moving average
 ## min and max expression: 163.6 45.33333</code></pre>
 <pre class="r"><code>p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside
-## the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
 <p><img src="single_gene_models_files/figure-html/unnamed-chunk-1-2.png" alt="" width="672" /></p>
 <pre class="r"><code>pdf(&quot;paper_figures/ExperimentOverview/dynamics_lfc.pdf&quot;,
     width = 2.1, height = 2.5)
 p</code></pre>
-<pre><code>## Warning: Removed 1 row containing missing values or values outside
-## the scale range (`geom_point()`).</code></pre>
+<pre><code>## Warning: Removed 1 row containing missing values or values outside the scale range
+## (`geom_point()`).</code></pre>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## quartz_off_screen 
 ##                 2</code></pre>
@@ -651,86 +640,60 @@ p</code></pre>
 # test for fitDatasetModels (just taking the first 10 genes from a random dataset)
 random_dataset_idx &lt;- sample(c(1:length(ExperimentNames)), 1)
 test &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # if it runs, it passes this test</code></pre>
-<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
+<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached</code></pre>
+<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7): alternation limit
 ## reached</code></pre>
-<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7):
-## alternation limit reached</code></pre>
 <pre class="r"><code># convert one model into one row of a dataframe summarizing that model&#39;s output (gene name, name of coefficient, effect size of coefficient, pvalue for wald test of that coefficient)
 # also changes lfc to l2fc using change of base: log2(fc) = log(fc)/log(2)
 parseDfRowFromModel &lt;- function(.mod, .gene_name) {
@@ -745,86 +708,60 @@ parseDfRowFromModel &lt;- function(.mod, .gene_name) {
 # test for parseDfRowFromModel
 random_dataset_idx &lt;- sample(c(1:length(ExperimentNames)), 1)
 random_modslist &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # same test from fitDatasetModels, we need the output for this test</code></pre>
-<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
+<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached</code></pre>
+<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7): alternation limit
 ## reached</code></pre>
-<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7):
-## alternation limit reached</code></pre>
 <pre class="r"><code>gene_idx &lt;- sample(c(1:10), 1)
 parseDfRowFromModel(random_modslist[[gene_idx]], gene_idx)</code></pre>
 <table class="huxtable" data-quarto-disable-processing="true"  style="margin-left: auto; margin-right: auto;   break-inside: avoid; page-break-inside: avoid;" id="tab:parseDfRowFromModel">
@@ -848,86 +785,60 @@ parseDfRowFromModel(random_modslist[[gene_idx]], gene_idx)</code></pre>
 # test for parseDfFromModslist
 random_dataset_idx &lt;- sample(c(1:length(ExperimentNames)), 1)
 random_modslist &lt;- fitDatasetModels(spcts[[random_dataset_idx]][1:10,], spinfo[[random_dataset_idx]]) # same test from fitDatasetModels, we need the output for this test</code></pre>
-<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
-## reached
-## Warning in theta.ml(Y, mu, sum(w), w, limit =
-## control$maxit, trace = control$trace &gt; : iteration limit
+<pre><code>## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached
+## Warning in theta.ml(Y, mu, sum(w), w, limit = control$maxit, trace =
+## control$trace &gt; : iteration limit reached</code></pre>
+<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7): alternation limit
 ## reached</code></pre>
-<pre><code>## Warning in glm.nb(form, .df, link = log, init.theta = 7):
-## alternation limit reached</code></pre>
 <pre class="r"><code>names(random_modslist) &lt;- c(1:10)
 test &lt;- parseDfFromModslist(random_modslist)
 test</code></pre>
@@ -1192,8 +1103,7 @@ visualizeGeneExpressionBoxplot &lt;- function(.name, .experiment = c(&quot;CC&qu
   return(output)
 }
 visualizeGeneExpressionBoxplot(&quot;YGR192C&quot;)</code></pre>
-<pre><code>## Warning: `label` cannot be a &lt;ggplot2::element_blank&gt;
-## object.</code></pre>
+<pre><code>## Warning: `label` cannot be a &lt;ggplot2::element_blank&gt; object.</code></pre>
 <p><img src="single_gene_models_files/figure-html/QC-3.png" alt="" width="672" /></p>
 <pre class="r"><code>visualizeGeneExpressionScatterplot &lt;- function(.gdf, .plotname = &quot;individual gene counts&quot;, .color_from = &quot;experiment&quot;, .log = FALSE) {
   if (!.log) {
@@ -1245,10 +1155,10 @@ ggMarginal(ggplot(spaldf, aes(x = effect_size, y = -log(pvalue))) +
   geom_point(aes(color = pvalue &lt; p_thresh)) +
   theme(legend.position = &quot;none&quot;) + geom_vline(xintercept = c(-1, 1), color = &quot;gold&quot;),
   margins = &quot;both&quot;, groupColour = TRUE, groupFill = TRUE)</code></pre>
-<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
-<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale
-## range (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
+<pre><code>## Warning: Removed 10 rows containing non-finite outside the scale range
+## (`stat_density()`).</code></pre>
 <p><img src="single_gene_models_files/figure-html/QC-8.png" alt="" width="672" /></p>
 </div>
 

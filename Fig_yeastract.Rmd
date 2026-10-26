@@ -266,8 +266,8 @@ regdf <- map2(regmats, names(regmats), .f = \(x, y) {
            "regulator_common"="common"))
 
 # saving Regdf as Supp table
-write_csv(regdf, file = "data_files/Regulator-target.csv")
-regdf
+# write_csv(regdf, file = "data_files/Regulator-target.csv")
+# regdf
 ```
 
 ```{r ypd-overlap}
@@ -756,23 +756,22 @@ plotdf <- regdf |> dplyr::select(regulator, target, environment) |>
 observed_pct_div_plast <- plotdf |> group_by(type) |> 
   summarise(pct_div_plast = sum(plasticity == "diverged")/n())
 null_pct_diverged_plast <- purrr::map(c(1:10000), \(i) {
-  null_genes <- setdiff(paste(finaldf$gene_name, finaldf$experiment, sep = "_"),
-                        paste(plotdf$gene_name, plotdf$environment, sep = "_")) |> 
-    sample(size = nrow(plotdf), replace = FALSE)
-  nulldf <- tibble("gene_name" = str_split_i(null_genes, pattern = "_", i = 1),
-                   "environment" = str_split_i(null_genes, pattern = "_", i = 2)) |> left_join(dplyr::select(finaldf, gene_name, experiment, plasticity), by = c("gene_name", "environment"="experiment"))
+  nulldf <- finaldf |> dplyr::filter(!(gene_name %in% plotdf$gene_name)) |>
+    slice_sample(n = length(unique(plotdf$gene_name)), replace = TRUE) |> 
+    dplyr::select(gene_name, experiment, plasticity)
   pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
   return(pct_null)
 }) |> unlist()
-plotPermutationTestOn0to1Scale(.observed_value = observed_pct_div_plast$pct_div_plast, .null_vector = null_pct_diverged_plast, .observed_color = c("red", "green") , .xlab = "proportion of genes with diverged plasticity\ntargets: green, regulators: red", .testAboveNull = FALSE, .xlim = NULL)
+plotResamplingTestOn0to1Scale(.observed_value = observed_pct_div_plast$pct_div_plast, .null_vector = null_pct_diverged_plast, .observed_color = c("red", "green") , .xlab = "proportion of genes with diverged plasticity\ntargets: green, regulators: red", .testAboveNull = FALSE, .xlim = NULL)
 ```
 Saving to PDF:
 
-```{r permutation-pdf}
-ggsave("paper_figures/Yeastract/permutation.pdf", width = 4, height = 3)
+```{r bootstrap-home-pdf}
+# ggsave("paper_figures/Yeastract/bootstrap_home.pdf", width = 4, height = 3)
 ```
 
-Repeating for non-home (alternative) environments: 
+Repeating for non-home (alternative) environments:
+
 ```{r regulator-target-plasticity-permutation-alternative, cache=TRUE}
 plotdf <- regdf |> dplyr::select(regulator, target, environment) |> 
   dplyr::filter(environment != "YPD") |> 
@@ -791,237 +790,230 @@ observed_pct_div_plast <- plotdf |> group_by(type) |>
   summarise(pct_div_plast = sum(plasticity == "diverged")/n())
 null_pct_diverged_plast <- purrr::map(c(1:10000), \(i) {
   nulldf <- finaldf |> dplyr::filter(!(gene_name %in% plotdf$gene_name)) |>
-    slice_sample(n = length(unique(plotdf$gene_name))) |> 
+    slice_sample(n = length(unique(plotdf$gene_name)), replace = TRUE) |> 
     dplyr::select(gene_name, experiment, plasticity)
   pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
   return(pct_null)
 }) |> unlist()
-plotPermutationTestOn0to1Scale(.observed_value = observed_pct_div_plast$pct_div_plast, .null_vector = null_pct_diverged_plast, .observed_color = c("red", "green") , .xlab = "proportion of genes with diverged plasticity\ntargets: green, regulators: red", .testAboveNull = FALSE, .xlim = NULL)
+plotResamplingTestOn0to1Scale(.observed_value = observed_pct_div_plast$pct_div_plast, .null_vector = null_pct_diverged_plast, .observed_color = c("red", "green") , .xlab = "proportion of genes with diverged plasticity\ntargets: green, regulators: red", .testAboveNull = FALSE, .xlim = NULL)
 ```
 Saving to PDF:
 
-```{r permutation-alternative-pdf}
-ggsave("paper_figures/Yeastract/permutation_alt.pdf", width = 4, height = 3)
+```{r bootstrap-alternative-pdf}
+# ggsave("paper_figures/Yeastract/bootstrap_alt.pdf", width = 4, height = 3)
 ```
 
+# Repeating for supplemental figure, separating the 6 environments
+# and separating targets and regulators
 
-### Are regulators diverging in expression level associated with more divergent regulons?
-
-"Volcano"-style plots of log2 fold change on the x axis and percent of regulon that is divergent on the y axis (where p-value would normally go)
-
-There are 4 plots total: does <parent or hybrid> expression level divergence predict regulon <plasticity or level> divergence?
-
-```{r volcano-parent-level-vs-target-plasticity}
-plotdf <- regdf |> filter(environment != "YPD") |> 
-  full_join(y = finaldf,
-            by = c("target"="gene_name",
-                   "environment"="experiment")) |> 
-  group_by(regulator, regulator_common, environment) |> 
-  summarise(n_div_plast = sum(plasticity == "diverged",
-                              na.rm = TRUE),
-            n = n(),
-            pct_div_plast = n_div_plast/n,
-            mean_cor = mean(cor_parents, na.rm = TRUE)) |> 
-  filter(n >= 20) |> 
-  left_join(y = dplyr::select(finaldf, gene_name, 
-                              experiment, effect_size_species),
-            by = c("regulator"="gene_name",
-                   "environment"="experiment"))
-# R-squarred
-test <- lm(mean_cor ~ effect_size_species, data = plotdf)
-summary(test)
-# plot
-p_parent_plast <- ggplot(plotdf, aes(x = effect_size_species, y = mean_cor)) +
-  geom_point(aes(color = environment)) +
-  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
-                       type =  colordf$type[colordf$scheme == "experiment"]) +
-  geom_text(aes(label = regulator_common), 
-            check_overlap = TRUE, nudge_y = 0.025) +
-  #geom_vline(xintercept = c(-log2(1.5), log2(1.5))) +
-  geom_smooth(method = "lm") +
-  theme_classic() +
-  #theme(legend.position = "none") +
-  xlab("log2 fold change of regulator\nbetween species") +
-  ylab("average expression correlation of\ntarget genes between species") +
-  ggtitle(paste0("R-squarred = ",
-                            round(summary(test)$r.squared, digits = 2)))
-p_parent_plast
+```{r bootstrap-regulators-separate-env-home, cache=TRUE}
+# regulators
+plotdf <- regdf |> dplyr::select(regulator, environment) |> 
+  filter(environment!= "YPD") |> 
+  dplyr::rename(c("gene_name"="regulator")) |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("gene_name", "environment"="experiment")) |> 
+  drop_na() |> 
+  unique() # regulators have multiple rows, one for each target gene
+observed_pct_div_plast <- plotdf |> group_by(environment) |> 
+  summarise(pct_div_plast = sum(plasticity == "diverged")/n())
+# collecting our null distribution list for each environment
+null_pct_diverged_plast_list <- purrr::map(ExperimentNames, \(e) {
+  regulators_e <- plotdf |> filter(environment == e) |> 
+    dplyr::select(gene_name) |> pull()
+  purrr::map(c(1:10000), \(i) {
+  nulldf <- finaldf |> filter(experiment == e & 
+                                    !(gene_name %in% regulators_e)) |> 
+    slice_sample(n = length(regulators_e), replace = TRUE)
+  pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
+  return(pct_null)
+  }) |> unlist() # numeric vector of length 10,000 for each environment
+}) # list of 6 vectors, one for each environment
+names(null_pct_diverged_plast_list) <- ExperimentNames
+# 6 plots, one for each environment
+plotlist_regulators <- purrr::map(ExperimentNames, \(e) {
+  null_pct_diverged_plast <- null_pct_diverged_plast_list[[e]]
+  obs_e <- observed_pct_div_plast |> filter(environment == e) |> 
+    dplyr::select(pct_div_plast) |> pull()
+  p <- plotResamplingTestOn0to1Scale(.observed_value = obs_e, 
+                                      .null_vector = null_pct_diverged_plast, 
+                                      .observed_color = c("red") , 
+                                      .xlab = "proportion of genes with 
+                                      diverged plasticity", 
+                                      .testAboveNull = FALSE, .xlim = NULL,
+                                      .histogram_or_density = "histogram") +
+    ggtitle(e)
+  return(p)
+})
+ggarrange(plotlist = plotlist_regulators, nrow = 3, ncol = 2)
 ```
 
-```{r volcano-hybrid-level-vs-target-plasticity}
-plotdf <- regdf |> filter(environment != "YPD") |> 
-  full_join(y = finaldf,
-            by = c("target"="gene_name",
-                   "environment"="experiment")) |> 
-  group_by(regulator, regulator_common, environment) |> 
-  summarise(n_div_plast = sum(plasticity == "diverged",
-                              na.rm = TRUE),
-            n = n(),
-            pct_div_plast = n_div_plast/n,
-            mean_cor = mean(cor_parents, na.rm = TRUE)) |> 
-  filter(n >= 20) |> 
-  left_join(y = dplyr::select(finaldf, gene_name, 
-                              experiment, effect_size_allele),
-            by = c("regulator"="gene_name",
-                   "environment"="experiment"))
-# R-squarred
-test <- lm(mean_cor ~ effect_size_allele, data = plotdf)
-summary(test)
-# plot
-p_hybrid_plast <- ggplot(plotdf, aes(x = effect_size_allele, y = mean_cor)) +
-  geom_point(aes(color = environment)) +
-  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
-                       type =  colordf$type[colordf$scheme == "experiment"]) +
-  geom_text(aes(label = regulator_common), 
-            check_overlap = TRUE, nudge_y = 0.025) +
-  geom_smooth(method = "lm") +
-  #geom_vline(xintercept = c(-log2(1.5), log2(1.5))) +
-  theme_classic() +
-  #theme(legend.position = "none") +
-  xlab("log2 fold change of regulator\nbetween hybrid alleles") +
-  ylab("average expression correlation of\ntarget genes between species") +
-  ggtitle(paste0("R-squarred = ",
-                            round(summary(test)$r.squared, digits = 2)))
-p_hybrid_plast
+Targets:
+
+```{r bootstrap-targets-separate-env-home, cache=TRUE}
+# targets
+plotdf <- regdf |> dplyr::select(target, environment) |>
+  filter(environment!= "YPD") |>
+  dplyr::rename(c("gene_name"="target")) |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("gene_name", "environment"="experiment")) |> 
+  drop_na() |> 
+  unique()
+observed_pct_div_plast <- plotdf |> group_by(environment) |> 
+  summarise(pct_div_plast = sum(plasticity == "diverged")/n())
+# collecting our null distribution list for each environment
+null_pct_diverged_plast_list <- purrr::map(ExperimentNames, \(e) {
+  targets_e <- plotdf |> filter(environment == e) |> 
+    dplyr::select(gene_name) |> pull()
+  purrr::map(c(1:10000), \(i) {
+  nulldf <- finaldf |> filter(experiment == e & 
+                                    !(gene_name %in% targets_e)) |> 
+    slice_sample(n = length(targets_e), replace = TRUE)
+  pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
+  return(pct_null)
+  }) |> unlist() # numeric vector of length 10,000 for each environment
+}) # list of 6 vectors, one for each environment
+names(null_pct_diverged_plast_list) <- ExperimentNames
+# 6 plots, one for each environment
+plotlist_targets <- purrr::map(ExperimentNames, \(e) {
+  null_pct_diverged_plast <- null_pct_diverged_plast_list[[e]]
+  obs_e <- observed_pct_div_plast |> filter(environment == e) |> 
+    dplyr::select(pct_div_plast) |> pull()
+  p <- plotResamplingTestOn0to1Scale(.observed_value = obs_e, 
+                                      .null_vector = null_pct_diverged_plast, 
+                                      .observed_color = c("green") , 
+                                      .xlab = "proportion of genes with 
+                                      diverged plasticity", 
+                                      .testAboveNull = FALSE, .xlim = NULL,
+                                      .histogram_or_density = "histogram") +
+    ggtitle(e)
+  return(p)
+})
+ggarrange(plotlist = plotlist_targets, nrow = 3, ncol = 2)
 ```
 
-```{r volcano-parent-level-vs-target-level}
-plotdf <- regdf |> filter(environment != "YPD") |> 
-  inner_join(y = finaldf,
-              by = c("target"="gene_name",
-                     "environment"="experiment")) |> 
-  group_by(regulator, regulator_common, environment) |> 
-  summarise(n_div_level = sum(level == "diverged",
-                              na.rm = TRUE),
-            n = n(),
-            mean_log2fc = mean(effect_size_species, na.rm = TRUE),
-            pct_div_level = n_div_level/n) |> 
-  filter(n >= 20) |> 
-  left_join(y = dplyr::select(finaldf, gene_name, 
-                              experiment, effect_size_species),
-            by = c("regulator"="gene_name",
-                   "environment"="experiment"))
-# lm test for R^2 value
-test <- lm(mean_log2fc ~ effect_size_species, data = plotdf)
-summary(test)
-# plot
-p_parent_lev <- ggplot(plotdf, aes(x = effect_size_species, y = mean_log2fc)) +
-  geom_point(aes(color = environment)) +
-  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
-                       type =  colordf$type[colordf$scheme == "experiment"]) +
-  geom_text(aes(label = regulator_common), 
-            check_overlap = TRUE, nudge_y = 0.025) +
-  ggtitle(paste0("R-squarred = ",
-                 round(summary(test)$r.squared, digits = 2))) +
-  theme_classic() +
-  #theme(legend.position = "none") +
-  xlab("log2 fold change of regulator\nbetween species") +
-  ylab("average log2 fold change of\ntarget genes between species") +
-  geom_smooth(method = "lm")
-p_parent_lev
-```
-```{r volcano-hybrid-level-vs-target-level}
-plotdf <- regdf |> filter(environment != "YPD") |> 
-  inner_join(y = finaldf,
-              by = c("target"="gene_name",
-                     "environment"="experiment")) |> 
-  group_by(regulator, regulator_common, environment) |> 
-  summarise(n_div_level = sum(level == "diverged",
-                              na.rm = TRUE),
-            n = n(),
-            mean_log2fc = mean(effect_size_allele, na.rm = TRUE),
-            pct_div_level = n_div_level/n) |> 
-  filter(n >= 20) |> 
-  left_join(y = dplyr::select(finaldf, gene_name, 
-                              experiment, effect_size_allele),
-            by = c("regulator"="gene_name",
-                   "environment"="experiment"))
-# lm test for R^2 value
-test <- lm(mean_log2fc ~ effect_size_allele, data = plotdf)
-summary(test)
-# plot
-p_hybrid_lev <- ggplot(plotdf, aes(x = effect_size_allele, y = mean_log2fc)) +
-  geom_point(aes(color = environment)) +
-  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
-                       type =  colordf$type[colordf$scheme == "experiment"]) +
-  geom_text(aes(label = regulator_common), 
-            check_overlap = TRUE, nudge_y = 0.025) +
-  ggtitle(paste0("R-squarred = ",
-                 round(summary(test)$r.squared, digits = 2))) +
-  theme_classic() +
-  xlab("log2 fold change of regulator\nbetween hybrid alleles") +
-  ylab("average log2 fold change of\ntarget genes between species") +
-  geom_smooth(method = "lm")
-p_hybrid_lev
+Both targets and regulators in their home environment, separated by home environment:
+
+```{r}
+ggarrange(plotlist = c(plotlist_regulators, plotlist_targets),
+          nrow = 2, ncol = 6)
 ```
 
-All 4 plots:
-```{r volcano-4plots}
-p <- ggarrange(p_parent_lev, p_hybrid_lev,
-               p_parent_plast, p_hybrid_plast,
-               nrow = 2, ncol = 2, common.legend = TRUE,
-               legend = "bottom")
-p
-pdf("paper_figures/Supplement/regulator_level.pdf",
-    width = 7, height = 7)
-p
-dev.off()
+Saving to PDF:
+
+```{r bootstrap-separate-env-pdf}
+# ggsave("paper_figures/Yeastract/bootstrap_home_separate_e.pdf", width = 12, height = 3.5)
 ```
 
-### Maybe supplemental figure: reversals have similar expression variance to conserved plasticity genes
+Repeat for alternate environments
 
-```{r variance}
-# might be needed as a supplemental figure to point out that plasticity reveresals
-# and conserved plasticity have the highest expression variation 
-# across both species and environments
-load("data_files/Cleaned_Counts.RData")
-cer_counts <- counts[, sample_info$organism == "cer" &
-                       sample_info$experiment == "LowN"]
-par_counts <- counts[, sample_info$organism == "par" &
-                       sample_info$experiment == "LowN"]
-plotdf <- bind_rows(x = tibble(gene_name = rownames(cer_counts),
-                               mean_expr = rowMeans(cer_counts),
-                               var_expr = rowVars(cer_counts),
-                               organism = "cer"),
-                    y = tibble(gene_name = rownames(par_counts),
-                               mean_expr = rowMeans(par_counts),
-                               var_expr = rowVars(par_counts),
-                               organism = "par")) |> 
-  pivot_wider(id_cols = "gene_name",
-              names_from = "organism",
-              values_from = c("mean_expr", "var_expr")) |> 
-  right_join(finaldf, by = c("gene_name"))
-plotdf$plasticityCategory <- map2(plotdf$cer, plotdf$par, getPlasticityGroup) |> unlist()
-# Var/Mean by plasticity category, Scer
-p1 <- ggplot(plotdf, aes(x = log2(mean_expr_cer))) + 
-  geom_density(aes(fill = plasticityCategory), alpha = 0.5) +
-  theme_classic() +
-  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
-                      type = colordf[colordf$scheme == "plasticity",]$type) +
-  xlab("Mean Expression (log2)")
-p2 <- ggplot(plotdf, aes(x = log2(var_expr_cer))) + 
-  geom_density(aes(fill = plasticityCategory), alpha = 0.5) +
-  theme_classic() +
-  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
-                      type = colordf[colordf$scheme == "plasticity",]$type) +
-  xlab("Var Expression (log2)")
-annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
-                          legend = "right", ncol = 1, nrow = 2), top = "Scer")
-# Var/Mean by plasticity category, Spar
-p1 <- ggplot(plotdf, aes(x = log2(mean_expr_par))) + 
-  geom_density(aes(fill = plasticityCategory), alpha = 0.5) +
-  theme_classic() +
-  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
-                      type = colordf[colordf$scheme == "plasticity",]$type) +
-  xlab("Mean Expression (log2)")
-p2 <- ggplot(plotdf, aes(x = log2(var_expr_par))) + 
-  geom_density(aes(fill = plasticityCategory), alpha = 0.5) +
-  theme_classic()  +
-  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
-                      type = colordf[colordf$scheme == "plasticity",]$type) +
-  xlab("Var Expression (log2)")
-annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
-                          legend = "right", ncol = 1, nrow = 2), top = "Spar")
+```{r bootstrap-regulators-separate-env-alt, cache=TRUE}
+# regulators
+mapdf <- regdf |> dplyr::select(regulator, environment) |> 
+  filter(environment!= "YPD") |> 
+  dplyr::rename(c("gene_name"="regulator")) |> 
+  drop_na() |> 
+  unique() # regulators have multiple rows, one for each target gene
+plotdf <- purrr::map(c(1:nrow(mapdf)), \(i) {
+  m <- mapdf[i,]
+  finaldf |> filter(gene_name == m$gene_name & 
+                      experiment != m$environment) |> 
+    dplyr::select(gene_name, experiment, plasticity)
+}) |> purrr::reduce(.f = bind_rows) |> 
+  dplyr::rename("environment"="experiment") |> 
+  unique() # regulators with multiple home environments will have all 
+# five of their alternative environments recorded in duplicate
+observed_pct_div_plast <- plotdf |> group_by(environment) |> 
+  summarise(pct_div_plast = sum(plasticity == "diverged")/n())
+# collecting our null distribution list for each environment
+null_pct_diverged_plast_list <- purrr::map(ExperimentNames, \(e) {
+  regulators_e <- plotdf |> filter(environment == e) |> 
+    dplyr::select(gene_name) |> pull()
+  purrr::map(c(1:10000), \(i) {
+  nulldf <- finaldf |> filter(experiment == e & 
+                                    !(gene_name %in% plotdf$gene_name)) |> 
+    slice_sample(n = length(regulators_e), replace = TRUE)
+  pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
+  return(pct_null)
+  }) |> unlist() # numeric vector of length 10,000 for each environment
+}) # list of 6 vectors, one for each environment
+names(null_pct_diverged_plast_list) <- ExperimentNames
+# 6 plots, one for each environment
+plotlist_regulators <- purrr::map(ExperimentNames, \(e) {
+  null_pct_diverged_plast <- null_pct_diverged_plast_list[[e]]
+  obs_e <- observed_pct_div_plast |> filter(environment == e) |> 
+    dplyr::select(pct_div_plast) |> pull()
+  p <- plotResamplingTestOn0to1Scale(.observed_value = obs_e, 
+                                      .null_vector = null_pct_diverged_plast, 
+                                      .observed_color = c("red") , 
+                                      .xlab = "proportion of genes with 
+                                      diverged plasticity", 
+                                      .testAboveNull = FALSE, .xlim = NULL,
+                                      .histogram_or_density = "histogram") +
+    ggtitle(e)
+  return(p)
+})
+ggarrange(plotlist = plotlist_regulators, nrow = 3, ncol = 2)
+```
+
+Targets:
+
+```{r bootstrap-targets-separate-env-alt, cache=TRUE}
+# targets
+mapdf <- regdf |> dplyr::select(target, environment) |> 
+  filter(environment!= "YPD") |> 
+  dplyr::rename(c("gene_name"="target")) |> 
+  drop_na() |> 
+  unique()
+plotdf <- purrr::map(c(1:nrow(mapdf)), \(i) {
+  m <- mapdf[i,]
+  finaldf |> filter(gene_name == m$gene_name & 
+                      experiment != m$environment) |> 
+    dplyr::select(gene_name, experiment, plasticity)
+}) |> purrr::reduce(.f = bind_rows) |> 
+  dplyr::rename("environment"="experiment") |> 
+  unique()
+observed_pct_div_plast <- plotdf |> group_by(environment) |> 
+  summarise(pct_div_plast = sum(plasticity == "diverged")/n())
+# collecting our null distribution list for each environment
+null_pct_diverged_plast_list <- purrr::map(ExperimentNames, \(e) {
+  targets_e <- plotdf |> filter(environment == e) |> 
+    dplyr::select(gene_name) |> pull()
+  purrr::map(c(1:10000), \(i) {
+  nulldf <- finaldf |> filter(experiment == e & 
+                                !(gene_name %in% plotdf$gene_name)) |> 
+    slice_sample(n = length(targets_e), replace = TRUE)
+  pct_null <- sum(nulldf$plasticity == "diverged", na.rm = TRUE)/nrow(nulldf)
+  return(pct_null)
+  }) |> unlist() # numeric vector of length 10,000 for each environment
+}) # list of 6 vectors, one for each environment
+names(null_pct_diverged_plast_list) <- ExperimentNames
+# 6 plots, one for each environment
+plotlist_targets <- purrr::map(ExperimentNames, \(e) {
+  null_pct_diverged_plast <- null_pct_diverged_plast_list[[e]]
+  obs_e <- observed_pct_div_plast |> filter(environment == e) |> 
+    dplyr::select(pct_div_plast) |> pull()
+  p <- plotResamplingTestOn0to1Scale(.observed_value = obs_e, 
+                                      .null_vector = null_pct_diverged_plast, 
+                                      .observed_color = c("green") , 
+                                      .xlab = "proportion of genes with 
+                                      diverged plasticity", 
+                                      .testAboveNull = FALSE, .xlim = NULL,
+                                      .histogram_or_density = "histogram") +
+    ggtitle(e)
+  return(p)
+})
+ggarrange(plotlist = plotlist_targets, nrow = 3, ncol = 2)
+```
+
+```{r}
+ggarrange(plotlist = c(plotlist_regulators, plotlist_targets),
+          nrow = 2, ncol = 6)
+```
+Saving to PDF:
+
+```{r bootstrap-separate-env-alt-pdf}
+# ggsave("paper_figures/Yeastract/bootstrap_alt_separate_e.pdf", width = 12, height = 3.5)
 ```
 
 ### Fisher exact tests of regulatory interactions being enriched among conserved plasticity target genes
@@ -1454,6 +1446,226 @@ ggarrange(p_FLR1, p_YOR1, p_SEC28, p_PTR2, p_TPO1, p_PDR12,
 ```
 
 ## Archive below:
+### Are regulators diverging in expression level associated with more divergent regulons?
+
+"Volcano"-style plots of log2 fold change on the x axis and percent of regulon that is divergent on the y axis (where p-value would normally go)
+
+There are 4 plots total: does <parent or hybrid> expression level divergence predict regulon <plasticity or level> divergence?
+
+```{r volcano-parent-level-vs-target-plasticity}
+plotdf <- regdf |> filter(environment != "YPD") |> 
+  full_join(y = finaldf,
+            by = c("target"="gene_name",
+                   "environment"="experiment")) |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(n_div_plast = sum(plasticity == "diverged",
+                              na.rm = TRUE),
+            n = n(),
+            pct_div_plast = n_div_plast/n,
+            mean_cor = mean(cor_parents, na.rm = TRUE)) |> 
+  filter(n >= 20) |> 
+  left_join(y = dplyr::select(finaldf, gene_name, 
+                              experiment, effect_size_species),
+            by = c("regulator"="gene_name",
+                   "environment"="experiment"))
+# R-squarred
+test <- lm(mean_cor ~ effect_size_species, data = plotdf)
+summary(test)
+# plot
+p_parent_plast <- ggplot(plotdf, aes(x = effect_size_species, y = mean_cor)) +
+  geom_point(aes(color = environment)) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type =  colordf$type[colordf$scheme == "experiment"]) +
+  geom_text(aes(label = regulator_common), 
+            check_overlap = TRUE, nudge_y = 0.025) +
+  #geom_vline(xintercept = c(-log2(1.5), log2(1.5))) +
+  geom_smooth(method = "lm") +
+  theme_classic() +
+  #theme(legend.position = "none") +
+  xlab("log2 fold change of regulator\nbetween species") +
+  ylab("average expression correlation of\ntarget genes between species") +
+  ggtitle(paste0("R-squarred = ",
+                            round(summary(test)$r.squared, digits = 2)))
+p_parent_plast
+```
+
+```{r volcano-hybrid-level-vs-target-plasticity}
+plotdf <- regdf |> filter(environment != "YPD") |> 
+  full_join(y = finaldf,
+            by = c("target"="gene_name",
+                   "environment"="experiment")) |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(n_div_plast = sum(plasticity == "diverged",
+                              na.rm = TRUE),
+            n = n(),
+            pct_div_plast = n_div_plast/n,
+            mean_cor = mean(cor_parents, na.rm = TRUE)) |> 
+  filter(n >= 20) |> 
+  left_join(y = dplyr::select(finaldf, gene_name, 
+                              experiment, effect_size_allele),
+            by = c("regulator"="gene_name",
+                   "environment"="experiment"))
+# R-squarred
+test <- lm(mean_cor ~ effect_size_allele, data = plotdf)
+summary(test)
+# plot
+p_hybrid_plast <- ggplot(plotdf, aes(x = effect_size_allele, y = mean_cor)) +
+  geom_point(aes(color = environment)) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type =  colordf$type[colordf$scheme == "experiment"]) +
+  geom_text(aes(label = regulator_common), 
+            check_overlap = TRUE, nudge_y = 0.025) +
+  geom_smooth(method = "lm") +
+  #geom_vline(xintercept = c(-log2(1.5), log2(1.5))) +
+  theme_classic() +
+  #theme(legend.position = "none") +
+  xlab("log2 fold change of regulator\nbetween hybrid alleles") +
+  ylab("average expression correlation of\ntarget genes between species") +
+  ggtitle(paste0("R-squarred = ",
+                            round(summary(test)$r.squared, digits = 2)))
+p_hybrid_plast
+```
+
+```{r volcano-parent-level-vs-target-level}
+plotdf <- regdf |> filter(environment != "YPD") |> 
+  inner_join(y = finaldf,
+              by = c("target"="gene_name",
+                     "environment"="experiment")) |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(n_div_level = sum(level == "diverged",
+                              na.rm = TRUE),
+            n = n(),
+            mean_log2fc = mean(effect_size_species, na.rm = TRUE),
+            pct_div_level = n_div_level/n) |> 
+  filter(n >= 20) |> 
+  left_join(y = dplyr::select(finaldf, gene_name, 
+                              experiment, effect_size_species),
+            by = c("regulator"="gene_name",
+                   "environment"="experiment"))
+# lm test for R^2 value
+test <- lm(mean_log2fc ~ effect_size_species, data = plotdf)
+summary(test)
+# plot
+p_parent_lev <- ggplot(plotdf, aes(x = effect_size_species, y = mean_log2fc)) +
+  geom_point(aes(color = environment)) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type =  colordf$type[colordf$scheme == "experiment"]) +
+  geom_text(aes(label = regulator_common), 
+            check_overlap = TRUE, nudge_y = 0.025) +
+  ggtitle(paste0("R-squarred = ",
+                 round(summary(test)$r.squared, digits = 2))) +
+  theme_classic() +
+  #theme(legend.position = "none") +
+  xlab("log2 fold change of regulator\nbetween species") +
+  ylab("average log2 fold change of\ntarget genes between species") +
+  geom_smooth(method = "lm")
+p_parent_lev
+```
+
+```{r volcano-hybrid-level-vs-target-level}
+plotdf <- regdf |> filter(environment != "YPD") |> 
+  inner_join(y = finaldf,
+              by = c("target"="gene_name",
+                     "environment"="experiment")) |> 
+  group_by(regulator, regulator_common, environment) |> 
+  summarise(n_div_level = sum(level == "diverged",
+                              na.rm = TRUE),
+            n = n(),
+            mean_log2fc = mean(effect_size_allele, na.rm = TRUE),
+            pct_div_level = n_div_level/n) |> 
+  filter(n >= 20) |> 
+  left_join(y = dplyr::select(finaldf, gene_name, 
+                              experiment, effect_size_allele),
+            by = c("regulator"="gene_name",
+                   "environment"="experiment"))
+# lm test for R^2 value
+test <- lm(mean_log2fc ~ effect_size_allele, data = plotdf)
+summary(test)
+# plot
+p_hybrid_lev <- ggplot(plotdf, aes(x = effect_size_allele, y = mean_log2fc)) +
+  geom_point(aes(color = environment)) +
+  scale_color_discrete(limits = colordf$limits[colordf$scheme == "experiment"],
+                       type =  colordf$type[colordf$scheme == "experiment"]) +
+  geom_text(aes(label = regulator_common), 
+            check_overlap = TRUE, nudge_y = 0.025) +
+  ggtitle(paste0("R-squarred = ",
+                 round(summary(test)$r.squared, digits = 2))) +
+  theme_classic() +
+  xlab("log2 fold change of regulator\nbetween hybrid alleles") +
+  ylab("average log2 fold change of\ntarget genes between species") +
+  geom_smooth(method = "lm")
+p_hybrid_lev
+```
+
+All 4 plots:
+```{r volcano-4plots}
+p <- ggarrange(p_parent_lev, p_hybrid_lev,
+               p_parent_plast, p_hybrid_plast,
+               nrow = 2, ncol = 2, common.legend = TRUE,
+               legend = "bottom")
+p
+pdf("paper_figures/Supplement/regulator_level.pdf",
+    width = 7, height = 7)
+p
+dev.off()
+```
+
+### Maybe supplemental figure: reversals have similar expression variance to conserved plasticity genes
+
+```{r variance}
+# might be needed as a supplemental figure to point out that plasticity reveresals
+# and conserved plasticity have the highest expression variation 
+# across both species and environments
+load("data_files/Cleaned_Counts.RData")
+cer_counts <- counts[, sample_info$organism == "cer" &
+                       sample_info$experiment == "LowN"]
+par_counts <- counts[, sample_info$organism == "par" &
+                       sample_info$experiment == "LowN"]
+plotdf <- bind_rows(x = tibble(gene_name = rownames(cer_counts),
+                               mean_expr = rowMeans(cer_counts),
+                               var_expr = rowVars(cer_counts),
+                               organism = "cer"),
+                    y = tibble(gene_name = rownames(par_counts),
+                               mean_expr = rowMeans(par_counts),
+                               var_expr = rowVars(par_counts),
+                               organism = "par")) |> 
+  pivot_wider(id_cols = "gene_name",
+              names_from = "organism",
+              values_from = c("mean_expr", "var_expr")) |> 
+  right_join(finaldf, by = c("gene_name"))
+plotdf$plasticityCategory <- map2(plotdf$cer, plotdf$par, getPlasticityGroup) |> unlist()
+# Var/Mean by plasticity category, Scer
+p1 <- ggplot(plotdf, aes(x = log2(mean_expr_cer))) + 
+  geom_density(aes(fill = plasticityCategory), alpha = 0.5) +
+  theme_classic() +
+  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
+                      type = colordf[colordf$scheme == "plasticity",]$type) +
+  xlab("Mean Expression (log2)")
+p2 <- ggplot(plotdf, aes(x = log2(var_expr_cer))) + 
+  geom_density(aes(fill = plasticityCategory), alpha = 0.5) +
+  theme_classic() +
+  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
+                      type = colordf[colordf$scheme == "plasticity",]$type) +
+  xlab("Var Expression (log2)")
+annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
+                          legend = "right", ncol = 1, nrow = 2), top = "Scer")
+# Var/Mean by plasticity category, Spar
+p1 <- ggplot(plotdf, aes(x = log2(mean_expr_par))) + 
+  geom_density(aes(fill = plasticityCategory), alpha = 0.5) +
+  theme_classic() +
+  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
+                      type = colordf[colordf$scheme == "plasticity",]$type) +
+  xlab("Mean Expression (log2)")
+p2 <- ggplot(plotdf, aes(x = log2(var_expr_par))) + 
+  geom_density(aes(fill = plasticityCategory), alpha = 0.5) +
+  theme_classic()  +
+  scale_fill_discrete(limits = colordf[colordf$scheme == "plasticity",]$limits,
+                      type = colordf[colordf$scheme == "plasticity",]$type) +
+  xlab("Var Expression (log2)")
+annotate_figure(ggarrange(p1, p2, common.legend = TRUE,
+                          legend = "right", ncol = 1, nrow = 2), top = "Spar")
+```
+
 ### Ptr2 regulators in HAP4
 
 ```{r ptr2-regulators, warning=FALSE}

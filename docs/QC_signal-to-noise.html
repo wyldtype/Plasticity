@@ -372,10 +372,10 @@ finaldf_SNR30pct &lt;- finaldf
 rm(finaldf)
 snrdf &lt;- read_csv(&quot;data_files/QC_signal-to-noise.csv&quot;)</code></pre>
 <pre><code>## Rows: 53294 Columns: 9
-## ── Column specification ───────────────────────────────────
+## ── Column specification ─────────────────────────────────────────────────────────
 ## Delimiter: &quot;,&quot;
 ## chr (3): gene_ID, experiment, species
-## dbl (6): SNR_1, SNR_0.1, SNR_0.5, SNR_30pct, SNR_5pct, ...
+## dbl (6): SNR_1, SNR_0.1, SNR_0.5, SNR_30pct, SNR_5pct, SNR_10pct
 ## 
 ## ℹ Use `spec()` to retrieve the full column specification for this data.
 ## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
@@ -512,30 +512,23 @@ plotdf_counts &lt;- plotdf |&gt;
   summarise(ngenes = n()) |&gt; 
   ungroup()</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by experiment,
-##   plasticity_category_disp3, and
+## ℹ Summaries were computed grouped by experiment, plasticity_category_disp3, and
 ##   plasticity_category_SNR30pct.
-## ℹ Output is grouped by experiment and
-##   plasticity_category_disp3.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(experiment,
-##   plasticity_category_disp3,
-##   plasticity_category_SNR30pct))` for per-operation
-##   grouping (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Output is grouped by experiment and plasticity_category_disp3.
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(experiment, plasticity_category_disp3,
+##   plasticity_category_SNR30pct))` for per-operation grouping
+##   (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>category_counts &lt;- plotdf |&gt; 
   group_by(experiment, plasticity_category_disp3) |&gt; 
   summarise(ncategory = n()) |&gt; 
   ungroup()</code></pre>
 <pre><code>## `summarise()` has regrouped the output.
-## ℹ Summaries were computed grouped by experiment and
-##   plasticity_category_disp3.
+## ℹ Summaries were computed grouped by experiment and plasticity_category_disp3.
 ## ℹ Output is grouped by experiment.
-## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this
-##   message.
-## ℹ Use `summarise(.by = c(experiment,
-##   plasticity_category_disp3))` for per-operation grouping
-##   (`?dplyr::dplyr_by`) instead.</code></pre>
+## ℹ Use `summarise(.groups = &quot;drop_last&quot;)` to silence this message.
+## ℹ Use `summarise(.by = c(experiment, plasticity_category_disp3))` for
+##   per-operation grouping (`?dplyr::dplyr_by`) instead.</code></pre>
 <pre class="r"><code>plotdf_counts &lt;- left_join(plotdf_counts, category_counts,
                            by = c(&quot;plasticity_category_disp3&quot;, &quot;experiment&quot;),
                            relationship = &quot;many-to-one&quot;)
@@ -553,15 +546,12 @@ is_alluvia_form(plotdf_counts, silent = TRUE)</code></pre>
   theme_classic() +
   ylab(&quot;number of genes&quot;)
 p</code></pre>
-<pre><code>## Warning in to_lodes_form(data = data, axes = axis_ind,
-## discern = params$discern): Some strata appear at multiple
-## axes.
-## Warning in to_lodes_form(data = data, axes = axis_ind,
-## discern = params$discern): Some strata appear at multiple
-## axes.
-## Warning in to_lodes_form(data = data, axes = axis_ind,
-## discern = params$discern): Some strata appear at multiple
-## axes.</code></pre>
+<pre><code>## Warning in to_lodes_form(data = data, axes = axis_ind, discern =
+## params$discern): Some strata appear at multiple axes.
+## Warning in to_lodes_form(data = data, axes = axis_ind, discern =
+## params$discern): Some strata appear at multiple axes.
+## Warning in to_lodes_form(data = data, axes = axis_ind, discern =
+## params$discern): Some strata appear at multiple axes.</code></pre>
 <p><img src="QC_signal-to-noise_files/figure-html/alluvial-1.png" alt="" width="672" /></p>
 
 
