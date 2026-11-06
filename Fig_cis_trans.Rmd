@@ -252,6 +252,112 @@ p <- ggplot(plotdf_counts, aes(y = ngenes, axis1 = parents, axis2 = hybrids)) +
 p
 ```
 
+### TODO: Cross-species test for paucity of cis divergence in plasticity
+
+Counts of number of Hyc-Scer Hyp-Spar plasticity divergers
+versus Hyc-Spar Hyp-Scer (cross-species) divergers.
+
+```{r}
+finaldf |> dplyr::select(gene_name, experiment, 
+                         cer, par, hyc, hyp) |> 
+  dplyr::filter(cer != par) |> 
+  group_by(experiment) |> 
+  summarise(nCis = sum(cer == hyc & par == hyp),
+            nTrans = sum(hyc == hyp),
+            nCross = sum(cer == hyp & par == hyc))
+```
+
+
+Assessing whether hybrid plasticity patterns are better predicted by correct parent or cross parent
+
+Model version:
+
+```{r}
+# TODO: 
+library(infer)
+library(tidymodels)
+tidymodels_prefer()
+plasticity_levels <- 
+  outer(c(0, 1, 2), c(0, 1, 2),
+        FUN = paste0) |> as.character()
+moddf <- finaldf |> dplyr::select(gene_name, experiment, 
+                                  cer, par, hyc, hyp) |> 
+  dplyr::filter(cer != par) |> 
+  mutate(
+    parents = factor(paste0(cer, par),
+                             levels = plasticity_levels) |> 
+      droplevels(),
+    cer = factor(cer,
+                 levels = c("0", "1", "2")),
+    par = factor(par,
+                 levels = c("0", "1", "2")),
+    hyc = factor(hyc,
+                 levels = c("0", "1", "2")),
+    hyp = factor(hyp,
+                 levels = c("0", "1", "2")), 
+    experiment = factor(experiment,
+                        levels = ExperimentNames)
+  )
+tree_split <- initial_split(data = moddf, 
+                          strata = experiment,
+                          prop = 0.7)
+tree_train <- training(tree_split)
+tree_test <- testing(tree_split)
+# fitting the model with the correct parent
+tree_fit <- decision_tree(cost_complexity = 0) |> # 0 forces 9 categories in the decision tree
+  set_engine("rpart") |>
+  set_mode("classification") |> 
+  fit(data = tree_train,
+      formula = parents ~ hyc + hyp + experiment)
+# visualizing decision tree
+tree_obj <- extract_fit_engine(tree_fit)
+pdf(file = "paper_figures/Supplement/decision_tree.pdf",
+    width = 50, height = 4)
+par(mar = c(2, 2, 2, 2))
+plot(tree_obj, uniform = TRUE, margin = 0.1)
+text(tree_obj, use.n = TRUE, cex = 0.8)
+dev.off()
+
+# first predicting with the correct parent
+tree_pred <- predict(tree_fit, new_data = tree_test) |> 
+  bind_cols(tree_test)
+sum(tree_pred$.pred_class == tree_pred$parents)
+sum(tree_pred$.pred_class != tree_pred$parents)
+# switching cer and par values for the "cross parent" control
+tree_test_cross <- tree_test
+tree_test_cross$hyc <- tree_test$hyp
+tree_test_cross$hyp <- tree_test$hyc
+tree_pred_cross <- predict(tree_fit, 
+                         new_data = tree_test_cross) |> 
+  bind_cols(tree_test)
+sum(tree_pred_cross$.pred_class == tree_pred$parents)
+sum(tree_pred_cross$.pred_class != tree_pred$parents)
+
+# comparing predictions
+preddf <- left_join(
+  x = dplyr::rename(tree_pred,
+                    c(".pred"=".pred_class",
+                      "hyc_real"="hyc",
+                      "hyp_real"="hyp")),
+  y =  dplyr::rename(tree_pred_cross, 
+                     c(".pred_cross"=".pred_class",
+                       "hyc_cross"="hyc",
+                       "hyp_cross"="hyp")),
+  by = c("gene_name", "experiment", "parents",
+         "cer", "par")
+  )
+preddf |> filter(.pred == parents &
+                   .pred_cross != parents) |> 
+  dplyr::select(parents) |> table() |> 
+  sort(decreasing = TRUE)
+preddf |> filter(.pred != parents &
+                   .pred_cross == parents) |> 
+  dplyr::select(parents) |> table() |> 
+  sort(decreasing = TRUE)
+```
+
+### Random example expression
+
 Plotting average expression for random cis group and random trans group in each environment, provided parents are 1 or 2
 
 ```{r cis-trans-avg-expr}
