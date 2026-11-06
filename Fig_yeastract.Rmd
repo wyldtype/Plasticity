@@ -744,6 +744,261 @@ plotHomeAndAltEnvironments(.tf_common = test_tf, .e = test_home, .e2 = test_alt,
 
 In the three examples above, we see that the regulons appear to have more conserved plasticity than their regulators, especially in the home environment. How common is this?
 
+Paired prop diff tests rather than pct divergent plasticity
+
+```{r}
+set.seed(23)
+min_targets <- 10
+n_iter <- 1000
+```
+
+### I. Target vs background in home environment, conserved regulator
+For each regulon with at least `r `min_targets` targets of a conserved regulator in the home environment, prop of target genes with divergent plasticity minus prop of random genes with divergent plasticity in the home environment
+
+```{r}
+regulator_set <- regdf |> filter(environment != "YPD") |> 
+  group_by(regulator, environment) |> 
+  summarise(nTarget = length(target)) |> 
+  filter(nTarget > min_targets) |> 
+  dplyr::select(regulator, environment) |> unique() |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("regulator"="gene_name", "environment"="experiment")) |> 
+  filter(plasticity == "conserved")
+plotdf <- purrr::map2(regulator_set$regulator, regulator_set$environment, \(r, e) {
+  # target
+  target_set <- regdf |> filter(regulator == r & environment == e) |> 
+    dplyr::select(target) |> pull()
+  target_plast_status <- finaldf |> 
+    filter(experiment == e & gene_name %in% target_set) |> 
+    dplyr::select(plasticity) |> pull()
+  prop_target <- sum(target_plast_status == "diverged")/length(target_plast_status)
+  # background
+  background_set <- finaldf |> filter(experiment == e) |> dplyr::select(gene_name) |> 
+    pull() |> setdiff(y = target_set)
+  prop_background_samples <- purrr::map(c(1:n_iter), \(i) {
+    background_set_i <- background_set |> sample(size = length(target_set),
+                                                 replace = FALSE)
+    background_plast_status_i <- finaldf |> 
+    filter(experiment == e & gene_name %in% background_set_i) |> 
+    dplyr::select(plasticity) |> pull()
+    prop_background_i <- sum(background_plast_status_i == "diverged")/length(background_plast_status_i)
+    return(prop_background_i)
+  }) |> unlist()
+  prop_background <- sum(prop_background_samples)/n_iter
+  return(tibble(regulator = r,
+                environment = e, 
+                prop_obs = prop_target, 
+                prop_null = prop_background))
+}) |> purrr::reduce(.f = bind_rows)
+n_extreme <- sum(plotdf$prop_obs < plotdf$prop_null)
+prop_extreme <- n_extreme/nrow(plotdf)
+ggplot(plotdf, aes(x = prop_obs - prop_null)) +
+  geom_histogram() +
+  xlab("difference in proportion of diverged plasticity\ntargets - background") +
+  ggtitle(paste("Home environment, conserved regulator, n = ", nrow(regulator_set),
+                "\nproportion less than 0:", n_extreme, "/", nrow(plotdf), "=", round(prop_extreme, digits = 3)))
+```
+### II. Target vs background in home environment, diverged regulator
+For each regulon with at least `r `min_targets` targets of a conserved regulator in the home environment, prop of target genes with divergent plasticity minus prop of random genes with divergent plasticity in the home environment
+
+```{r}
+regulator_set <- regdf |> filter(environment != "YPD") |> 
+  group_by(regulator, environment) |> 
+  summarise(nTarget = length(target)) |> 
+  filter(nTarget > min_targets) |> 
+  dplyr::select(regulator, environment) |> unique() |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("regulator"="gene_name", "environment"="experiment")) |> 
+  filter(plasticity == "diverged")
+plotdf <- purrr::map2(regulator_set$regulator, regulator_set$environment, \(r, e) {
+  # target
+  target_set <- regdf |> filter(regulator == r & environment == e) |> 
+    dplyr::select(target) |> pull()
+  target_plast_status <- finaldf |> 
+    filter(experiment == e & gene_name %in% target_set) |> 
+    dplyr::select(plasticity) |> pull()
+  prop_target <- sum(target_plast_status == "diverged")/length(target_plast_status)
+  # background
+  background_set <- finaldf |> filter(experiment == e) |> dplyr::select(gene_name) |> 
+    pull() |> setdiff(y = target_set)
+  prop_background_samples <- purrr::map(c(1:n_iter), \(i) {
+    background_set_i <- background_set |> 
+      sample(size = length(target_set),
+             replace = FALSE)
+    background_plast_status_i <- finaldf |> 
+    filter(experiment == e & gene_name %in% background_set_i) |> 
+    dplyr::select(plasticity) |> pull()
+    prop_background_i <- sum(background_plast_status_i == "diverged")/length(background_plast_status_i)
+    return(prop_background_i)
+  }) |> unlist()
+  prop_background <- sum(prop_background_samples)/n_iter
+  return(tibble(regulator = r,
+                environment = e, 
+                prop_obs = prop_target, 
+                prop_null = prop_background))
+}) |> purrr::reduce(.f = bind_rows)
+n_extreme <- sum(plotdf$prop_obs < plotdf$prop_null)
+prop_extreme <- n_extreme/nrow(plotdf)
+ggplot(plotdf, aes(x = prop_obs - prop_null)) +
+  geom_histogram() +
+  xlab("difference in proportion of diverged plasticity\ntargets - background") +
+  ggtitle(paste("Home environment, diverged regulator, n = ", nrow(regulator_set),
+                "\nproportion less than 0:", n_extreme, "/", nrow(plotdf), "=", round(prop_extreme, digits = 3)))
+```
+
+### III. Target home vs Target alternate, conserved regulator
+For each regulon with at least `r min_targets` targets of a conserved regulator in the home environment, prop of target genes with divergent plasticity minus prop of random genes with divergent plasticity in the home environment
+
+```{r}
+regulator_set <- regdf |> filter(environment != "YPD") |> 
+  group_by(regulator, environment) |> 
+  summarise(nTarget = length(target)) |> 
+  filter(nTarget > min_targets) |> 
+  dplyr::select(regulator, environment) |> unique() |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("regulator"="gene_name", "environment"="experiment")) |> 
+  filter(plasticity == "conserved")
+plotdf <- purrr::map2(
+  regulator_set$regulator, 
+  regulator_set$environment, 
+  \(r, e) {
+    # home
+    home_set <- regdf |> filter(regulator == r & environment == e) |> 
+      dplyr::select(target) |> pull()
+    home_plast_status <- finaldf |> 
+      filter(experiment == e & gene_name %in% home_set) |> 
+      dplyr::select(plasticity) |> pull()
+    prop_home <- sum(home_plast_status == "diverged")/length(home_plast_status)
+    # alt
+    alt_plast_status <- finaldf |> 
+      filter(gene_name %in% home_set & experiment != e) |> 
+      dplyr::select(plasticity) |> pull()
+    prop_alt <- sum(alt_plast_status == "diverged")/length(alt_plast_status)
+    return(tibble(regulator = r, environment = e, 
+                  prop_obs = prop_home, prop_null = prop_alt))
+    }) |> purrr::reduce(.f = bind_rows)
+prop_extreme <- sum(plotdf$prop_obs < plotdf$prop_null)/nrow(plotdf)
+ggplot(plotdf, aes(x = prop_obs - prop_null)) +
+  geom_histogram() +
+  xlab("difference in proportion of diverged plasticity\ntargets home - targets alt") +
+  ggtitle(paste("Home vs alternative environment, 
+                conserved regulator, n = ", nrow(regulator_set),
+                "\nproportion less than 0 = ", round(prop_extreme, digits = 3)))
+```
+### IV. Target home vs Target alternate, diverged regulator
+For each regulon with at least `r min_targets` targets of a conserved regulator in the home environment, prop of target genes with divergent plasticity minus prop of random genes with divergent plasticity in the home environment
+
+```{r}
+regulator_set <- regdf |> filter(environment != "YPD") |> 
+  group_by(regulator, environment) |> 
+  summarise(nTarget = length(target)) |> 
+  filter(nTarget > min_targets) |> 
+  dplyr::select(regulator, environment) |> unique() |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("regulator"="gene_name", "environment"="experiment")) |> 
+  filter(plasticity == "diverged")
+plotdf <- purrr::map2(regulator_set$regulator, regulator_set$environment, \(r, e) {
+  home_set <- regdf |> filter(regulator == r & environment == e) |> 
+    dplyr::select(target) |> pull()
+  home_plast_status <- finaldf |> 
+    filter(experiment == e & gene_name %in% home_set) |> 
+    dplyr::select(plasticity) |> pull()
+  alt_plast_status <- finaldf |> filter(gene_name %in% home_set & experiment != e) |> 
+    dplyr::select(plasticity) |> pull()
+  prop_home <- sum(home_plast_status == "diverged")/length(home_plast_status)
+  prop_alt <- sum(alt_plast_status == "diverged")/length(alt_plast_status)
+  return(tibble(regulator = r, environment = e, 
+                prop_obs = prop_home, prop_null = prop_alt))
+}) |> purrr::reduce(.f = bind_rows)
+prop_extreme <- sum(plotdf$prop_obs < plotdf$prop_null)/nrow(plotdf)
+ggplot(plotdf, aes(x = prop_obs - prop_null)) +
+  geom_histogram() +
+  xlab("difference in proportion of diverged plasticity\ntargets home - targets alt") +
+  ggtitle(paste("Home vs alternative environment, diverged regulator, n = ", nrow(regulator_set),
+                "\nproportion less than 0 = ", round(prop_extreme, digits = 3)))
+```
+### V. Target vs background in home environment, any regulator
+For each regulon with at least `r `min_targets` targets of a conserved regulator in the home environment, prop of target genes with divergent plasticity minus prop of random genes with divergent plasticity in the home environment
+
+```{r}
+regulator_set <- regdf |> filter(environment != "YPD") |> 
+  group_by(regulator, environment) |> 
+  summarise(nTarget = length(target)) |> 
+  filter(nTarget > min_targets) |> 
+  dplyr::select(regulator, environment) |> unique() |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("regulator"="gene_name", "environment"="experiment"))
+plotdf <- purrr::map2(regulator_set$regulator, regulator_set$environment, \(r, e) {
+  # target
+  target_set <- regdf |> filter(regulator == r & environment == e) |> 
+    dplyr::select(target) |> pull()
+  target_plast_status <- finaldf |> 
+    filter(experiment == e & gene_name %in% target_set) |> 
+    dplyr::select(plasticity) |> pull()
+  prop_target <- sum(target_plast_status == "diverged")/length(target_plast_status)
+  # background
+  background_set <- finaldf |> filter(experiment == e) |> dplyr::select(gene_name) |> 
+    pull() |> setdiff(y = target_set)
+  prop_background_samples <- purrr::map(c(1:n_iter), \(i) {
+    background_set_i <- background_set |> 
+      sample(size = length(target_set),
+             replace = FALSE)
+    background_plast_status_i <- finaldf |> 
+    filter(experiment == e & gene_name %in% background_set_i) |> 
+    dplyr::select(plasticity) |> pull()
+    prop_background_i <- sum(background_plast_status_i == "diverged")/length(background_plast_status_i)
+    return(prop_background_i)
+  }) |> unlist()
+  prop_background <- sum(prop_background_samples)/n_iter
+  return(tibble(regulator = r,
+                environment = e, 
+                prop_obs = prop_target, 
+                prop_null = prop_background))
+}) |> purrr::reduce(.f = bind_rows)
+prop_extreme <- sum(plotdf$prop_obs < plotdf$prop_null)/nrow(plotdf)
+ggplot(plotdf, aes(x = prop_obs - prop_null)) +
+  geom_histogram() +
+  xlab("difference in proportion of diverged plasticity\ntargets - background") +
+  ggtitle(paste("Home environment, n = ", nrow(regulator_set),
+                "\nproportion less than 0 = ", round(prop_extreme, digits = 3)))
+```
+
+### V. Target home vs Target alternate, any regulator
+For each regulon with at least `r min_targets` targets of a conserved regulator in the home environment, prop of target genes with divergent plasticity minus prop of random genes with divergent plasticity in the home environment
+
+```{r}
+regulator_set <- regdf |> filter(environment != "YPD") |> 
+  group_by(regulator, environment) |> 
+  summarise(nTarget = length(target)) |> 
+  filter(nTarget > min_targets) |> 
+  dplyr::select(regulator, environment) |> unique() |> 
+  left_join(dplyr::select(finaldf, gene_name, experiment, plasticity),
+            by = c("regulator"="gene_name", "environment"="experiment"))
+plotdf <- purrr::map2(regulator_set$regulator, regulator_set$environment, \(r, e) {
+  home_set <- regdf |> filter(regulator == r & environment == e) |> 
+    dplyr::select(target) |> pull()
+  home_plast_status <- finaldf |> 
+    filter(experiment == e & gene_name %in% home_set) |> 
+    dplyr::select(plasticity) |> pull()
+  alt_plast_status <- finaldf |> filter(gene_name %in% home_set & experiment != e) |> 
+    dplyr::select(plasticity) |> pull()
+  prop_home <- sum(home_plast_status == "diverged")/length(home_plast_status)
+  prop_alt <- sum(alt_plast_status == "diverged")/length(alt_plast_status)
+  return(tibble(regulator = r, environment = e, 
+                prop_obs = prop_home, prop_null = prop_alt))
+}) |> purrr::reduce(.f = bind_rows)
+prop_extreme <- (1 + sum(plotdf$prop_obs < plotdf$prop_null))/nrow(plotdf)
+ggplot(plotdf, aes(x = prop_obs - prop_null)) +
+  geom_histogram() +
+  xlab("difference in proportion of diverged plasticity\ntargets home - targets alt") +
+  ggtitle(paste("Home vs alternative environment, n = ", 
+                nrow(regulator_set),
+                "\nproportion less than 0 = ", 
+                round(prop_extreme, digits = 3)))
+```
+
+## Bootstrap previous version that doesn't directly test home vs alternative enrichment of plasticity conservation relative to background non-target genes
+
 ```{r regulator-target-plasticity-bootstrap, cache=TRUE}
 plotdf <- regdf |> dplyr::select(regulator, target, environment) |> 
   pivot_longer(cols = c("regulator", "target"),
