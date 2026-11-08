@@ -1,0 +1,275 @@
+---
+title: 'QC: Parent and Hybrid Combined Clustering'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Repeating the heirarchical clustering by combining parent and hybrid count data to see how much it changes clustering shapes
+
+```{r}
+options(stringsAsFactors = FALSE)
+source("functions_for_figure_scripts.R")
+load("data_files/Clustering_Counts.RData")
+load("data_files/Clustering_Counts_Allele.RData")
+set.seed(23)
+
+# Method:
+# 1) Filter out genes with low var/mean ratio (low dispersion)
+# 2) Correlation cluster remaining genes
+
+# initial values for low var filter applied in corCluster (decided in following section)
+var_thresh <- 3
+```
+
+## Clustering functions and unit tests
+
+Bootstrapping function - runs clustering repeatedly on subsets of full clustering data and labels each gene by the cluster it is most frequently in (will be tested below corCluster)
+
+```{r bootstrapClustering}
+# helper function for corCluster
+# runs nIter clusterings on random subsets of genes 
+# returns the majority vote for each gene's cluster
+bootstrapClustering <- function(.filtered_cts, .nClust,
+                                .nIter = 100, .frac = 0.75) {
+  clusterSubset <- function(.cts) {
+    gene_idxs <- sample(c(1:nrow(.cts)), size = nrow(.cts)*.frac, replace = FALSE)
+    frac_cts <- .cts[gene_idxs,]
+    cor_mat <- frac_cts |> t() |> cor(use = "pairwise.complete.obs")
+    tree <- hclust(as.dist(-cor_mat), method = "average")
+    topBranchHeight <- sort(tree$height, decreasing = TRUE)[.nClust]
+    tree_labels <- cutreeStatic(tree, cutHeight = topBranchHeight,
+                                minSize = 1)
+    output <- rep(NA, nrow(.cts))
+    output[gene_idxs] <- tree_labels
+    return(output)
+  }
+  label_list <- vector(mode = "list", length = .nIter)
+  for (i in c(1:.nIter)) {
+    label_list[[i]] <- clusterSubset(.filtered_cts)
+  }
+  labeldf <- purrr::reduce(label_list, .f = cbind)
+  cat("finished iterations, nGenes x nIter:", dim(labeldf), "\n")
+  rownames(labeldf) <- rownames(.filtered_cts)
+  # aligning labels between iterations
+  matched <- apply(labeldf, 2, matchLabels, reference = labeldf[,1],
+                   ignoreLabels = NA)
+  matched[matched > .nClust] <- NA # matchLabels adds new labels to any gene over pThreshold
+  labels <- apply(matched, 1, \(x) {
+    label <- names(sort(table(x, useNA = "no"), decreasing = TRUE))[1]
+    if (length(label) == 0) {
+      return(NA)
+    }
+    return(as.numeric(label))
+  })
+  return(labels)
+}
+```
+
+Clustering function
+given a count matrix where rows are genes and columns are samples/conditions, returns heirarchical cluster assignments as vector of length nGenes labels follow convention:
+  1) NA = too lowly expressed (mean expression < .min_expr)
+  2) 0 = too low variance (mean expression >= .min_expr & var expression < .min_var)
+  3) 1 - .nClust = clusters of co-varying genes
+
+```{r}
+corCluster <- function(.cts, .nClust, .min_var = var_thresh,
+                       .tree_too = FALSE, .gap_stat = FALSE, 
+                       .just_counts = FALSE, .bootstrapIter = 100,
+                       .bootstrapFrac = 0.75) {
+  gene_idxs <- rownames(.cts)
+  gene_means <- apply(.cts, 1, mean, na.rm = TRUE)
+  gene_disps <- apply(.cts, 1, \(x) {var(x, na.rm = TRUE)/abs(mean(x, na.rm = TRUE))})
+  gene_disps[gene_means == 0] <- 0 # avoiding divide by 0 NaN if gene is fully not expressed
+  # identifying low var and low expr genes
+  low_var_genes <- gene_idxs[gene_disps < .min_var]
+  cat(length(low_var_genes), "low variance genes, assigned to 0 label\n")
+  good_clustering_genes <- setdiff(x = gene_idxs, y = low_var_genes)
+  filtered_cts <- .cts[good_clustering_genes,]
+  if (.gap_stat) {
+    cluster_fun <- function(x, k) {
+      list(cluster = cutree(hclust(d = as.dist(-cor(t(x), use = "pairwise.complete.obs")), 
+                                   method = "average"), 
+                            k = k))}
+    gap_stat <- clusGap(filtered_cts, FUNcluster = cluster_fun, K.max = 10, B = 5, method = "firstmax")
+    return(gap_stat)
+  }
+  if (.just_counts) {
+    return(filtered_cts)
+  }
+  # clustering
+  if (sum(apply(filtered_cts, 1, \(x) {all(is.na(x))})) != 0) { # if any rows (genes) have all NA values, they will cause cor to fail below
+    cat("NA genes in counts matrix, returning counts matrix only\n")
+    return(cor_mat)
+  }
+  if (.bootstrapIter > 1) {
+    tree_labels <- bootstrapClustering(filtered_cts, .nClust = .nClust,
+                        .nIter = .bootstrapIter, .frac = .bootstrapFrac)
+    labeldf <- tibble(gene_name = rownames(filtered_cts),
+                      label = tree_labels) |> 
+      bind_rows(tibble(gene_name = low_var_genes,
+                       label = 0))
+    # making single tree for .treeToo = TRUE
+    cor_mat <- filtered_cts |> t() |> cor(use = "pairwise.complete.obs")
+    tree <- hclust(as.dist(-cor_mat), method = "average")
+  }
+  if (.bootstrapIter <= 1) {
+    cor_mat <- filtered_cts |> t() |> cor(use = "pairwise.complete.obs")
+    tree <- hclust(as.dist(-cor_mat), method = "average") # negative because hclust expects distance mat --- the higher the ij value the LESS similar genes i and j are
+    topBranchHeight <- sort(tree$height, decreasing = TRUE)[.nClust]
+    tree_labels <- cutreeStatic(tree, cutHeight = topBranchHeight,
+                                minSize = 1) # guaranteeing no 0 class
+    cat("cutting tree at height", topBranchHeight, "into", length(base::unique(tree_labels)), "clusters\n")
+    labeldf <- tibble(gene_name = tree$labels,
+                      label = tree_labels) |> 
+      bind_rows(tibble(gene_name = low_var_genes,
+                       label = 0))
+  }
+  # matching each label to each gene
+  # rearranging genes into their original order
+  outdf <- left_join(tibble(gene_name = rownames(.cts)),
+                     labeldf, by = "gene_name")
+  if (!.tree_too) {
+    return(outdf)
+  }
+  if (.tree_too) {
+    return(list(tree = tree, df = outdf))
+  }
+}
+```
+
+
+Wrapper function for corCluster, repeatedly clusters list of environmental datasets
+
+```{r}
+# Wrapper function that converts named list of counts (from 1 experiment) into
+# tidy counts data frame with nGenes * nConditions * length(counts list) number of rows
+clusterCountsList <- function(.cts_list, .nClust = 4,
+                              .bootstrapIter = 100,
+                              .bootstrapFrac = 0.75,
+                              .min_var = var_thresh,
+                              .tree_too = FALSE,
+                              .gap_stat = FALSE,
+                              .just_counts = FALSE) {
+  # giving each ortholog a unique name: YGR192C becomes YGR192C_cer
+  cts <- map2(.cts_list, names(.cts_list), .f = \(x, nm) {
+    nm <- gsub("_.*", "", nm)
+    rownames(x) <- paste(nm, rownames(x), sep = "_")
+    return(x)
+  })
+  dfs <- map(cts, makeDf, .info = info, .join_by = "condition")
+  outdf <- purrr::reduce(dfs, bind_rows)
+  if (all(unlist(map(cts, \(x) {all(colnames(x) == colnames(cts[[1]]))})))) {
+    cat("counts are in same order, joining counts into single matrix\n")
+    cts <- purrr::reduce(cts, .f = rbind)
+  }
+  else {
+    cat("counts colnames don't match, returning counts list \n")
+    return(cts)
+  }
+  # after collapsing replicates, samples should be in the same condition order
+  # and able to be rbound
+  if (.just_counts) {
+    filtered_cts <- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+                               .just_counts = TRUE, .bootstrapIter = .bootstrapIter,
+                               .bootstrapFrac = .bootstrapFrac)
+    return(filtered_cts)
+  }
+  if (!.tree_too) {
+    labeldf <- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+                          .bootstrapIter = .bootstrapIter,
+                          .bootstrapFrac = .bootstrapFrac)
+    outdf <- left_join(outdf, labeldf, by = "gene_name")
+    return(outdf)
+  }
+  if (.tree_too) {
+    output <- corCluster(cts, .nClust = .nClust, .min_var = .min_var,
+                         .bootstrapIter = .bootstrapIter,
+                         .bootstrapFrac = .bootstrapFrac,
+                         .tree_too = TRUE)
+    output$df <- left_join(outdf, output$df, by = "gene_name")
+    return(output)
+  }
+}
+# tests for clusterCountsList
+# par is missing 1 condition versus cer
+testout <- clusterCountsList(list("cer_LowN" = counts_list$cer_LowN,
+                                  "par_LowN" = counts_list$par_LowN,
+                                  "hyc_LowN" = counts_list_allele$cer_LowN,
+                                  "hyp_LowN" = counts_list_allele$par_LowN),
+                             .bootstrapIter = 3, .min_var = 3)
+testout$gene_name[1:10]
+```
+
+## Clustering
+
+Running the heirarchical clustering using 2, 3, or 4 clusters per environment and a dispersion threshold of 1, 3, or 5 (using nClust=2 when modulating dispersion threshold)
+
+```{r clustering, cache=TRUE}
+# setting dispersion threshold
+var_thresh <- 3
+
+# clustering with nClust=2, disp=3
+clusterdf_list <- vector(mode = "list", length = 0)
+names(counts_list_allele) <- gsub(pattern = "cer", replacement = "hyc",
+                                  x = names(counts_list_allele)) |> 
+  gsub(pattern = "par", replacement = "hyp")
+combined_counts_list <- c(counts_list, counts_list_allele)
+# LowPi hybrid is missing a timepoint
+shared_lowpi_timepoints <- intersect(colnames(combined_counts_list$cer_LowPi),
+                                     colnames(combined_counts_list$hyc_LowPi))
+combined_counts_list$cer_LowPi <- combined_counts_list$cer_LowPi[,shared_lowpi_timepoints]
+combined_counts_list$par_LowPi <- combined_counts_list$par_LowPi[,shared_lowpi_timepoints]
+combined_counts_list$hyc_LowPi <- combined_counts_list$hyc_LowPi[,shared_lowpi_timepoints]
+combined_counts_list$hyp_LowPi <- combined_counts_list$hyp_LowPi[,shared_lowpi_timepoints]
+for (e in c("CC", "HAP4", "LowN", "LowPi", "Heat", "Cold")) {
+  cat("*********** working on 2 clusters disp=", var_thresh, "in", e, "*********** \n")
+  output <- clusterCountsList(combined_counts_list[grepl(e, names(combined_counts_list))], 
+                          .nClust = 2, 
+                          .tree_too = TRUE,
+                          .min_var = var_thresh)
+  clusterdf_list[[paste(e, 2, sep = "_")]] <- output
+}
+for (e in c("LowPi")) {
+  cat("*********** working on 2 clusters disp=", var_thresh, "in", e, "*********** \n")
+  output <- clusterCountsList(combined_counts_list[grepl(e, names(combined_counts_list))], 
+                          .nClust = 2, 
+                          .tree_too = TRUE,
+                          .min_var = var_thresh)
+  clusterdf_list[[paste(e, 2, sep = "_")]] <- output
+}
+
+# converting cluster lists to a dataframe
+getClusterCombination <- function(.clust_list) {
+  cluster_comb <- tibble()
+  for (nm in names(.clust_list)) {
+    e <- gsub("_.*", "", nm)
+    nclust <- gsub(".*_", "", nm)
+    e_clust <- .clust_list[[paste(e, nclust, sep = "_")]]$df |> 
+      dplyr::select(label, gene_name) |> 
+      distinct()
+    e_clust$gene_ID <- map(e_clust$gene_name, \(.g) {
+      return(gsub(".*_", "", .g))
+    }) |> unlist()
+    e_clust$species <- map(e_clust$gene_name, \(.g) {
+      return(gsub("_.*", "", .g))
+    }) |> unlist()
+    e_clust <- e_clust |> 
+      dplyr::select(gene_ID, species, label) |> 
+      pivot_wider(id_cols = gene_ID, names_from = species, values_from = label) |> 
+      mutate(experiment = e)
+    cluster_comb <- bind_rows(cluster_comb, e_clust)
+  }
+  return(cluster_comb)
+}
+clusterdf <- getClusterCombination(clusterdf_list)
+```
+
+## Saving for QC script
+
+```{r}
+save(clusterdf, clusterdf_list, file = "data_files/CorrelationClusteringParentsAndHybrid.RData")
+```
+

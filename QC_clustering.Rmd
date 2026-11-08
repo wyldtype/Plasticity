@@ -13,6 +13,10 @@ or
 
 2) a user-specified threshold for miniumum dispersion (variance/mean of expression) a gene can exhibit to be considered to have expression plasticity
 
+And
+
+3) How much clustering differs if hybrid and parents are clustered separately or together for each environment
+
 ...influence which genes are called as diverging in plasticity between species.
 
 ```{r package-loading, include=FALSE}
@@ -539,5 +543,46 @@ And total nGenes for paper figure:
 ```{r sometimes-static-5disp-ngenes}
 plotdf_sums
 ```
+
+# How much does clustering change if parents and hybrids are clustered separately vs together?
+
+```{r}
+# Parents + Hybrids Together, 3 Disp
+load("data_files/CorrelationClusteringParentsAndHybrid.RData")
+clusterdf_together <- clusterdf
+rm(clusterdf, clusterdf_list)
+# Parents, 3 Disp
+load("data_files/CorrelationClustering3Disp.RData")
+clusterdf_parents <- clusterdf
+rm(clusterdf, clusterdf_list)
+# Hybrids, 3 Disp
+load("data_files/CorrelationClustering3Disp_Allele.RData")
+rm(clusterdf_list_hyb)
+clusterdf_hyb <- dplyr::rename(clusterdf_hyb,
+                               "hyc"="cer",
+                               "hyp"="par")
+clusterdf_separate <- left_join(clusterdf_parents,
+                                clusterdf_hyb,
+                                by = c("gene_ID", "experiment"))
+plotdf <- bind_rows(x = pivot_longer(
+  clusterdf_together,
+  cols = c("cer", "par", "hyc", "hyp"),
+  names_to = "orgallele",
+  values_to = "cluster") |> 
+    mutate(type = "together"),
+  y = pivot_longer(
+    clusterdf_separate,
+    cols = c("cer", "par", "hyc", "hyp"),
+    names_to = "orgallele",
+    values_to = "cluster") |> 
+    mutate(type = "separate")) |> 
+  pivot_wider(id_cols = c("gene_ID", "experiment", "orgallele"),
+              names_from = "type", values_from = "cluster")
+cat("proportion of genes in the same cluster when parents are clustered with hybrids or separately:\n")
+sum(plotdf$together == plotdf$separate)/nrow(plotdf)
+filter(plotdf, together != separate) |> 
+  dplyr::select(orgallele, separate, experiment) |> table()
+```
+
 
 
